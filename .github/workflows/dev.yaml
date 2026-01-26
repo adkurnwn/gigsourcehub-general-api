@@ -1,0 +1,98 @@
+name: Deploy Dev on Dokploy
+
+on:
+  push:
+    branches: ["dev"]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: "ghcr.io/${{ github.repository }}:${{ github.head_ref || github.ref_name }}-${{ github.sha }}"
+
+jobs:
+  build_dev:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    if: contains(github.ref, 'dev')
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lowercase Repository Name
+        run: |
+          echo "IMAGE_NAME=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          file: Dockerfile
+          tags: ${{ env.IMAGE_NAME }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          
+  deploy_dev:
+    name: Deploy Development
+    runs-on: ubuntu-latest
+    needs: build_dev
+    permissions:
+      contents: read
+    env:
+      DOKPLOY_API_URL: ${{ secrets.DEV_DOKPLOY_API_URL }}
+      DOKPLOY_TOKEN: ${{ secrets.DEV_DOKPLOY_TOKEN }}
+      DOKPLOY_APP_ID: ${{ vars.DEV_DOKPLOY_APP_ID }}
+    steps:
+      - name: Lowercase Repository Name
+        run: |
+          echo "IMAGE_NAME=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Get data from Dokploy
+        id: dokployProjects
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: "${{ env.DOKPLOY_API_URL }}/application.one?applicationId=${{ env.DOKPLOY_APP_ID }}"
+          method: "GET"
+          customHeaders: '{"x-api-key": "${{ env.DOKPLOY_TOKEN }}"}'
+          responseFile: "./res.json"
+
+      - name: Retrieve Application ID and Registry Credentials
+        id: parsingResult
+        run: |
+          application=$(cat res.json | jq)
+          echo "application_id=$(echo $application | jq -r '.applicationId')" >> $GITHUB_OUTPUT
+          echo "cr_username=$(echo $application | jq -r '.username')" >> $GITHUB_OUTPUT
+          echo "cr_password=$(echo $application | jq -r '.password')" >> $GITHUB_OUTPUT
+
+      - name: Update Application on Dokploy
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: "${{ env.DOKPLOY_API_URL }}/application.saveDockerProvider"
+          method: "POST"
+          customHeaders: '{"x-api-key": "${{ env.DOKPLOY_TOKEN }}"}'
+          data: '{
+            "registryUrl": "ghcr.io",
+            "dockerImage": "${{ env.IMAGE_NAME }}",
+            "applicationId": "${{ steps.parsingResult.outputs.application_id }}",
+            "username": "${{ steps.parsingResult.outputs.cr_username }}",
+            "password": "${{ steps.parsingResult.outputs.cr_password }}"
+            }'
+
+      - name: Deploy Application
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: "${{ env.DOKPLOY_API_URL }}/application.deploy"
+          method: "POST"
+          customHeaders: '{"x-api-key": "${{ env.DOKPLOY_TOKEN }}"}'
+          data: '{"applicationId": "${{ steps.parsingResult.outputs.application_id }}"}'
