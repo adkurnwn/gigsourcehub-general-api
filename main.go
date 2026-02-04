@@ -1,47 +1,57 @@
 package main
 
 import (
+	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
+	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
+	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
+	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
+	"github.com/adkurnwn/gigsourcehub-general-api/docs"
+
+	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
-	"github.com/adkurnwn/gigsourcehub-general-api/app/auth"
-	"github.com/adkurnwn/gigsourcehub-general-api/app/middleware"
-	"github.com/adkurnwn/gigsourcehub-general-api/app/router"
-	"github.com/adkurnwn/gigsourcehub-general-api/app/user"
-	"github.com/adkurnwn/gigsourcehub-general-api/config"
-	"github.com/adkurnwn/gigsourcehub-general-api/docs"
-	_ "github.com/adkurnwn/gigsourcehub-general-api/docs"
-	postgre_pkg "github.com/adkurnwn/gigsourcehub-general-api/pkg/postgre"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	"gopkg.in/natefinch/lumberjack.v2"
+	"gorm.io/gorm/logger"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
+
+	swaggerFiles "github.com/swaggo/files"     // swagger embed files
+	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )
 
 func init() {
 	_ = godotenv.Load()
 }
 
+//	@contact.name	API Support
+//	@contact.url	http://www.swagger.io/support
+//	@contact.email	support@swagger.io
+
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+
+//	@securityDefinitions.apikey	BearerAuth
+//	@in							header
+//	@name						Authorization
+//	@description				Insert JWT Token with format: **Bearer {your token}**
+
 func main() {
-	appName := os.Getenv("APP_NAME")
-	if appName == "" {
-		appName = "Gigsource Hub General API"
-	}
-	scheme := "http"
-	if os.Getenv("APP_ENV") == "production" {
-		scheme = "https"
-	}
-	docs.SwaggerInfo.Title = appName
-	docs.SwaggerInfo.Description = "API Documentations"
+	// programmatically set swagger info
+	docs.SwaggerInfo.Title = "Swagger Golang API"
+	docs.SwaggerInfo.Description = "Documentations"
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = os.Getenv("SWAGGER_HOST")
+	docs.SwaggerInfo.Host = fmt.Sprintf("%s:%s", os.Getenv("HOST"), os.Getenv("PORT"))
 	docs.SwaggerInfo.BasePath = "/"
-	docs.SwaggerInfo.Schemes = []string{scheme}
+	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	timeoutStr := os.Getenv("TIMEOUT")
 	if timeoutStr == "" {
@@ -56,59 +66,84 @@ func main() {
 		writers = append(writers, os.Stdout)
 	}
 
+	if logFILE, _ := strconv.ParseBool(os.Getenv("LOG_TO_FILE")); logFILE {
+		logMaxSize, _ := strconv.Atoi(os.Getenv("LOG_MAX_SIZE"))
+		if logMaxSize == 0 {
+			logMaxSize = 50 //default 50 megabytes
+		}
+
+		logFilename := os.Getenv("LOG_FILENAME")
+		if logFilename == "" {
+			logFilename = "server.log"
+		}
+
+		lg := &lumberjack.Logger{
+			Filename:   logFilename,
+			MaxSize:    logMaxSize,
+			MaxBackups: 1,
+			LocalTime:  true,
+		}
+
+		writers = append(writers, lg)
+	}
+
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	logrus.SetOutput(io.MultiWriter(writers...))
 
 	// set gin writer to logrus
 	gin.DefaultWriter = logrus.StandardLogger().Writer()
 
-	postgre := config.ConnectDB()
-	postgre_pkg.AutoMigrateDB(postgre, postgre_pkg.GetAllModels()...)
+	// init potgresql database (use sqlx + pgx stdlib)
+	db, err := sqlx.ConnectContext(context.Background(), "pgx", os.Getenv("POSTGRES_URL"))
+	if err != nil {
+		logrus.Fatalf("failed to connect to postgres: %v", err)
+	}
+	// psqlPrep previously came from yureka_sql; use db directly
+	psqlPrep := db
 
-	// Initialize repositories
-	userRepo := user.NewPostgreRepository(postgre)
-	authRepo := auth.NewRepository(postgre)
+	// init repo
+	repo := gormrepo.NewGormRepo(psqlPrep, logger.Default)
 
-	// Initialize services
-	authService := auth.NewService(userRepo, authRepo, timeoutContext)
+	// init usecase
+	ucMember := usecase_member.NewAppUsecase(usecase_member.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
 
-	// Initialize handlers
-	authHandler := auth.NewHandler(authService)
+	// init middleware — pass nil redis client
+	mdl := middleware.NewMiddleware(nil)
 
-	// Initialize middleware
-	appMiddleware := middleware.NewAppMiddleware()
-
-	if os.Getenv("APP_ENV") == "production" || os.Getenv("APP_ENV") == "prod" {
+	// gin mode realease when go env is production
+	if os.Getenv("GO_ENV") == "production" || os.Getenv("GO_ENV") == "prod" {
 		gin.SetMode(gin.ReleaseMode)
 	}
+
+	// init gin
 	ginEngine := gin.New()
 
-	// Apply middleware
-	ginEngine.Use(appMiddleware.RecoveryHandler())
-	ginEngine.Use(appMiddleware.LoggerHandler(io.MultiWriter(writers...)))
+	// add exception handler
+	ginEngine.Use(mdl.Recovery())
 
-	ginEngine.Use(cors.New(cors.Config{
-		AllowAllOrigins:  true,
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "X-Ticket-Token"},
-		AllowCredentials: true,
-		ExposeHeaders:    []string{"Content-Length"},
-		MaxAge:           12 * time.Hour,
-	}))
+	// add logger
+	ginEngine.Use(mdl.Logger(io.MultiWriter(writers...)))
 
-	// Initialize router
-	appRouter := router.NewRouter(authHandler, appMiddleware)
-	appRouter.SetupRoutes(ginEngine)
+	// cors
+	ginEngine.Use(mdl.Cors())
 
-	// Basic routes
-	ginEngine.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, map[string]any{
-			"message": "API is working!",
+	// default route
+	ginEngine.GET("/", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, map[string]any{
+			"message": "It works",
 		})
 	})
-	ginEngine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	// swagger route
+	ginEngine.GET("/swg/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	// init route
+	http_member.NewRouteHandler(ginEngine.Group(""), mdl, ucMember)
 
 	port := os.Getenv("PORT")
+
 	logrus.Infof("Service running on port %s", port)
 	ginEngine.Run(":" + port)
 }

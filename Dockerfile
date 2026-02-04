@@ -1,27 +1,27 @@
-# Use a stable Go version (adjust to 1.21 or 1.22 if needed for compatibility)
-FROM golang:1.25-alpine AS builder
+# builder
+FROM golang:1.24 AS builder
 
-# Set destination for COPY
-WORKDIR /app
+# change workdir
+WORKDIR /home
 
-# Copy go.mod and go.sum first for better caching
+# add go modules lockfiles
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy the entire source code (including subdirectories)
-COPY . ./
+COPY . .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o main .
+# build a fully standalone binary with zero dependencies
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o build-app main.go
 
-# Use a minimal runtime image for the final stage (optional but recommended for security/smaller size)
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates
-WORKDIR /root/
-COPY --from=builder /app/main .
+# final image
+FROM alpine
 
-# Expose the default port (matches your app's default)
-EXPOSE 8080
+## Copy the pre-built binary file from the previous stage
+COPY --from=builder /home/build-app .
+COPY --from=builder /usr/local/go/lib/time/zoneinfo.zip /
 
-# Run the binary
-CMD ["./main"]
+ENV ZONEINFO=/zoneinfo.zip
+
+EXPOSE 5050
+
+ENTRYPOINT ["/build-app"]
