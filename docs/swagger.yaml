@@ -1,50 +1,34 @@
 definitions:
-  auth.ForgetPasswordRequest:
+  gorm_model.UserResp:
     properties:
+      created_at:
+        type: string
       email:
         type: string
-    required:
-    - email
-    type: object
-  auth.LoginRequest:
-    properties:
-      email:
+      id:
         type: string
-      password:
-        minLength: 6
+      name:
         type: string
-    required:
-    - email
-    - password
+      updated_at:
+        type: string
     type: object
-  auth.RegisterRequest:
+  request_model.LoginRequest:
     properties:
       email:
         type: string
       password:
-        minLength: 6
         type: string
-      username:
-        maxLength: 50
-        minLength: 3
-        type: string
-    required:
-    - email
-    - password
-    - username
     type: object
-  auth.ResetPasswordRequest:
+  request_model.RegisterRequest:
     properties:
-      new_password:
-        minLength: 6
+      email:
         type: string
-      token:
+      name:
         type: string
-    required:
-    - new_password
-    - token
+      password:
+        type: string
     type: object
-  pkg.Response:
+  response.Base:
     properties:
       data: {}
       message:
@@ -56,95 +40,186 @@ definitions:
           type: string
         type: object
     type: object
+  response.List:
+    properties:
+      limit:
+        type: integer
+      list:
+        items: {}
+        type: array
+      page:
+        type: integer
+      total:
+        type: integer
+    type: object
 info:
-  contact: {}
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
 paths:
-  /api/auth/forget-password:
+  /auth/login:
     post:
       consumes:
       - application/json
-      description: Send password reset email
+      description: Login use email and password
       parameters:
-      - description: Forget Password
+      - description: Login Request
         in: body
-        name: payload
+        name: request
         required: true
         schema:
-          $ref: '#/definitions/auth.ForgetPasswordRequest'
+          $ref: '#/definitions/request_model.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/pkg.Response'
-      summary: Forget Password
+            $ref: '#/definitions/gorm_model.UserResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Login as member
       tags:
-      - Auth
-  /api/auth/login:
-    post:
+      - auth
+  /auth/me:
+    get:
       consumes:
       - application/json
-      description: Login to user account
-      parameters:
-      - description: Login User
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/auth.LoginRequest'
+      description: Get detail current member
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/pkg.Response'
-      summary: Login User
-      tags:
-      - Auth
-  /api/auth/register:
-    post:
-      consumes:
-      - application/json
-      description: Register a new user account
-      parameters:
-      - description: Register User
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/auth.RegisterRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
+            $ref: '#/definitions/gorm_model.UserResp'
+        "400":
+          description: Bad Request
           schema:
-            $ref: '#/definitions/pkg.Response'
-      summary: Register User
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Detail member
       tags:
-      - Auth
-  /api/auth/reset-password:
+      - auth
+  /auth/register:
     post:
       consumes:
       - application/json
-      description: Reset password using token
+      description: Create a new member
       parameters:
-      - description: Reset Password
+      - description: Register Request
         in: body
-        name: payload
+        name: request
         required: true
         schema:
-          $ref: '#/definitions/auth.ResetPasswordRequest'
+          $ref: '#/definitions/request_model.RegisterRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/pkg.Response'
-      summary: Reset Password
+            $ref: '#/definitions/gorm_model.UserResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Register member
       tags:
-      - Auth
+      - auth
+  /sample/user/detail/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get Detail member by id
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gorm_model.UserResp'
+      security:
+      - BearerAuth: []
+      summary: Detail member
+      tags:
+      - sample
+  /sample/user/export:
+    get:
+      consumes:
+      - application/json
+      description: Export data member
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: base64 encoded
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Export member
+      tags:
+      - sample
+  /sample/user/list:
+    get:
+      consumes:
+      - application/json
+      description: Get list all member
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.List'
+      security:
+      - BearerAuth: []
+      summary: List member
+      tags:
+      - sample
+securityDefinitions:
+  BearerAuth:
+    description: 'Insert JWT Token with format: **Bearer {your token}**'
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
