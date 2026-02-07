@@ -18,19 +18,40 @@ services:
       timeout: 5s
       retries: 5
 
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: gigsource-general-api
+  minio:
+    image: minio/minio:RELEASE.2025-02-18T16-25-55Z
+    container_name: gigsource-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: password123
     ports:
-      - "8080:8080"
-    env_file:
-      - .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
+      - "9000:9000" # S3 API
+      - "9001:9001" # Console UI
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data_gigsource:/data
+    healthcheck:
+      test: ["CMD-SHELL", "mc admin info minio"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: gigsource-general-api
+  #   ports:
+  #     - "8080:8080"
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+
+
 
 volumes:
   postgres_data:
+  minio_data_gigsource:

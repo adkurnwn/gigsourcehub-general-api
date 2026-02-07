@@ -158,6 +158,37 @@ paths:
       summary: Register member
       tags:
       - auth
+  /cv/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload CV
+      parameters:
+      - description: CV file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Upload CV
+      tags:
+      - CV
   /sample/user/detail/{id}:
     get:
       consumes:

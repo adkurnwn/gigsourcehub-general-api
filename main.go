@@ -1,9 +1,12 @@
 package main
 
 import (
+	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
 	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
 	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
+	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
+	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
 	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
 
@@ -109,6 +112,12 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init storage repo
+	storageRepo := s3repo.NewS3Repo()
+
+	// init cv usecase
+	ucCV := usecase_cv.NewCVUsecase(repo, storageRepo, timeoutContext)
+
 	// init middleware — pass nil redis client
 	mdl := middleware.NewMiddleware(nil)
 
@@ -141,6 +150,7 @@ func main() {
 
 	// init route
 	http_member.NewRouteHandler(ginEngine.Group(""), mdl, ucMember)
+	http_cv.NewCVHandler(ginEngine.Group(""), mdl, ucCV)
 
 	port := os.Getenv("PORT")
 
