@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
@@ -19,14 +20,16 @@ type CVUsecase interface {
 
 type cvUsecase struct {
 	gormRepo    domain.GormRepo
-	storageRepo domain.StorageRepo // <--- Inject Storage Repo
+	storageRepo domain.StorageRepo
+	mqRepo      domain.MessageBroker // <--- Inject MessageBroker
 	timeout     time.Duration
 }
 
-func NewCVUsecase(gormRepo domain.GormRepo, storageRepo domain.StorageRepo, timeout time.Duration) CVUsecase {
+func NewCVUsecase(gormRepo domain.GormRepo, storageRepo domain.StorageRepo, mqRepo domain.MessageBroker, timeout time.Duration) CVUsecase {
 	return &cvUsecase{
 		gormRepo:    gormRepo,
 		storageRepo: storageRepo,
+		mqRepo:      mqRepo,
 		timeout:     timeout,
 	}
 }
@@ -58,6 +61,26 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 	if err := u.gormRepo.CreateCV(ctx, cv); err != nil {
 		return response.Error(http.StatusInternalServerError, "db save failed")
 	}
+
+	// 4. Publish Event
+	go func() {
+		// Use a detached context or background context for async publishing
+		// to avoid cancellation if the request context is cancelled.
+		// However, for simplicity here, we might just log validation errors.
+		// A robust solution would use an outbox pattern or a separate worker.
+		// Here we just fire and forget with a new context.
+		bgCtx := context.Background()
+		err := u.mqRepo.Publish(bgCtx, os.Getenv("RABBITMQ_QUEUE_CV_UPLOAD"), map[string]interface{}{
+			"event":   "cv_uploaded",
+			"user_id": userID,
+			"cv_id":   cv.ID,
+			"path":    cv.Path,
+			"time":    time.Now(),
+		})
+		if err != nil {
+			fmt.Printf("failed to publish message: %v\n", err)
+		}
+	}()
 
 	return response.Success(cv.ToCVResp())
 }

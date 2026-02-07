@@ -36,6 +36,20 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: gigsource-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data_gigsource:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # app:
   #   build:
   #     context: .
@@ -55,3 +69,4 @@ services:
 volumes:
   postgres_data:
   minio_data_gigsource:
+  rabbitmq_data_gigsource:
