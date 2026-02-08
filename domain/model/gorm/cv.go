@@ -1,6 +1,8 @@
 package gorm_model
 
 import (
+	"fmt"
+	"os"
 	"time"
 
 	"gorm.io/gorm"
@@ -44,10 +46,15 @@ type CVResp struct {
 }
 
 func (row *CV) ToCVResp() CVResp {
+	path := row.Path
+	// If path is relative (doesn't start with http), prepend public url
+	if len(path) > 0 && path[0] != 'h' {
+		path = fmt.Sprintf("%s/%s", os.Getenv("S3_PUBLIC_URL"), row.Path)
+	}
 	return CVResp{
 		ID:        row.ID,
 		Name:      row.Name,
-		Path:      row.Path,
+		Path:      path,
 		CreatedAt: row.CreatedAt,
 		UpdatedAt: row.UpdatedAt,
 	}
