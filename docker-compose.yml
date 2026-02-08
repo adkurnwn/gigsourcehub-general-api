@@ -17,6 +17,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - gigsource_network
 
   minio:
     image: minio/minio:RELEASE.2025-02-18T16-25-55Z
@@ -35,6 +37,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - gigsource_network
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -49,6 +53,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - gigsource_network
 
   # app:
   #   build:
@@ -70,3 +76,7 @@ volumes:
   postgres_data:
   minio_data_gigsource:
   rabbitmq_data_gigsource:
+
+networks:
+  gigsource_network:
+    external: true
