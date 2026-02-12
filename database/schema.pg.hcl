@@ -40,3 +40,49 @@ table "users" {
     columns = [column.deleted_at]
   }
 }
+
+table "cvs" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "name" {
+    type = varchar(255)
+    null = false
+  }
+  column "path" {
+    type = varchar(255)
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  column "user_id" {
+    type = uuid
+    null = false
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_cvs_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_cvs_user_id" {
+    columns = [column.user_id]
+  }
+}
+

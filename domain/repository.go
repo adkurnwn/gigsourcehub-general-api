@@ -1,17 +1,17 @@
 package domain
 
 import (
-	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
-	sql_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/sql"
-	storage_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/storage"
 	"context"
 	"database/sql"
 	"io"
 	"time"
 
+	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
+	sql_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/sql"
+	storage_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/storage"
+
 	"github.com/jmoiron/sqlx"
 )
-
 
 type SqlRepo interface {
 	FetchUser(ctx context.Context, options sql_model.UserFilter) (*sqlx.Rows, error)
@@ -26,6 +26,9 @@ type GormRepo interface {
 	FetchOneUser(ctx context.Context, options gorm_model.UserFilter) (*gorm_model.User, error)
 	CountUser(ctx context.Context, options gorm_model.UserFilter) int64
 	CreateUser(ctx context.Context, model *gorm_model.User) (err error)
+
+	CreateCV(ctx context.Context, cv *gorm_model.CV) error
+	FetchCVs(ctx context.Context, userID string) ([]gorm_model.CV, error)
 }
 
 type CacheRepo interface {
@@ -40,4 +43,9 @@ type StorageRepo interface {
 	GetPublicLink(objectKey string) string
 	UploadFilePublic(objectKey string, body io.Reader, contentType string) (uploadData *storage_model.UploadResponse, err error)
 	UploadFilePrivate(objectKey string, body io.Reader, contentType string, expires *time.Duration) (uploadData *storage_model.UploadResponse, err error)
+}
+
+type MessageBroker interface {
+	Publish(ctx context.Context, queueName string, message interface{}) error
+	Close() error
 }

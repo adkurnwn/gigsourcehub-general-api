@@ -38,7 +38,24 @@ func NewS3Repo() domain.StorageRepo {
 	// Create an Amazon S3 service client
 	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
 		o.BaseEndpoint = aws.String(os.Getenv("S3_ENDPOINT"))
+		o.UsePathStyle = true
 	})
+
+	bucketName := os.Getenv("S3_BUCKET_NAME")
+	_, err := client.HeadBucket(context.TODO(), &s3.HeadBucketInput{
+		Bucket: aws.String(bucketName),
+	})
+	if err != nil {
+		logrus.Infof("s3: bucket %s not found, creating...", bucketName)
+		_, err = client.CreateBucket(context.TODO(), &s3.CreateBucketInput{
+			Bucket: aws.String(bucketName),
+		})
+		if err != nil {
+			logrus.Errorf("s3: failed to create bucket %s: %v", bucketName, err)
+		} else {
+			logrus.Infof("s3: bucket %s created", bucketName)
+		}
+	}
 
 	publicURL, err := url.Parse(os.Getenv("S3_PUBLIC_URL"))
 	if err != nil {

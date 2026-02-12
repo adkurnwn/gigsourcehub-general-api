@@ -1,9 +1,13 @@
 package main
 
 import (
+	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
 	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
 	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
+	rabbitmqrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/rabbitmq"
+	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
+	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
 	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
 
@@ -109,6 +113,22 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init storage repo
+	storageRepo := s3repo.NewS3Repo()
+
+	// init mq repo
+	mqRepo, err := rabbitmqrepo.NewRabbitMQRepo(os.Getenv("RABBITMQ_URL"))
+	if err != nil {
+		logrus.Errorf("failed to init rabbitmq: %v", err)
+		// Don't fatal, just log, so app can start without rabbitmq if needed
+		// or handle gracefully. For now, we proceed but publishing will fail.
+	} else {
+		defer mqRepo.Close()
+	}
+
+	// init cv usecase
+	ucCV := usecase_cv.NewCVUsecase(repo, storageRepo, mqRepo, timeoutContext)
+
 	// init middleware — pass nil redis client
 	mdl := middleware.NewMiddleware(nil)
 
@@ -141,6 +161,7 @@ func main() {
 
 	// init route
 	http_member.NewRouteHandler(ginEngine.Group(""), mdl, ucMember)
+	http_cv.NewCVHandler(ginEngine.Group(""), mdl, ucCV)
 
 	port := os.Getenv("PORT")
 
