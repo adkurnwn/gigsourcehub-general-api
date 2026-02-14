@@ -86,3 +86,75 @@ table "cvs" {
   }
 }
 
+table "sectors" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "name" {
+    type = varchar(255)
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_sectors_deleted_at" {
+    columns = [column.deleted_at]
+  }
+}
+
+table "roles" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "name" {
+    type = varchar(255)
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  column "sector_id" {
+    type = uuid
+    null = false
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_roles_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_roles_sector_id" {
+    columns = [column.sector_id]
+  }
+}
