@@ -6,6 +6,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/adkurnwn/gigsourcehub-general-api/domain/model"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	storage_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/storage"
 )
@@ -38,4 +39,8 @@ type StorageRepo interface {
 type MessageBroker interface {
 	Publish(ctx context.Context, queueName string, message interface{}) error
 	Close() error
+}
+
+type AISearchRepository interface {
+	Search(ctx context.Context, query string) ([]model.SearchResult, error)
 }

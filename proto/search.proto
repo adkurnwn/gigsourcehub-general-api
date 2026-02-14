@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package search;
+
+option go_package = "./proto/pb";
+
+service SearchService {
+  rpc Search (SearchRequest) returns (SearchResponse);
+}
+
+message SearchRequest {
+  string query = 1;
+  // Add other filters if necessary
+}
+
+message SearchResult {
+  string id = 1;
+  string content = 2;
+  float score = 3;
+  // Add metadata or other fields as needed
+}
+
+message SearchResponse {
+  repeated SearchResult results = 1;
+  string message = 2;
+}

@@ -4,11 +4,14 @@ import (
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
 	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
+	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
+	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
 	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
 	rabbitmqrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/rabbitmq"
 	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
 	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
+	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
 
 	"context"
@@ -162,6 +165,16 @@ func main() {
 	// init route
 	http_member.NewRouteHandler(ginEngine.Group(""), mdl, ucMember)
 	http_cv.NewCVHandler(ginEngine.Group(""), mdl, ucCV)
+
+	// init search (AI)
+	aiRepo, err := aisearchrepo.NewAISearchRepository(os.Getenv("AI_API_URL"))
+	if err != nil {
+		logrus.Errorf("failed to init ai search repo: %v", err)
+	} else {
+		// defer aiRepo.Close() // In a real app we might want to close on shutdown, but here we keep it open
+		ucSearch := usecase_search.NewSearchUsecase(aiRepo, timeoutContext)
+		http_search.NewSearchHandler(ginEngine.Group(""), mdl, ucSearch)
+	}
 
 	port := os.Getenv("PORT")
 

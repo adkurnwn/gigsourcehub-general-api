@@ -28,6 +28,13 @@ definitions:
       password:
         type: string
     type: object
+  request_model.SearchRequest:
+    properties:
+      query:
+        type: string
+    required:
+    - query
+    type: object
   response.Base:
     properties:
       data: {}
@@ -177,6 +184,38 @@ paths:
       summary: Upload CV
       tags:
       - CV
+  /search:
+    post:
+      consumes:
+      - application/json
+      description: Search for items
+      parameters:
+      - description: Search Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.SearchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Search
+      tags:
+      - Search
 securityDefinitions:
   BearerAuth:
     description: 'Insert JWT Token with format: **Bearer {your token}**'
