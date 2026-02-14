@@ -3,7 +3,6 @@ package usecase_member
 import (
 	"context"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
@@ -17,18 +16,6 @@ import (
 )
 
 // add minimal implementations so appUsecase implements domain.MemberAppUsecase
-
-func (u *appUsecase) SampleUserList(ctx context.Context, claim domain.JWTClaimUser, query url.Values) response.Base {
-	return response.Error(http.StatusNotImplemented, "not implemented")
-}
-
-func (u *appUsecase) SampleUserDetail(ctx context.Context, claim domain.JWTClaimUser, id string) response.Base {
-	return response.Error(http.StatusNotImplemented, "not implemented")
-}
-
-func (u *appUsecase) SampleUserExport(ctx context.Context, claim domain.JWTClaimUser, query url.Values) response.Base {
-	return response.Error(http.StatusNotImplemented, "not implemented")
-}
 
 func (u *appUsecase) Login(ctx context.Context, payload request_model.LoginRequest) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)

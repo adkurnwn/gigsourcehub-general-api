@@ -28,6 +28,13 @@ definitions:
       password:
         type: string
     type: object
+  request_model.SearchRequest:
+    properties:
+      query:
+        type: string
+    required:
+    - query
+    type: object
   response.Base:
     properties:
       data: {}
@@ -39,18 +46,6 @@ definitions:
         additionalProperties:
           type: string
         type: object
-    type: object
-  response.List:
-    properties:
-      limit:
-        type: integer
-      list:
-        items: {}
-        type: array
-      page:
-        type: integer
-      total:
-        type: integer
     type: object
 info:
   contact:
@@ -189,64 +184,38 @@ paths:
       summary: Upload CV
       tags:
       - CV
-  /sample/user/detail/{id}:
-    get:
+  /search:
+    post:
       consumes:
       - application/json
-      description: Get Detail member by id
+      description: Search for items
       parameters:
-      - description: User ID
-        in: path
-        name: id
+      - description: Search Request
+        in: body
+        name: request
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/request_model.SearchRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/gorm_model.UserResp'
-      security:
-      - BearerAuth: []
-      summary: Detail member
-      tags:
-      - sample
-  /sample/user/export:
-    get:
-      consumes:
-      - application/json
-      description: Export data member
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: base64 encoded
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Export member
-      tags:
-      - sample
-  /sample/user/list:
-    get:
-      consumes:
-      - application/json
-      description: Get list all member
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.List'
+            $ref: '#/definitions/response.Base'
       security:
       - BearerAuth: []
-      summary: List member
+      summary: Search
       tags:
-      - sample
+      - Search
 securityDefinitions:
   BearerAuth:
     description: 'Insert JWT Token with format: **Bearer {your token}**'

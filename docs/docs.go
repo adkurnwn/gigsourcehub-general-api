@@ -222,14 +222,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/sample/user/detail/{id}": {
-            "get": {
+        "/search": {
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get Detail member by id",
+                "description": "Search for items",
                 "consumes": [
                     "application/json"
                 ],
@@ -237,80 +237,37 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "sample"
+                    "Search"
                 ],
-                "summary": "Detail member",
+                "summary": "Search",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
+                        "description": "Search Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.SearchRequest"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/gorm_model.UserResp"
+                            "$ref": "#/definitions/response.Base"
                         }
-                    }
-                }
-            }
-        },
-        "/sample/user/export": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Export data member",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "sample"
-                ],
-                "summary": "Export member",
-                "responses": {
-                    "200": {
-                        "description": "base64 encoded",
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.Base"
                         }
-                    }
-                }
-            }
-        },
-        "/sample/user/list": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get list all member",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "sample"
-                ],
-                "summary": "List member",
-                "responses": {
-                    "200": {
-                        "description": "OK",
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.List"
+                            "$ref": "#/definitions/response.Base"
                         }
                     }
                 }
@@ -363,6 +320,17 @@ const docTemplate = `{
                 }
             }
         },
+        "request_model.SearchRequest": {
+            "type": "object",
+            "required": [
+                "query"
+            ],
+            "properties": {
+                "query": {
+                    "type": "string"
+                }
+            }
+        },
         "response.Base": {
             "type": "object",
             "properties": {
@@ -378,24 +346,6 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "response.List": {
-            "type": "object",
-            "properties": {
-                "limit": {
-                    "type": "integer"
-                },
-                "list": {
-                    "type": "array",
-                    "items": {}
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
                 }
             }
         }
