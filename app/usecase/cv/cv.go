@@ -66,16 +66,20 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 	go func() {
 		// Use a detached context or background context for async publishing
 		// to avoid cancellation if the request context is cancelled.
-		// However, for simplicity here, we might just log validation errors.
-		// A robust solution would use an outbox pattern or a separate worker.
-		// Here we just fire and forget with a new context.
+
+		if u.mqRepo == nil {
+			fmt.Println("mqRepo is nil, skipping event publishing")
+			return
+		}
+
 		bgCtx := context.Background()
+		// Here we just fire and forget with a new context.
 		err := u.mqRepo.Publish(bgCtx, os.Getenv("RABBITMQ_QUEUE_CV_UPLOAD"), map[string]interface{}{
-			"event":   "cv_uploaded",
-			"user_id": userID,
-			"cv_id":   cv.ID,
-			"path":    cv.Path,
-			"time":    time.Now(),
+			"event":       "cv_uploaded",
+			"user_id":     userID,
+			"cv_id":       cv.ID,
+			"path":        cv.Path,
+			"uploaded_at": time.Now(),
 		})
 		if err != nil {
 			fmt.Printf("failed to publish message: %v\n", err)

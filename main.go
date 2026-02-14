@@ -157,7 +157,7 @@ func main() {
 	})
 
 	// swagger route
-	ginEngine.GET("/swg/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	ginEngine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// init route
 	http_member.NewRouteHandler(ginEngine.Group(""), mdl, ucMember)
