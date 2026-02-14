@@ -40,18 +40,6 @@ definitions:
           type: string
         type: object
     type: object
-  response.List:
-    properties:
-      limit:
-        type: integer
-      list:
-        items: {}
-        type: array
-      page:
-        type: integer
-      total:
-        type: integer
-    type: object
 info:
   contact:
     email: support@swagger.io
@@ -189,64 +177,6 @@ paths:
       summary: Upload CV
       tags:
       - CV
-  /sample/user/detail/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Get Detail member by id
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/gorm_model.UserResp'
-      security:
-      - BearerAuth: []
-      summary: Detail member
-      tags:
-      - sample
-  /sample/user/export:
-    get:
-      consumes:
-      - application/json
-      description: Export data member
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: base64 encoded
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Export member
-      tags:
-      - sample
-  /sample/user/list:
-    get:
-      consumes:
-      - application/json
-      description: Get list all member
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.List'
-      security:
-      - BearerAuth: []
-      summary: List member
-      tags:
-      - sample
 securityDefinitions:
   BearerAuth:
     description: 'Insert JWT Token with format: **Bearer {your token}**'
