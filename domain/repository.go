@@ -7,18 +7,8 @@ import (
 	"time"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
-	sql_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/sql"
 	storage_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/storage"
-
-	"github.com/jmoiron/sqlx"
 )
-
-type SqlRepo interface {
-	FetchUser(ctx context.Context, options sql_model.UserFilter) (*sqlx.Rows, error)
-	FetchOneUser(ctx context.Context, options sql_model.UserFilter) (*sql_model.User, error)
-	CountUser(ctx context.Context, options sql_model.UserFilter) int64
-	CreateUser(ctx context.Context, model *sql_model.User) (err error)
-}
 
 type GormRepo interface {
 	StructScan(rows *sql.Rows, dest any) error
