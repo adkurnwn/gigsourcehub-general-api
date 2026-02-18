@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -56,7 +57,26 @@ func main() {
 	docs.SwaggerInfo.Title = "Swagger Golang API"
 	docs.SwaggerInfo.Description = "Documentations"
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = fmt.Sprintf("%s:%s", os.Getenv("HOST"), os.Getenv("PORT"))
+
+	// Use APP_URL if set, otherwise fallback to HOST:PORT
+	appURL := os.Getenv("APP_URL")
+	if appURL != "" {
+		// Parse APP_URL to extract scheme and host
+		u, err := url.Parse(appURL)
+		if err == nil {
+			docs.SwaggerInfo.Host = u.Host
+			docs.SwaggerInfo.Schemes = []string{u.Scheme}
+		} else {
+			logrus.Warnf("Failed to parse APP_URL: %v, falling back to HOST:PORT", err)
+			docs.SwaggerInfo.Host = fmt.Sprintf("%s:%s", os.Getenv("HOST"), os.Getenv("PORT"))
+			docs.SwaggerInfo.Schemes = []string{"http", "https"}
+		}
+	} else {
+		// Fallback to HOST:PORT
+		docs.SwaggerInfo.Host = fmt.Sprintf("%s:%s", os.Getenv("HOST"), os.Getenv("PORT"))
+		docs.SwaggerInfo.Schemes = []string{"http", "https"}
+	}
+
 	docs.SwaggerInfo.BasePath = "/"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
