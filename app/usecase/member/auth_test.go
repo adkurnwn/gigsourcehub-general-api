@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
-	"github.com/adkurnwn/gigsourcehub-general-api/mocks"
 	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
+	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
+	"github.com/adkurnwn/gigsourcehub-general-api/mocks"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -44,6 +44,11 @@ func (suite *UnitTestSuite) SetupTest() {
 	gormDbRepo.On("FetchOneUser", mock.Anything, gorm_model.UserFilter{
 		Email: &emailNotFound,
 	}).Return(nil, nil)
+
+	// mock the newly added methods to satisfy the interface, even if unused in this test file
+	gormDbRepo.On("GetDB").Return(nil)
+	gormDbRepo.On("GetCVByID", mock.Anything, mock.Anything).Return(&gorm_model.CV{}, nil)
+	gormDbRepo.On("UpdateCV", mock.Anything, mock.Anything).Return(nil)
 
 	suite.usecase = usecase_member.NewAppUsecase(usecase_member.RepoInjection{GormDbRepo: gormDbRepo}, time.Minute)
 }

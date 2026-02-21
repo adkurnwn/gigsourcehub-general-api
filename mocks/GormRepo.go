@@ -5,6 +5,8 @@ package mocks
 import (
 	context "context"
 
+	gorm "gorm.io/gorm"
+
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 
 	mock "github.com/stretchr/testify/mock"
@@ -343,6 +345,112 @@ func (_c *GormRepo_FetchUser_Call) RunAndReturn(run func(context.Context, gorm_m
 	return _c
 }
 
+// GetCVByID provides a mock function with given fields: ctx, id
+func (_m *GormRepo) GetCVByID(ctx context.Context, id string) (*gorm_model.CV, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCVByID")
+	}
+
+	var r0 *gorm_model.CV
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*gorm_model.CV, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *gorm_model.CV); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*gorm_model.CV)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_GetCVByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCVByID'
+type GormRepo_GetCVByID_Call struct {
+	*mock.Call
+}
+
+// GetCVByID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *GormRepo_Expecter) GetCVByID(ctx interface{}, id interface{}) *GormRepo_GetCVByID_Call {
+	return &GormRepo_GetCVByID_Call{Call: _e.mock.On("GetCVByID", ctx, id)}
+}
+
+func (_c *GormRepo_GetCVByID_Call) Run(run func(ctx context.Context, id string)) *GormRepo_GetCVByID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_GetCVByID_Call) Return(_a0 *gorm_model.CV, _a1 error) *GormRepo_GetCVByID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_GetCVByID_Call) RunAndReturn(run func(context.Context, string) (*gorm_model.CV, error)) *GormRepo_GetCVByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetDB provides a mock function with no fields
+func (_m *GormRepo) GetDB() *gorm.DB {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDB")
+	}
+
+	var r0 *gorm.DB
+	if rf, ok := ret.Get(0).(func() *gorm.DB); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*gorm.DB)
+		}
+	}
+
+	return r0
+}
+
+// GormRepo_GetDB_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDB'
+type GormRepo_GetDB_Call struct {
+	*mock.Call
+}
+
+// GetDB is a helper method to define mock.On call
+func (_e *GormRepo_Expecter) GetDB() *GormRepo_GetDB_Call {
+	return &GormRepo_GetDB_Call{Call: _e.mock.On("GetDB")}
+}
+
+func (_c *GormRepo_GetDB_Call) Run(run func()) *GormRepo_GetDB_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *GormRepo_GetDB_Call) Return(_a0 *gorm.DB) *GormRepo_GetDB_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_GetDB_Call) RunAndReturn(run func() *gorm.DB) *GormRepo_GetDB_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StructScan provides a mock function with given fields: rows, dest
 func (_m *GormRepo) StructScan(rows *sql.Rows, dest any) error {
 	ret := _m.Called(rows, dest)
@@ -386,6 +494,53 @@ func (_c *GormRepo_StructScan_Call) Return(_a0 error) *GormRepo_StructScan_Call 
 }
 
 func (_c *GormRepo_StructScan_Call) RunAndReturn(run func(*sql.Rows, any) error) *GormRepo_StructScan_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateCV provides a mock function with given fields: ctx, cv
+func (_m *GormRepo) UpdateCV(ctx context.Context, cv *gorm_model.CV) error {
+	ret := _m.Called(ctx, cv)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateCV")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.CV) error); ok {
+		r0 = rf(ctx, cv)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_UpdateCV_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateCV'
+type GormRepo_UpdateCV_Call struct {
+	*mock.Call
+}
+
+// UpdateCV is a helper method to define mock.On call
+//   - ctx context.Context
+//   - cv *gorm_model.CV
+func (_e *GormRepo_Expecter) UpdateCV(ctx interface{}, cv interface{}) *GormRepo_UpdateCV_Call {
+	return &GormRepo_UpdateCV_Call{Call: _e.mock.On("UpdateCV", ctx, cv)}
+}
+
+func (_c *GormRepo_UpdateCV_Call) Run(run func(ctx context.Context, cv *gorm_model.CV)) *GormRepo_UpdateCV_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.CV))
+	})
+	return _c
+}
+
+func (_c *GormRepo_UpdateCV_Call) Return(_a0 error) *GormRepo_UpdateCV_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_UpdateCV_Call) RunAndReturn(run func(context.Context, *gorm_model.CV) error) *GormRepo_UpdateCV_Call {
 	_c.Call.Return(run)
 	return _c
 }

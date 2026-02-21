@@ -55,6 +55,15 @@ table "cvs" {
     type = varchar(255)
     null = false
   }
+  column "parsed_data" {
+    type = jsonb
+    null = true
+  }
+  column "status" {
+    type = varchar(50)
+    default = "'UPLOADED'"
+    null = true
+  }
   column "created_at" {
     type = timestamptz
     null = false

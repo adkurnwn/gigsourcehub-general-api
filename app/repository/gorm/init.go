@@ -36,3 +36,7 @@ func NewGormRepo(db *sqlx.DB, log logger.Interface) domain.GormRepo {
 func (r *gormRepo) StructScan(rows *sql.Rows, dest any) error {
 	return r.db.ScanRows(rows, dest)
 }
+
+func (r *gormRepo) GetDB() *gorm.DB {
+	return r.db
+}

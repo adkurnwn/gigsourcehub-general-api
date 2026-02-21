@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/adkurnwn/gigsourcehub-general-api/app/consumer"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
 	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
@@ -131,6 +132,16 @@ func main() {
 
 	// init cv usecase
 	ucCV := usecase_cv.NewCVUsecase(repo, storageRepo, mqRepo, timeoutContext)
+
+	// start consumer
+	if mqRepo != nil {
+		cvConsumer := consumer.NewCVParserConsumer(mqRepo, repo)
+		go func() {
+			if err := cvConsumer.Start(context.Background()); err != nil {
+				logrus.Errorf("CVParserConsumer exited with error: %v", err)
+			}
+		}()
+	}
 
 	// init middleware — pass nil redis client
 	mdl := middleware.NewMiddleware(nil)
