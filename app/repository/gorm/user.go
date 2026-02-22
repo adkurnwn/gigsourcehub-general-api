@@ -1,9 +1,10 @@
 package gormrepo
 
 import (
-	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	"context"
 	"database/sql"
+
+	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -61,6 +62,16 @@ func (r *gormRepo) CreateUser(ctx context.Context, row *gorm_model.User) (err er
 	err = r.db.WithContext(ctx).Create(row).Error
 	if err != nil {
 		logrus.Error("CreateUser Exec:", err)
+		return
+	}
+
+	return
+}
+
+func (r *gormRepo) UpdateUser(ctx context.Context, row *gorm_model.User) (err error) {
+	err = r.db.WithContext(ctx).Save(row).Error
+	if err != nil {
+		logrus.Error("UpdateUser Exec:", err)
 		return
 	}
 

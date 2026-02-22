@@ -1,4 +1,5 @@
-h1:jnbJ7FwoYjVB6g/w7O4md54nW7UfKM54f67ymUcEQ5Y=
+h1:IDKenzGEiKsM5f+Ejz2tvsM5AhFQ1RIJiHaowV5b1I0=
 20260106033128_initial_migration.sql h1:HkD/fW9wulWEWr5627pTg+U3wxuRURpgHfwg3MCT1KY=
 20260207152838_create_cvs_table.sql h1:KygiP7foyPlZgR9oNfa0HGX18lJhdvUyBHN05hRkHEY=
 20260221160730_add_parsed_data_and_status.sql h1:xsglzXv7VfOdtH4iXeXRvRMQ4gkTKrIy2Hqpz8mpTnU=
+20260222152600_add_cv_fields_to_users.sql h1:LXeOokyyPpi6pmr+Q1M1u9Ik5P6gBOskPbA+U4SYpes=

@@ -498,6 +498,53 @@ func (_c *GormRepo_StructScan_Call) RunAndReturn(run func(*sql.Rows, any) error)
 	return _c
 }
 
+// UpdateUser provides a mock function with given fields: ctx, model
+func (_m *GormRepo) UpdateUser(ctx context.Context, model *gorm_model.User) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.User) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_UpdateUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateUser'
+type GormRepo_UpdateUser_Call struct {
+	*mock.Call
+}
+
+// UpdateUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.User
+func (_e *GormRepo_Expecter) UpdateUser(ctx interface{}, model interface{}) *GormRepo_UpdateUser_Call {
+	return &GormRepo_UpdateUser_Call{Call: _e.mock.On("UpdateUser", ctx, model)}
+}
+
+func (_c *GormRepo_UpdateUser_Call) Run(run func(ctx context.Context, model *gorm_model.User)) *GormRepo_UpdateUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.User))
+	})
+	return _c
+}
+
+func (_c *GormRepo_UpdateUser_Call) Return(_a0 error) *GormRepo_UpdateUser_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_UpdateUser_Call) RunAndReturn(run func(context.Context, *gorm_model.User) error) *GormRepo_UpdateUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateCV provides a mock function with given fields: ctx, cv
 func (_m *GormRepo) UpdateCV(ctx context.Context, cv *gorm_model.CV) error {
 	ret := _m.Called(ctx, cv)

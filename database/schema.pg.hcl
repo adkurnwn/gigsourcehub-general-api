@@ -32,6 +32,18 @@ table "users" {
     null = true
   }
 
+  column "pendidikan_terakhir" { type = varchar(255); null = true }
+  column "instansi_pendidikan" { type = varchar(255); null = true }
+  column "jurusan" { type = varchar(255); null = true }
+  column "ipk" { type = varchar(50); null = true }
+  column "kabupaten" { type = varchar(255); null = true }
+  column "provinsi" { type = varchar(255); null = true }
+  column "lama_pengalaman_kerja" { type = varchar(255); null = true }
+  column "bidang_minat" { type = varchar(255); null = true }
+  column "applied_role" { type = varchar(255); null = true }
+  column "skills" { type = jsonb; null = true }
+  column "link_portofolio" { type = varchar(255); null = true }
+
   primary_key {
     columns = [column.id]
   }

@@ -144,6 +144,50 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID, cvID string, editedDa
 		return response.Error(http.StatusInternalServerError, "failed to update cv")
 	}
 
+	// Update User Table Columns
+	user, err := u.gormRepo.FetchOneUser(ctx, gorm_model.UserFilter{DefaultFilter: gorm_model.DefaultFilter{ID: userID}})
+	if err == nil && user != nil {
+		if val, ok := editedData["pendidikan_terakhir"].(string); ok {
+			user.PendidikanTerakhir = &val
+		}
+		if val, ok := editedData["instansi_pendidikan"].(string); ok {
+			user.InstansiPendidikan = &val
+		}
+		if val, ok := editedData["jurusan"].(string); ok {
+			user.Jurusan = &val
+		}
+		if val, ok := editedData["ipk"].(string); ok {
+			user.Ipk = &val
+		}
+		if val, ok := editedData["kabupaten"].(string); ok {
+			user.Kabupaten = &val
+		}
+		if val, ok := editedData["provinsi"].(string); ok {
+			user.Provinsi = &val
+		}
+		if val, ok := editedData["lama_pengalaman_kerja"].(string); ok {
+			user.LamaPengalamanKerja = &val
+		}
+		if val, ok := editedData["bidang_minat"].(string); ok {
+			user.BidangMinat = &val
+		}
+		if val, ok := editedData["applied_role"].(string); ok {
+			user.AppliedRole = &val
+		}
+		if val, ok := editedData["link_portofolio"].(string); ok {
+			user.LinkPortofolio = &val
+		}
+
+		if skillsArr, ok := editedData["tech_stack"]; ok {
+			if marshaled, err := json.Marshal(skillsArr); err == nil {
+				skillsStr := string(marshaled)
+				user.Skills = &skillsStr
+			}
+		}
+
+		u.gormRepo.UpdateUser(ctx, user)
+	}
+
 	if u.mqRepo != nil {
 		go func() {
 			bgCtx := context.Background()
