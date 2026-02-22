@@ -2,6 +2,7 @@ package usecase_cv
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -16,6 +17,8 @@ import (
 
 type CVUsecase interface {
 	UploadCV(ctx context.Context, userID string, fileHeader *multipart.FileHeader) response.Base
+	GetParsedCV(ctx context.Context, userID, cvID string) response.Base
+	ConfirmCV(ctx context.Context, userID, cvID string, editedData map[string]interface{}) response.Base
 }
 
 type cvUsecase struct {
@@ -50,20 +53,36 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 		return response.Error(http.StatusInternalServerError, "upload failed: "+err.Error())
 	}
 
-	// 3. Save Metadata to DB
-	cv := &gorm_model.CV{
-		ID:     uuid.New().String(),
-		UserID: userID,
-		Name:   fileHeader.Filename,
-		Path:   objectKey, // Store relative path (e.g., cvs/uuid/file.pdf)
-	}
+	// 3. Save Metadata to DB (Upsert Logic)
+	existingCV, err := u.gormRepo.GetCVByUserID(ctx, userID)
+	if err != nil {
+		// CV not found, insert new
+		cv := &gorm_model.CV{
+			ID:     uuid.New().String(),
+			UserID: userID,
+			Name:   fileHeader.Filename,
+			Path:   objectKey, // Store relative path
+			// ParsedData is omitted so it correctly inserts NULL
+		}
 
-	if err := u.gormRepo.CreateCV(ctx, cv); err != nil {
-		return response.Error(http.StatusInternalServerError, "db save failed")
+		if err := u.gormRepo.CreateCV(ctx, cv); err != nil {
+			return response.Error(http.StatusInternalServerError, "db save failed")
+		}
+		existingCV = cv
+	} else {
+		// CV exists, update it
+		existingCV.Name = fileHeader.Filename
+		existingCV.Path = objectKey
+		existingCV.ParsedData = nil    // Reset parsed data
+		existingCV.Status = "UPLOADED" // Reset status
+
+		if err := u.gormRepo.UpdateCV(ctx, existingCV); err != nil {
+			return response.Error(http.StatusInternalServerError, "db update failed")
+		}
 	}
 
 	// 4. Publish Event
-	go func() {
+	go func(cv *gorm_model.CV) {
 		// Use a detached context or background context for async publishing
 		// to avoid cancellation if the request context is cancelled.
 
@@ -76,7 +95,7 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 		// Here we just fire and forget with a new context.
 		err := u.mqRepo.Publish(bgCtx, os.Getenv("RABBITMQ_QUEUE_CV_UPLOAD"), map[string]interface{}{
 			"event":       "cv_uploaded",
-			"user_id":     userID,
+			"user_id":     cv.UserID,
 			"cv_id":       cv.ID,
 			"path":        cv.Path,
 			"uploaded_at": time.Now(),
@@ -84,7 +103,125 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 		if err != nil {
 			fmt.Printf("failed to publish message: %v\n", err)
 		}
-	}()
+	}(existingCV)
+
+	return response.Success(existingCV.ToCVResp())
+}
+
+func (u *cvUsecase) GetParsedCV(ctx context.Context, userID, cvID string) response.Base {
+	cv, err := u.gormRepo.GetCVByID(ctx, cvID)
+	if err != nil {
+		return response.Error(http.StatusNotFound, "cv not found")
+	}
+
+	if cv.UserID != userID {
+		return response.Error(http.StatusForbidden, "not authorized to view this cv")
+	}
+
+	return response.Success(cv.ToCVResp())
+}
+
+func (u *cvUsecase) ConfirmCV(ctx context.Context, userID, cvID string, editedData map[string]interface{}) response.Base {
+	cv, err := u.gormRepo.GetCVByID(ctx, cvID)
+	if err != nil {
+		return response.Error(http.StatusNotFound, "cv not found")
+	}
+
+	if cv.UserID != userID {
+		return response.Error(http.StatusForbidden, "not authorized to confirm this cv")
+	}
+
+	if cv.Status != "PARSED" {
+		return response.Error(http.StatusBadRequest, "cv is not in PARSED status")
+	}
+
+	// Capture IDs for the User Database Update safely
+	provID := ""
+	if p, ok := editedData["provinsi_id"].(string); ok {
+		provID = p
+	}
+	kabID := ""
+	if k, ok := editedData["kabupaten_id"].(string); ok {
+		kabID = k
+	}
+
+	// Update User Table Columns
+	user, err := u.gormRepo.FetchOneUser(ctx, gorm_model.UserFilter{DefaultFilter: gorm_model.DefaultFilter{ID: userID}})
+	if err == nil && user != nil {
+		if val, ok := editedData["pendidikan_terakhir"].(string); ok {
+			user.PendidikanTerakhir = &val
+		}
+		if val, ok := editedData["instansi_pendidikan"].(string); ok {
+			user.InstansiPendidikan = &val
+		}
+		if val, ok := editedData["jurusan"].(string); ok {
+			user.Jurusan = &val
+		}
+		if val, ok := editedData["ipk"].(string); ok {
+			user.Ipk = &val
+		}
+		if provID != "" {
+			user.ProvinsiId = &provID
+		}
+		if kabID != "" {
+			user.KabupatenId = &kabID
+		}
+		if val, ok := editedData["lama_pengalaman_kerja"].(string); ok {
+			user.LamaPengalamanKerja = &val
+		}
+		if val, ok := editedData["bidang_minat"].(string); ok {
+			user.BidangMinat = &val
+		}
+		if val, ok := editedData["applied_role"].(string); ok {
+			user.AppliedRole = &val
+		}
+		if val, ok := editedData["link_portofolio"].(string); ok {
+			user.LinkPortofolio = &val
+		}
+
+		if skillsArr, ok := editedData["tech_stack"]; ok {
+			if marshaled, err := json.Marshal(skillsArr); err == nil {
+				skillsStr := string(marshaled)
+				user.Skills = &skillsStr
+			}
+		}
+
+		u.gormRepo.UpdateUser(ctx, user)
+	}
+
+	// Reverse translate Location IDs to standard Names so final_cv RabbitMQ receives pure text
+	if provID != "" {
+		if provName, err := u.gormRepo.GetProvinsiName(ctx, provID); err == nil && provName != "" {
+			editedData["provinsi"] = provName
+			delete(editedData, "provinsi_id")
+		}
+	}
+	if kabID != "" {
+		if kabName, err := u.gormRepo.GetKabupatenName(ctx, kabID); err == nil && kabName != "" {
+			editedData["kabupaten"] = kabName
+			delete(editedData, "kabupaten_id")
+		}
+	}
+
+	editedJSON, err := json.Marshal(editedData)
+	if err != nil {
+		return response.Error(http.StatusBadRequest, "invalid edited data")
+	}
+
+	jsonStr := string(editedJSON)
+	cv.ParsedData = &jsonStr
+	cv.Status = "CONFIRMED"
+
+	if err := u.gormRepo.UpdateCV(ctx, cv); err != nil {
+		return response.Error(http.StatusInternalServerError, "failed to update cv")
+	}
+
+	if u.mqRepo != nil {
+		go func() {
+			bgCtx := context.Background()
+			_ = u.mqRepo.Publish(bgCtx, "final_cv", cv) // Use final_cv queue
+		}()
+	}
 
 	return response.Success(cv.ToCVResp())
 }

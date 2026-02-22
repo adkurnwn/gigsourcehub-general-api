@@ -9,6 +9,7 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	storage_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/storage"
+	"gorm.io/gorm"
 )
 
 type GormRepo interface {
@@ -17,9 +18,17 @@ type GormRepo interface {
 	FetchOneUser(ctx context.Context, options gorm_model.UserFilter) (*gorm_model.User, error)
 	CountUser(ctx context.Context, options gorm_model.UserFilter) int64
 	CreateUser(ctx context.Context, model *gorm_model.User) (err error)
+	UpdateUser(ctx context.Context, model *gorm_model.User) (err error)
 
 	CreateCV(ctx context.Context, cv *gorm_model.CV) error
-	FetchCVs(ctx context.Context, userID string) ([]gorm_model.CV, error)
+	GetCVByUserID(ctx context.Context, userID string) (*gorm_model.CV, error)
+	GetCVByID(ctx context.Context, id string) (*gorm_model.CV, error)
+	UpdateCV(ctx context.Context, cv *gorm_model.CV) error
+
+	GetProvinsiName(ctx context.Context, id string) (string, error)
+	GetKabupatenName(ctx context.Context, id string) (string, error)
+
+	GetDB() *gorm.DB
 }
 
 type CacheRepo interface {
@@ -38,6 +47,7 @@ type StorageRepo interface {
 
 type MessageBroker interface {
 	Publish(ctx context.Context, queueName string, message interface{}) error
+	Consume(ctx context.Context, queueName string, handler func(msg []byte) error) error
 	Close() error
 }
 

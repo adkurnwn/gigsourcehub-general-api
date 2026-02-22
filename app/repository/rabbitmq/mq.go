@@ -76,6 +76,50 @@ func (r *rabbitMQRepo) Publish(ctx context.Context, queueName string, message in
 	return nil
 }
 
+func (r *rabbitMQRepo) Consume(ctx context.Context, queueName string, handler func(msg []byte) error) error {
+	q, err := r.ch.QueueDeclare(
+		queueName, // name
+		true,      // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
+	)
+	if err != nil {
+		return fmt.Errorf("failed to declare a queue: %w", err)
+	}
+
+	msgs, err := r.ch.Consume(
+		q.Name, // queue
+		"",     // consumer
+		false,  // auto-ack
+		false,  // exclusive
+		false,  // no-local
+		false,  // no-wait
+		nil,    // args
+	)
+	if err != nil {
+		return fmt.Errorf("failed to register a consumer: %w", err)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case d, ok := <-msgs:
+			if !ok {
+				return fmt.Errorf("channel closed")
+			}
+			if err := handler(d.Body); err != nil {
+				logrus.Errorf("Error handling message: %v", err)
+				d.Nack(false, true) // Requeue
+			} else {
+				d.Ack(false)
+			}
+		}
+	}
+}
+
 func (r *rabbitMQRepo) Close() error {
 	if r.ch != nil {
 		r.ch.Close()
