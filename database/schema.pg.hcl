@@ -92,6 +92,7 @@ table "cvs" {
 
   index "idx_cvs_user_id" {
     columns = [column.user_id]
+    unique  = true
   }
 }
 

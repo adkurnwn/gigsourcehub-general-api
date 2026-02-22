@@ -168,24 +168,24 @@ func (_c *GormRepo_CreateUser_Call) RunAndReturn(run func(context.Context, *gorm
 	return _c
 }
 
-// FetchCVs provides a mock function with given fields: ctx, userID
-func (_m *GormRepo) FetchCVs(ctx context.Context, userID string) ([]gorm_model.CV, error) {
+// GetCVByUserID provides a mock function with given fields: ctx, userID
+func (_m *GormRepo) GetCVByUserID(ctx context.Context, userID string) (*gorm_model.CV, error) {
 	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for FetchCVs")
+		panic("no return value specified for GetCVByUserID")
 	}
 
-	var r0 []gorm_model.CV
+	var r0 *gorm_model.CV
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]gorm_model.CV, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*gorm_model.CV, error)); ok {
 		return rf(ctx, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []gorm_model.CV); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) *gorm_model.CV); ok {
 		r0 = rf(ctx, userID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]gorm_model.CV)
+			r0 = ret.Get(0).(*gorm_model.CV)
 		}
 	}
 
@@ -198,31 +198,31 @@ func (_m *GormRepo) FetchCVs(ctx context.Context, userID string) ([]gorm_model.C
 	return r0, r1
 }
 
-// GormRepo_FetchCVs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchCVs'
-type GormRepo_FetchCVs_Call struct {
+// GormRepo_GetCVByUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCVByUserID'
+type GormRepo_GetCVByUserID_Call struct {
 	*mock.Call
 }
 
-// FetchCVs is a helper method to define mock.On call
+// GetCVByUserID is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID string
-func (_e *GormRepo_Expecter) FetchCVs(ctx interface{}, userID interface{}) *GormRepo_FetchCVs_Call {
-	return &GormRepo_FetchCVs_Call{Call: _e.mock.On("FetchCVs", ctx, userID)}
+func (_e *GormRepo_Expecter) GetCVByUserID(ctx interface{}, userID interface{}) *GormRepo_GetCVByUserID_Call {
+	return &GormRepo_GetCVByUserID_Call{Call: _e.mock.On("GetCVByUserID", ctx, userID)}
 }
 
-func (_c *GormRepo_FetchCVs_Call) Run(run func(ctx context.Context, userID string)) *GormRepo_FetchCVs_Call {
+func (_c *GormRepo_GetCVByUserID_Call) Run(run func(ctx context.Context, userID string)) *GormRepo_GetCVByUserID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
 
-func (_c *GormRepo_FetchCVs_Call) Return(_a0 []gorm_model.CV, _a1 error) *GormRepo_FetchCVs_Call {
+func (_c *GormRepo_GetCVByUserID_Call) Return(_a0 *gorm_model.CV, _a1 error) *GormRepo_GetCVByUserID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *GormRepo_FetchCVs_Call) RunAndReturn(run func(context.Context, string) ([]gorm_model.CV, error)) *GormRepo_FetchCVs_Call {
+func (_c *GormRepo_GetCVByUserID_Call) RunAndReturn(run func(context.Context, string) (*gorm_model.CV, error)) *GormRepo_GetCVByUserID_Call {
 	_c.Call.Return(run)
 	return _c
 }

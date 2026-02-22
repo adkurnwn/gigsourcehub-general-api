@@ -53,21 +53,36 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 		return response.Error(http.StatusInternalServerError, "upload failed: "+err.Error())
 	}
 
-	// 3. Save Metadata to DB
-	cv := &gorm_model.CV{
-		ID:     uuid.New().String(),
-		UserID: userID,
-		Name:   fileHeader.Filename,
-		Path:   objectKey, // Store relative path (e.g., cvs/uuid/file.pdf)
-		// ParsedData is omitted so it correctly inserts NULL
-	}
+	// 3. Save Metadata to DB (Upsert Logic)
+	existingCV, err := u.gormRepo.GetCVByUserID(ctx, userID)
+	if err != nil {
+		// CV not found, insert new
+		cv := &gorm_model.CV{
+			ID:     uuid.New().String(),
+			UserID: userID,
+			Name:   fileHeader.Filename,
+			Path:   objectKey, // Store relative path
+			// ParsedData is omitted so it correctly inserts NULL
+		}
 
-	if err := u.gormRepo.CreateCV(ctx, cv); err != nil {
-		return response.Error(http.StatusInternalServerError, "db save failed")
+		if err := u.gormRepo.CreateCV(ctx, cv); err != nil {
+			return response.Error(http.StatusInternalServerError, "db save failed")
+		}
+		existingCV = cv
+	} else {
+		// CV exists, update it
+		existingCV.Name = fileHeader.Filename
+		existingCV.Path = objectKey
+		existingCV.ParsedData = nil    // Reset parsed data
+		existingCV.Status = "UPLOADED" // Reset status
+
+		if err := u.gormRepo.UpdateCV(ctx, existingCV); err != nil {
+			return response.Error(http.StatusInternalServerError, "db update failed")
+		}
 	}
 
 	// 4. Publish Event
-	go func() {
+	go func(cv *gorm_model.CV) {
 		// Use a detached context or background context for async publishing
 		// to avoid cancellation if the request context is cancelled.
 
@@ -80,7 +95,7 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 		// Here we just fire and forget with a new context.
 		err := u.mqRepo.Publish(bgCtx, os.Getenv("RABBITMQ_QUEUE_CV_UPLOAD"), map[string]interface{}{
 			"event":       "cv_uploaded",
-			"user_id":     userID,
+			"user_id":     cv.UserID,
 			"cv_id":       cv.ID,
 			"path":        cv.Path,
 			"uploaded_at": time.Now(),
@@ -88,9 +103,9 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 		if err != nil {
 			fmt.Printf("failed to publish message: %v\n", err)
 		}
-	}()
+	}(existingCV)
 
-	return response.Success(cv.ToCVResp())
+	return response.Success(existingCV.ToCVResp())
 }
 
 func (u *cvUsecase) GetParsedCV(ctx context.Context, cvID string) response.Base {

@@ -20,7 +20,7 @@ type GormRepo interface {
 	CreateUser(ctx context.Context, model *gorm_model.User) (err error)
 
 	CreateCV(ctx context.Context, cv *gorm_model.CV) error
-	FetchCVs(ctx context.Context, userID string) ([]gorm_model.CV, error)
+	GetCVByUserID(ctx context.Context, userID string) (*gorm_model.CV, error)
 	GetCVByID(ctx context.Context, id string) (*gorm_model.CV, error)
 	UpdateCV(ctx context.Context, cv *gorm_model.CV) error
 
