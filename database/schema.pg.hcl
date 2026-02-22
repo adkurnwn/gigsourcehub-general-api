@@ -32,17 +32,50 @@ table "users" {
     null = true
   }
 
-  column "pendidikan_terakhir" { type = varchar(255); null = true }
-  column "instansi_pendidikan" { type = varchar(255); null = true }
-  column "jurusan" { type = varchar(255); null = true }
-  column "ipk" { type = varchar(50); null = true }
-  column "kabupaten" { type = varchar(255); null = true }
-  column "provinsi" { type = varchar(255); null = true }
-  column "lama_pengalaman_kerja" { type = varchar(255); null = true }
-  column "bidang_minat" { type = varchar(255); null = true }
-  column "applied_role" { type = varchar(255); null = true }
-  column "skills" { type = jsonb; null = true }
-  column "link_portofolio" { type = varchar(255); null = true }
+  column "pendidikan_terakhir" {
+    type = varchar(255)
+    null = true
+  }
+  column "instansi_pendidikan" {
+    type = varchar(255)
+    null = true
+  }
+  column "jurusan" {
+    type = varchar(255)
+    null = true
+  }
+  column "ipk" {
+    type = varchar(50)
+    null = true
+  }
+  column "kabupaten_id" {
+    type = varchar(5)
+    null = true
+  }
+  column "provinsi_id" {
+    type = varchar(2)
+    null = true
+  }
+  column "lama_pengalaman_kerja" {
+    type = varchar(255)
+    null = true
+  }
+  column "bidang_minat" {
+    type = varchar(255)
+    null = true
+  }
+  column "applied_role" {
+    type = varchar(255)
+    null = true
+  }
+  column "skills" {
+    type = jsonb
+    null = true
+  }
+  column "link_portofolio" {
+    type = varchar(255)
+    null = true
+  }
 
   primary_key {
     columns = [column.id]
@@ -50,6 +83,14 @@ table "users" {
 
   index "idx_users_deleted_at" {
     columns = [column.deleted_at]
+  }
+
+  index "idx_users_provinsi_id" {
+    columns = [column.provinsi_id]
+  }
+
+  index "idx_users_kabupaten_id" {
+    columns = [column.kabupaten_id]
   }
 }
 
@@ -178,5 +219,81 @@ table "roles" {
 
   index "idx_roles_sector_id" {
     columns = [column.sector_id]
+  }
+}
+
+table "provinsi" {
+  schema = schema.public
+
+  column "id" {
+    type = varchar(2)
+  }
+  column "name" {
+    type = varchar(255)
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+    default = sql("now()")
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+    default = sql("now()")
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_provinsi_deleted_at" {
+    columns = [column.deleted_at]
+  }
+}
+
+table "kabupaten_kota" {
+  schema = schema.public
+
+  column "id" {
+    type = varchar(5)
+  }
+  column "name" {
+    type = varchar(255)
+    null = false
+  }
+  column "provinsi_id" {
+    type = varchar(2)
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+    default = sql("now()")
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+    default = sql("now()")
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_kabupaten_kota_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_kabupaten_kota_provinsi_id" {
+    columns = [column.provinsi_id]
   }
 }
