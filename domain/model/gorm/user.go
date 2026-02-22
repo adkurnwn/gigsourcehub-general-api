@@ -18,8 +18,8 @@ type User struct {
 	InstansiPendidikan  *string        `gorm:"column:instansi_pendidikan;type:varchar(255)"`
 	Jurusan             *string        `gorm:"column:jurusan;type:varchar(255)"`
 	Ipk                 *string        `gorm:"column:ipk;type:varchar(50)"`
-	Kabupaten           *string        `gorm:"column:kabupaten;type:varchar(255)"`
-	Provinsi            *string        `gorm:"column:provinsi;type:varchar(255)"`
+	KabupatenId         *string        `gorm:"column:kabupaten_id;type:varchar(5)"`
+	ProvinsiId          *string        `gorm:"column:provinsi_id;type:varchar(2)"`
 	LamaPengalamanKerja *string        `gorm:"column:lama_pengalaman_kerja;type:varchar(255)"`
 	BidangMinat         *string        `gorm:"column:bidang_minat;type:varchar(255)"`
 	AppliedRole         *string        `gorm:"column:applied_role;type:varchar(255)"`
@@ -52,38 +52,38 @@ type UserResp struct {
 	ID                  string    `json:"id"`
 	Name                string    `json:"name"`
 	Email               string    `json:"email"`
-	PendidikanTerakhir  *string     `json:"pendidikan_terakhir"`
-	InstansiPendidikan  *string     `json:"instansi_pendidikan"`
-	Jurusan             *string     `json:"jurusan"`
-	Ipk                 *string     `json:"ipk"`
-	Kabupaten           *string     `json:"kabupaten"`
-	Provinsi            *string     `json:"provinsi"`
-	LamaPengalamanKerja *string     `json:"lama_pengalaman_kerja"`
-	BidangMinat         *string     `json:"bidang_minat"`
-	AppliedRole         *string     `json:"applied_role"`
-	Skills              *string     `json:"skills"`
-	LinkPortofolio      *string     `json:"link_portofolio"`
-	CreatedAt           time.Time   `json:"created_at"`
-	UpdatedAt           time.Time   `json:"updated_at"`
+	PendidikanTerakhir  *string   `json:"pendidikan_terakhir"`
+	InstansiPendidikan  *string   `json:"instansi_pendidikan"`
+	Jurusan             *string   `json:"jurusan"`
+	Ipk                 *string   `json:"ipk"`
+	KabupatenId         *string   `json:"kabupaten_id"`
+	ProvinsiId          *string   `json:"provinsi_id"`
+	LamaPengalamanKerja *string   `json:"lama_pengalaman_kerja"`
+	BidangMinat         *string   `json:"bidang_minat"`
+	AppliedRole         *string   `json:"applied_role"`
+	Skills              *string   `json:"skills"`
+	LinkPortofolio      *string   `json:"link_portofolio"`
+	CreatedAt           time.Time `json:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at"`
 }
 
 func (row *User) ToUserResp() UserResp {
 	return UserResp{
-		ID:        row.ID,
-		Name:      row.Name,
-		Email:     row.Email,
-		PendidikanTerakhir: row.PendidikanTerakhir,
-		InstansiPendidikan: row.InstansiPendidikan,
-		Jurusan: row.Jurusan,
-		Ipk: row.Ipk,
-		Kabupaten: row.Kabupaten,
-		Provinsi: row.Provinsi,
+		ID:                  row.ID,
+		Name:                row.Name,
+		Email:               row.Email,
+		PendidikanTerakhir:  row.PendidikanTerakhir,
+		InstansiPendidikan:  row.InstansiPendidikan,
+		Jurusan:             row.Jurusan,
+		Ipk:                 row.Ipk,
+		KabupatenId:         row.KabupatenId,
+		ProvinsiId:          row.ProvinsiId,
 		LamaPengalamanKerja: row.LamaPengalamanKerja,
-		BidangMinat: row.BidangMinat,
-		AppliedRole: row.AppliedRole,
-		Skills: row.Skills,
-		LinkPortofolio: row.LinkPortofolio,
-		CreatedAt: row.CreatedAt,
-		UpdatedAt: row.UpdatedAt,
+		BidangMinat:         row.BidangMinat,
+		AppliedRole:         row.AppliedRole,
+		Skills:              row.Skills,
+		LinkPortofolio:      row.LinkPortofolio,
+		CreatedAt:           row.CreatedAt,
+		UpdatedAt:           row.UpdatedAt,
 	}
 }

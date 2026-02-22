@@ -25,6 +25,9 @@ type GormRepo interface {
 	GetCVByID(ctx context.Context, id string) (*gorm_model.CV, error)
 	UpdateCV(ctx context.Context, cv *gorm_model.CV) error
 
+	GetProvinsiName(ctx context.Context, id string) (string, error)
+	GetKabupatenName(ctx context.Context, id string) (string, error)
+
 	GetDB() *gorm.DB
 }
 

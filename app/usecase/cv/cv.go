@@ -17,7 +17,7 @@ import (
 
 type CVUsecase interface {
 	UploadCV(ctx context.Context, userID string, fileHeader *multipart.FileHeader) response.Base
-	GetParsedCV(ctx context.Context, cvID string) response.Base
+	GetParsedCV(ctx context.Context, userID, cvID string) response.Base
 	ConfirmCV(ctx context.Context, userID, cvID string, editedData map[string]interface{}) response.Base
 }
 
@@ -108,10 +108,14 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 	return response.Success(existingCV.ToCVResp())
 }
 
-func (u *cvUsecase) GetParsedCV(ctx context.Context, cvID string) response.Base {
+func (u *cvUsecase) GetParsedCV(ctx context.Context, userID, cvID string) response.Base {
 	cv, err := u.gormRepo.GetCVByID(ctx, cvID)
 	if err != nil {
 		return response.Error(http.StatusNotFound, "cv not found")
+	}
+
+	if cv.UserID != userID {
+		return response.Error(http.StatusForbidden, "not authorized to view this cv")
 	}
 
 	return response.Success(cv.ToCVResp())
@@ -131,17 +135,14 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID, cvID string, editedDa
 		return response.Error(http.StatusBadRequest, "cv is not in PARSED status")
 	}
 
-	editedJSON, err := json.Marshal(editedData)
-	if err != nil {
-		return response.Error(http.StatusBadRequest, "invalid edited data")
+	// Capture IDs for the User Database Update safely
+	provID := ""
+	if p, ok := editedData["provinsi_id"].(string); ok {
+		provID = p
 	}
-
-	jsonStr := string(editedJSON)
-	cv.ParsedData = &jsonStr
-	cv.Status = "CONFIRMED"
-
-	if err := u.gormRepo.UpdateCV(ctx, cv); err != nil {
-		return response.Error(http.StatusInternalServerError, "failed to update cv")
+	kabID := ""
+	if k, ok := editedData["kabupaten_id"].(string); ok {
+		kabID = k
 	}
 
 	// Update User Table Columns
@@ -159,11 +160,11 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID, cvID string, editedDa
 		if val, ok := editedData["ipk"].(string); ok {
 			user.Ipk = &val
 		}
-		if val, ok := editedData["kabupaten"].(string); ok {
-			user.Kabupaten = &val
+		if provID != "" {
+			user.ProvinsiId = &provID
 		}
-		if val, ok := editedData["provinsi"].(string); ok {
-			user.Provinsi = &val
+		if kabID != "" {
+			user.KabupatenId = &kabID
 		}
 		if val, ok := editedData["lama_pengalaman_kerja"].(string); ok {
 			user.LamaPengalamanKerja = &val
@@ -186,6 +187,33 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID, cvID string, editedDa
 		}
 
 		u.gormRepo.UpdateUser(ctx, user)
+	}
+
+	// Reverse translate Location IDs to standard Names so final_cv RabbitMQ receives pure text
+	if provID != "" {
+		if provName, err := u.gormRepo.GetProvinsiName(ctx, provID); err == nil && provName != "" {
+			editedData["provinsi"] = provName
+			delete(editedData, "provinsi_id")
+		}
+	}
+	if kabID != "" {
+		if kabName, err := u.gormRepo.GetKabupatenName(ctx, kabID); err == nil && kabName != "" {
+			editedData["kabupaten"] = kabName
+			delete(editedData, "kabupaten_id")
+		}
+	}
+
+	editedJSON, err := json.Marshal(editedData)
+	if err != nil {
+		return response.Error(http.StatusBadRequest, "invalid edited data")
+	}
+
+	jsonStr := string(editedJSON)
+	cv.ParsedData = &jsonStr
+	cv.Status = "CONFIRMED"
+
+	if err := u.gormRepo.UpdateCV(ctx, cv); err != nil {
+		return response.Error(http.StatusInternalServerError, "failed to update cv")
 	}
 
 	if u.mqRepo != nil {

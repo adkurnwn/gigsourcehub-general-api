@@ -65,7 +65,8 @@ func (h *CVHandler) Upload(c *gin.Context) {
 //	@Security		BearerAuth
 func (h *CVHandler) GetParsedCV(c *gin.Context) {
 	id := c.Param("id")
-	resp := h.Usecase.GetParsedCV(c.Request.Context(), id)
+	userClaim := c.MustGet("token_data").(domain.JWTClaimUser)
+	resp := h.Usecase.GetParsedCV(c.Request.Context(), userClaim.UserID, id)
 	c.JSON(resp.Status, resp)
 }
 

@@ -592,6 +592,120 @@ func (_c *GormRepo_UpdateCV_Call) RunAndReturn(run func(context.Context, *gorm_m
 	return _c
 }
 
+// GetProvinsiName provides a mock function with given fields: ctx, id
+func (_m *GormRepo) GetProvinsiName(ctx context.Context, id string) (string, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetProvinsiName")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_GetProvinsiName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetProvinsiName'
+type GormRepo_GetProvinsiName_Call struct {
+	*mock.Call
+}
+
+// GetProvinsiName is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *GormRepo_Expecter) GetProvinsiName(ctx interface{}, id interface{}) *GormRepo_GetProvinsiName_Call {
+	return &GormRepo_GetProvinsiName_Call{Call: _e.mock.On("GetProvinsiName", ctx, id)}
+}
+
+func (_c *GormRepo_GetProvinsiName_Call) Run(run func(ctx context.Context, id string)) *GormRepo_GetProvinsiName_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_GetProvinsiName_Call) Return(_a0 string, _a1 error) *GormRepo_GetProvinsiName_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_GetProvinsiName_Call) RunAndReturn(run func(context.Context, string) (string, error)) *GormRepo_GetProvinsiName_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetKabupatenName provides a mock function with given fields: ctx, id
+func (_m *GormRepo) GetKabupatenName(ctx context.Context, id string) (string, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetKabupatenName")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_GetKabupatenName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetKabupatenName'
+type GormRepo_GetKabupatenName_Call struct {
+	*mock.Call
+}
+
+// GetKabupatenName is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *GormRepo_Expecter) GetKabupatenName(ctx interface{}, id interface{}) *GormRepo_GetKabupatenName_Call {
+	return &GormRepo_GetKabupatenName_Call{Call: _e.mock.On("GetKabupatenName", ctx, id)}
+}
+
+func (_c *GormRepo_GetKabupatenName_Call) Run(run func(ctx context.Context, id string)) *GormRepo_GetKabupatenName_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_GetKabupatenName_Call) Return(_a0 string, _a1 error) *GormRepo_GetKabupatenName_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_GetKabupatenName_Call) RunAndReturn(run func(context.Context, string) (string, error)) *GormRepo_GetKabupatenName_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewGormRepo creates a new instance of GormRepo. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewGormRepo(t interface {
