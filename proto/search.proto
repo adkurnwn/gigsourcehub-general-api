@@ -2,7 +2,10 @@ syntax = "proto3";
 
 package search;
 
-option go_package = "./proto/pb";
+option go_package = "gigsourcehub-ai-api/proto"; // (Adjust this package name on your general-api repo of course)
+
+// 1. Add this import at the top
+import "google/protobuf/struct.proto";
 
 service SearchService {
   rpc Search (SearchRequest) returns (SearchResponse);
@@ -15,7 +18,10 @@ message SearchRequest {
 
 message SearchResult {
   string id = 1;
-  string content = 2;
+  
+  // 2. Change this line from "string content = 2;" to:
+  google.protobuf.Struct content = 2;
+  
   float score = 3;
   // Add metadata or other fields as needed
 }

@@ -53,9 +53,18 @@ func (r *aiSearchRepository) Search(ctx context.Context, query string) ([]model.
 
 	var results []model.SearchResult
 	for _, item := range resp.Results {
+		// Convert protobuf Struct map back to a JSON string for the domain model
+		contentBytes, err := item.Content.MarshalJSON()
+		contentStr := ""
+		if err == nil {
+			contentStr = string(contentBytes)
+		} else {
+			logrus.Errorf("[gRPC] Failed to marshal content struct to JSON: %v", err)
+		}
+
 		results = append(results, model.SearchResult{
 			ID:      item.Id,
-			Content: item.Content,
+			Content: contentStr,
 			Score:   item.Score,
 		})
 	}
