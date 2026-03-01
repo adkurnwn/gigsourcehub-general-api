@@ -63,6 +63,14 @@ func (u *appUsecase) Login(ctx context.Context, payload request_model.LoginReque
 		return response.Error(http.StatusBadRequest, err.Error())
 	}
 
+	// Manually ensure the Role Name is fetched so ToUserResp can properly suppress Candidate fields
+	roleName, errRole := u.gormDbRepo.GetRoleNameByUserID(ctx, user.ID)
+	if errRole == nil && roleName != "" {
+		user.RoleSystem = &gorm_model.RoleSystem{
+			Name: roleName,
+		}
+	}
+
 	return response.Success(map[string]interface{}{
 		"user":  user.ToUserResp(),
 		"token": tokenString,
@@ -129,7 +137,22 @@ func (u *appUsecase) Register(ctx context.Context, payload request_model.Registe
 		return response.Error(http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(newUser.ToUserResp())
+	// generate token
+	tokenString, err := jwt_helper.GenerateJWTToken(
+		jwt_helper.GetJwtCredential().Member,
+		domain.JWTClaimUser{
+			UserID: newUser.ID,
+		},
+	)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "failed to generate token")
+	}
+
+	return response.Success(map[string]interface{}{
+		"name":  newUser.Name,
+		"email": newUser.Email,
+		"token": tokenString,
+	})
 }
 
 func (u *appUsecase) GetMe(ctx context.Context, claim domain.JWTClaimUser) response.Base {
@@ -150,6 +173,14 @@ func (u *appUsecase) GetMe(ctx context.Context, claim domain.JWTClaimUser) respo
 
 	if user == nil {
 		return response.Error(http.StatusBadRequest, "user not found")
+	}
+
+	// Manually ensure the Role Name is fetched so ToUserResp can properly suppress Candidate fields
+	roleName, err := u.gormDbRepo.GetRoleNameByUserID(ctx, userID)
+	if err == nil && roleName != "" {
+		user.RoleSystem = &gorm_model.RoleSystem{
+			Name: roleName,
+		}
 	}
 
 	return response.Success(user.ToUserResp())

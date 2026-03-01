@@ -25,6 +25,7 @@ type User struct {
 	RecruitmentStatusId *string        `gorm:"column:recruitment_status_id;type:uuid"`
 	UnavailableUntil    *time.Time     `gorm:"column:unavailable_until;type:date"`
 	RoleSystemId        *string        `gorm:"column:role_system_id;type:uuid"`
+	RoleSystem          *RoleSystem    `gorm:"foreignKey:RoleSystemId"`
 	RoleAppliedId       *string        `gorm:"column:role_applied_id;type:uuid"`
 	AccountStatus       *string        `gorm:"column:account_status;type:varchar(10)"`
 	Jabatan             *string        `gorm:"column:jabatan;type:varchar(100)"`
@@ -68,18 +69,29 @@ type UserResp struct {
 	YearsExperience     *int       `json:"years_experience"`
 	TechStack           *string    `json:"tech_stack"`
 	ProfilePicture      *string    `json:"profile_picture"`
-	CandidateLevel      *string    `json:"candidate_level"`
+	CandidateLevel      *string    `json:"candidate_level,omitempty"`
 	RecruitmentStatusId *string    `json:"recruitment_status_id"`
 	UnavailableUntil    *time.Time `json:"unavailable_until"`
-	RoleSystemId        *string    `json:"role_system_id"`
+	RoleSystemName      *string    `json:"role_system_name"`
 	RoleAppliedId       *string    `json:"role_applied_id"`
 	AccountStatus       *string    `json:"account_status"`
-	Jabatan             *string    `json:"jabatan"`
-	CreatedAt           time.Time  `json:"created_at"`
-	UpdatedAt           time.Time  `json:"updated_at"`
+	Jabatan             *string    `json:"jabatan,omitempty"`
 }
 
 func (row *User) ToUserResp() UserResp {
+	var roleName *string
+	if row.RoleSystem != nil {
+		roleName = &row.RoleSystem.Name
+	}
+
+	candidateLevel := row.CandidateLevel
+	jabatan := row.Jabatan
+
+	if roleName != nil && *roleName == "Candidate" {
+		candidateLevel = nil
+		jabatan = nil
+	}
+
 	return UserResp{
 		ID:                  row.ID,
 		Name:                row.Name,
@@ -94,14 +106,12 @@ func (row *User) ToUserResp() UserResp {
 		YearsExperience:     row.YearsExperience,
 		TechStack:           row.TechStack,
 		ProfilePicture:      row.ProfilePicture,
-		CandidateLevel:      row.CandidateLevel,
+		CandidateLevel:      candidateLevel,
 		RecruitmentStatusId: row.RecruitmentStatusId,
 		UnavailableUntil:    row.UnavailableUntil,
-		RoleSystemId:        row.RoleSystemId,
+		RoleSystemName:      roleName,
 		RoleAppliedId:       row.RoleAppliedId,
 		AccountStatus:       row.AccountStatus,
-		Jabatan:             row.Jabatan,
-		CreatedAt:           row.CreatedAt,
-		UpdatedAt:           row.UpdatedAt,
+		Jabatan:             jabatan,
 	}
 }

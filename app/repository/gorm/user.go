@@ -15,6 +15,8 @@ func (r *gormRepo) FetchUser(ctx context.Context, options gorm_model.UserFilter)
 	q := r.db.Model(&gorm_model.User{})
 	options.Query(q)
 
+	q = q.Preload("RoleSystem")
+
 	cur, err = q.WithContext(ctx).Rows()
 	if err != nil {
 		logrus.Error("FetchUser Find:", err)
@@ -28,6 +30,8 @@ func (r *gormRepo) FetchOneUser(ctx context.Context, options gorm_model.UserFilt
 	// generate query
 	q := r.db.Model(&gorm_model.User{})
 	options.Query(q)
+
+	q = q.Preload("RoleSystem")
 
 	// set row
 	row = new(gorm_model.User)
