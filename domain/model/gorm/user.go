@@ -15,7 +15,6 @@ type User struct {
 	SchoolUniversity    *string        `gorm:"column:school_university;type:varchar(255)"`
 	Major               *string        `gorm:"column:major;type:varchar(255)"`
 	Gpa                 *float64       `gorm:"column:gpa;type:decimal(3,2)"`
-	CvId                *string        `gorm:"column:cv_id;type:uuid"`
 	PhoneNumber         *string        `gorm:"column:phone_number;type:varchar(20)"`
 	PortofolioLink      *string        `gorm:"column:portofolio_link;type:text"`
 	KabupatenKotaId     *string        `gorm:"column:kabupaten_kota_id;type:varchar(5)"`
@@ -63,7 +62,6 @@ type UserResp struct {
 	SchoolUniversity    *string    `json:"school_university"`
 	Major               *string    `json:"major"`
 	Gpa                 *float64   `json:"gpa"`
-	CvId                *string    `json:"cv_id"`
 	PhoneNumber         *string    `json:"phone_number"`
 	PortofolioLink      *string    `json:"portofolio_link"`
 	KabupatenKotaId     *string    `json:"kabupaten_kota_id"`
@@ -90,7 +88,6 @@ func (row *User) ToUserResp() UserResp {
 		SchoolUniversity:    row.SchoolUniversity,
 		Major:               row.Major,
 		Gpa:                 row.Gpa,
-		CvId:                row.CvId,
 		PhoneNumber:         row.PhoneNumber,
 		PortofolioLink:      row.PortofolioLink,
 		KabupatenKotaId:     row.KabupatenKotaId,

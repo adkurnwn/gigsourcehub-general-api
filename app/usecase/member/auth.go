@@ -104,13 +104,24 @@ func (u *appUsecase) Register(ctx context.Context, payload request_model.Registe
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(payload.Password), bcrypt.DefaultCost)
 
+	// Fetch default role "Candidate"
+	var candidateRole gorm_model.RoleSystem
+	var roleSystemID *string
+	if err := u.gormDbRepo.GetDB().Where("name = ?", "Candidate").First(&candidateRole).Error; err == nil {
+		roleSystemID = &candidateRole.ID
+	}
+
+	activeStatus := "active"
+
 	newUser := gorm_model.User{
-		ID:        uuid.New().String(),
-		Name:      payload.Name,
-		Email:     payload.Email,
-		Password:  string(hashedPassword),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		ID:            uuid.New().String(),
+		Name:          payload.Name,
+		Email:         payload.Email,
+		Password:      string(hashedPassword),
+		RoleSystemId:  roleSystemID,
+		AccountStatus: &activeStatus,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	}
 
 	err = u.gormDbRepo.CreateUser(ctx, &newUser)

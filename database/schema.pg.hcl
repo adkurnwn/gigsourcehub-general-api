@@ -35,10 +35,7 @@ table "users" {
     type = decimal(3,2)
     null = true
   }
-  column "cv_id" {
-    type = uuid
-    null = true
-  }
+
   column "phone_number" {
     type = varchar(20)
     null = true
@@ -102,6 +99,22 @@ table "users" {
   column "deleted_at" {
     type = timestamptz
     null = true
+  }
+
+
+
+  foreign_key "user_role_system_fk" {
+    columns     = [column.role_system_id]
+    ref_columns = [table.role_systems.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
+  }
+
+  foreign_key "user_role_applied_fk" {
+    columns     = [column.role_applied_id]
+    ref_columns = [table.role_applieds.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
   }
 
   primary_key {
@@ -217,7 +230,7 @@ table "sectors" {
   }
 }
 
-table "role_system" {
+table "role_systems" {
   schema = schema.public
 
   column "id" {
@@ -244,12 +257,12 @@ table "role_system" {
     columns = [column.id]
   }
 
-  index "idx_role_system_deleted_at" {
+  index "idx_role_systems_deleted_at" {
     columns = [column.deleted_at]
   }
 }
 
-table "role_applied" {
+table "role_applieds" {
   schema = schema.public
 
   column "id" {
@@ -280,16 +293,23 @@ table "role_applied" {
     columns = [column.id]
   }
 
-  index "idx_role_applied_deleted_at" {
+  index "idx_role_applieds_deleted_at" {
     columns = [column.deleted_at]
   }
 
-  index "idx_role_applied_sector_id" {
+  index "idx_role_applieds_sector_id" {
     columns = [column.sector_id]
+  }
+
+  foreign_key "role_applieds_sector_fk" {
+    columns     = [column.sector_id]
+    ref_columns = [table.sectors.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
   }
 }
 
-table "recruitment_status" {
+table "recruitment_statuses" {
   schema = schema.public
 
   column "id" {
@@ -325,7 +345,7 @@ table "recruitment_status" {
     columns = [column.id]
   }
 
-  index "idx_recruitment_status_deleted_at" {
+  index "idx_recruitment_statuses_deleted_at" {
     columns = [column.deleted_at]
   }
 }
