@@ -69,3 +69,9 @@ func (row *CV) ToCVResp() CVResp {
 		UpdatedAt:  row.UpdatedAt,
 	}
 }
+
+type CVPrivateResp struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}

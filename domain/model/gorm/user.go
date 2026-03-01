@@ -115,3 +115,9 @@ func (row *User) ToUserResp() UserResp {
 		Jabatan:             jabatan,
 	}
 }
+
+// UserDetailResp bundles the standard user output along with a restricted CV link
+type UserDetailResp struct {
+	UserResp
+	CV *CVPrivateResp `json:"cv"`
+}

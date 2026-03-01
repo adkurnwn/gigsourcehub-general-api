@@ -132,13 +132,14 @@ func main() {
 	// init repo
 	repo := gormrepo.NewGormRepo(psqlPrep, logger.Default)
 
-	// init usecase
-	ucMember := usecase_member.NewAppUsecase(usecase_member.RepoInjection{
-		GormDbRepo: repo,
-	}, timeoutContext)
-
 	// init storage repo
 	storageRepo := s3repo.NewS3Repo()
+
+	// init usecase
+	ucMember := usecase_member.NewAppUsecase(usecase_member.RepoInjection{
+		GormDbRepo:  repo,
+		StorageRepo: storageRepo,
+	}, timeoutContext)
 
 	// init mq repo
 	mqRepo, err := rabbitmqrepo.NewRabbitMQRepo(os.Getenv("RABBITMQ_URL"))
