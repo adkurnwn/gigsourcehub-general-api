@@ -19,6 +19,78 @@ table "users" {
     type = varchar(255)
     null = false
   }
+  column "birthdate" {
+    type = date
+    null = true
+  }
+  column "school_university" {
+    type = varchar(255)
+    null = true
+  }
+  column "major" {
+    type = varchar(255)
+    null = true
+  }
+  column "gpa" {
+    type = decimal(3,2)
+    null = true
+  }
+  column "cv_id" {
+    type = uuid
+    null = true
+  }
+  column "phone_number" {
+    type = varchar(20)
+    null = true
+  }
+  column "portofolio_link" {
+    type = text
+    null = true
+  }
+  column "kabupaten_kota_id" {
+    type = varchar(5)
+    null = true
+  }
+  column "years_experience" {
+    type = int
+    null = true
+  }
+  column "tech_stack" {
+    type = jsonb
+    null = true
+  }
+  column "profile_picture" {
+    type = varchar(255)
+    null = true
+  }
+  column "candidate_level" {
+    type = varchar(50)
+    null = true
+  }
+  column "recruitment_status_id" {
+    type = uuid
+    null = true
+  }
+  column "unavailable_until" {
+    type = date
+    null = true
+  }
+  column "role_system_id" {
+    type = uuid
+    null = true
+  }
+  column "role_applied_id" {
+    type = uuid
+    null = true
+  }
+  column "account_status" {
+    type = varchar(10)
+    null = true
+  }
+  column "jabatan" {
+    type = varchar(100)
+    null = true
+  }
   column "created_at" {
     type = timestamptz
     null = false
@@ -32,51 +104,6 @@ table "users" {
     null = true
   }
 
-  column "pendidikan_terakhir" {
-    type = varchar(255)
-    null = true
-  }
-  column "instansi_pendidikan" {
-    type = varchar(255)
-    null = true
-  }
-  column "jurusan" {
-    type = varchar(255)
-    null = true
-  }
-  column "ipk" {
-    type = varchar(50)
-    null = true
-  }
-  column "kabupaten_id" {
-    type = varchar(5)
-    null = true
-  }
-  column "provinsi_id" {
-    type = varchar(2)
-    null = true
-  }
-  column "lama_pengalaman_kerja" {
-    type = varchar(255)
-    null = true
-  }
-  column "bidang_minat" {
-    type = varchar(255)
-    null = true
-  }
-  column "applied_role" {
-    type = varchar(255)
-    null = true
-  }
-  column "skills" {
-    type = jsonb
-    null = true
-  }
-  column "link_portofolio" {
-    type = varchar(255)
-    null = true
-  }
-
   primary_key {
     columns = [column.id]
   }
@@ -85,12 +112,12 @@ table "users" {
     columns = [column.deleted_at]
   }
 
-  index "idx_users_provinsi_id" {
-    columns = [column.provinsi_id]
+  index "idx_users_kabupaten_kota_id" {
+    columns = [column.kabupaten_kota_id]
   }
-
-  index "idx_users_kabupaten_id" {
-    columns = [column.kabupaten_id]
+  
+  index "idx_users_role_applied_id" {
+    columns = [column.role_applied_id]
   }
 }
 
@@ -100,7 +127,7 @@ table "cvs" {
   column "id" {
     type = uuid
   }
-  column "name" {
+  column "filename" {
     type = varchar(255)
     null = false
   }
@@ -156,8 +183,17 @@ table "sectors" {
     type = uuid
   }
   column "name" {
-    type = varchar(255)
+    type = varchar(150)
     null = false
+  }
+  column "is_active" {
+    type    = boolean
+    default = true
+    null    = false
+  }
+  column "hex_code" {
+    type = varchar(10)
+    null = true
   }
   column "created_at" {
     type = timestamptz
@@ -181,14 +217,14 @@ table "sectors" {
   }
 }
 
-table "roles" {
+table "role_system" {
   schema = schema.public
 
   column "id" {
     type = uuid
   }
   column "name" {
-    type = varchar(255)
+    type = varchar(150)
     null = false
   }
   column "created_at" {
@@ -204,21 +240,93 @@ table "roles" {
     null = true
   }
 
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_role_system_deleted_at" {
+    columns = [column.deleted_at]
+  }
+}
+
+table "role_applied" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "name" {
+    type = varchar(150)
+    null = false
+  }
   column "sector_id" {
     type = uuid
     null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
   }
 
   primary_key {
     columns = [column.id]
   }
 
-  index "idx_roles_deleted_at" {
+  index "idx_role_applied_deleted_at" {
     columns = [column.deleted_at]
   }
 
-  index "idx_roles_sector_id" {
+  index "idx_role_applied_sector_id" {
     columns = [column.sector_id]
+  }
+}
+
+table "recruitment_status" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "name" {
+    type = varchar(150)
+    null = false
+  }
+  column "hex_code" {
+    type = varchar(10)
+    null = true
+  }
+  column "is_active" {
+    type    = boolean
+    default = true
+    null    = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_recruitment_status_deleted_at" {
+    columns = [column.deleted_at]
   }
 }
 

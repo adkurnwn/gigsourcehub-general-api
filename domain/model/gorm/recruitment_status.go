@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Sector struct {
+type RecruitmentStatus struct {
 	ID        string         `gorm:"column:id;primarykey;type:uuid;default:uuid_generate_v4()"`
 	Name      string         `gorm:"column:name;type:varchar(150);not null"`
 	HexCode   string         `gorm:"column:hex_code;type:varchar(10)"`
@@ -16,16 +16,15 @@ type Sector struct {
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;index"`
 }
 
-var SectorAllowedSort = []string{"name", "created_at", "updated_at"}
+var RecruitmentStatusAllowedSort = []string{"name", "created_at", "updated_at"}
 
-type SectorFilter struct {
+type RecruitmentStatusFilter struct {
 	DefaultFilter
 	Name     *string
 	IsActive *bool
 }
 
-func (f *SectorFilter) Query(q *gorm.DB) {
-
+func (f *RecruitmentStatusFilter) Query(q *gorm.DB) {
 	// default query
 	f.DefaultFilter.DefaultQuery(q)
 
@@ -37,7 +36,7 @@ func (f *SectorFilter) Query(q *gorm.DB) {
 	}
 }
 
-type SectorResp struct {
+type RecruitmentStatusResp struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
 	HexCode   string    `json:"hex_code"`
@@ -46,8 +45,8 @@ type SectorResp struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (row *Sector) ToSectorResp() SectorResp {
-	return SectorResp{
+func (row *RecruitmentStatus) ToRecruitmentStatusResp() RecruitmentStatusResp {
+	return RecruitmentStatusResp{
 		ID:        row.ID,
 		Name:      row.Name,
 		HexCode:   row.HexCode,

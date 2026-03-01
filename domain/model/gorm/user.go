@@ -11,20 +11,27 @@ type User struct {
 	Name                string         `gorm:"column:name;type:varchar(255);not null"`
 	Email               string         `gorm:"column:email;type:varchar(255);not null"`
 	Password            string         `gorm:"column:password;type:varchar(255);not null"`
+	Birthdate           *time.Time     `gorm:"column:birthdate;type:date"`
+	SchoolUniversity    *string        `gorm:"column:school_university;type:varchar(255)"`
+	Major               *string        `gorm:"column:major;type:varchar(255)"`
+	Gpa                 *float64       `gorm:"column:gpa;type:decimal(3,2)"`
+	CvId                *string        `gorm:"column:cv_id;type:uuid"`
+	PhoneNumber         *string        `gorm:"column:phone_number;type:varchar(20)"`
+	PortofolioLink      *string        `gorm:"column:portofolio_link;type:text"`
+	KabupatenKotaId     *string        `gorm:"column:kabupaten_kota_id;type:varchar(5)"`
+	YearsExperience     *int           `gorm:"column:years_experience;type:int"`
+	TechStack           *string        `gorm:"column:tech_stack;type:jsonb"`
+	ProfilePicture      *string        `gorm:"column:profile_picture;type:varchar(255)"`
+	CandidateLevel      *string        `gorm:"column:candidate_level;type:varchar(50)"`
+	RecruitmentStatusId *string        `gorm:"column:recruitment_status_id;type:uuid"`
+	UnavailableUntil    *time.Time     `gorm:"column:unavailable_until;type:date"`
+	RoleSystemId        *string        `gorm:"column:role_system_id;type:uuid"`
+	RoleAppliedId       *string        `gorm:"column:role_applied_id;type:uuid"`
+	AccountStatus       *string        `gorm:"column:account_status;type:varchar(10)"`
+	Jabatan             *string        `gorm:"column:jabatan;type:varchar(100)"`
 	CreatedAt           time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt           time.Time      `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt           gorm.DeletedAt `gorm:"column:deleted_at;index"`
-	PendidikanTerakhir  *string        `gorm:"column:pendidikan_terakhir;type:varchar(255)"`
-	InstansiPendidikan  *string        `gorm:"column:instansi_pendidikan;type:varchar(255)"`
-	Jurusan             *string        `gorm:"column:jurusan;type:varchar(255)"`
-	Ipk                 *string        `gorm:"column:ipk;type:varchar(50)"`
-	KabupatenId         *string        `gorm:"column:kabupaten_id;type:varchar(5)"`
-	ProvinsiId          *string        `gorm:"column:provinsi_id;type:varchar(2)"`
-	LamaPengalamanKerja *string        `gorm:"column:lama_pengalaman_kerja;type:varchar(255)"`
-	BidangMinat         *string        `gorm:"column:bidang_minat;type:varchar(255)"`
-	AppliedRole         *string        `gorm:"column:applied_role;type:varchar(255)"`
-	Skills              *string        `gorm:"column:skills;type:jsonb"`
-	LinkPortofolio      *string        `gorm:"column:link_portofolio;type:varchar(255)"`
 }
 
 var UserAllowedSort = []string{"name", "email", "created_at", "updated_at"}
@@ -49,22 +56,29 @@ func (f *UserFilter) Query(q *gorm.DB) {
 }
 
 type UserResp struct {
-	ID                  string    `json:"id"`
-	Name                string    `json:"name"`
-	Email               string    `json:"email"`
-	PendidikanTerakhir  *string   `json:"pendidikan_terakhir"`
-	InstansiPendidikan  *string   `json:"instansi_pendidikan"`
-	Jurusan             *string   `json:"jurusan"`
-	Ipk                 *string   `json:"ipk"`
-	KabupatenId         *string   `json:"kabupaten_id"`
-	ProvinsiId          *string   `json:"provinsi_id"`
-	LamaPengalamanKerja *string   `json:"lama_pengalaman_kerja"`
-	BidangMinat         *string   `json:"bidang_minat"`
-	AppliedRole         *string   `json:"applied_role"`
-	Skills              *string   `json:"skills"`
-	LinkPortofolio      *string   `json:"link_portofolio"`
-	CreatedAt           time.Time `json:"created_at"`
-	UpdatedAt           time.Time `json:"updated_at"`
+	ID                  string     `json:"id"`
+	Name                string     `json:"name"`
+	Email               string     `json:"email"`
+	Birthdate           *time.Time `json:"birthdate"`
+	SchoolUniversity    *string    `json:"school_university"`
+	Major               *string    `json:"major"`
+	Gpa                 *float64   `json:"gpa"`
+	CvId                *string    `json:"cv_id"`
+	PhoneNumber         *string    `json:"phone_number"`
+	PortofolioLink      *string    `json:"portofolio_link"`
+	KabupatenKotaId     *string    `json:"kabupaten_kota_id"`
+	YearsExperience     *int       `json:"years_experience"`
+	TechStack           *string    `json:"tech_stack"`
+	ProfilePicture      *string    `json:"profile_picture"`
+	CandidateLevel      *string    `json:"candidate_level"`
+	RecruitmentStatusId *string    `json:"recruitment_status_id"`
+	UnavailableUntil    *time.Time `json:"unavailable_until"`
+	RoleSystemId        *string    `json:"role_system_id"`
+	RoleAppliedId       *string    `json:"role_applied_id"`
+	AccountStatus       *string    `json:"account_status"`
+	Jabatan             *string    `json:"jabatan"`
+	CreatedAt           time.Time  `json:"created_at"`
+	UpdatedAt           time.Time  `json:"updated_at"`
 }
 
 func (row *User) ToUserResp() UserResp {
@@ -72,17 +86,24 @@ func (row *User) ToUserResp() UserResp {
 		ID:                  row.ID,
 		Name:                row.Name,
 		Email:               row.Email,
-		PendidikanTerakhir:  row.PendidikanTerakhir,
-		InstansiPendidikan:  row.InstansiPendidikan,
-		Jurusan:             row.Jurusan,
-		Ipk:                 row.Ipk,
-		KabupatenId:         row.KabupatenId,
-		ProvinsiId:          row.ProvinsiId,
-		LamaPengalamanKerja: row.LamaPengalamanKerja,
-		BidangMinat:         row.BidangMinat,
-		AppliedRole:         row.AppliedRole,
-		Skills:              row.Skills,
-		LinkPortofolio:      row.LinkPortofolio,
+		Birthdate:           row.Birthdate,
+		SchoolUniversity:    row.SchoolUniversity,
+		Major:               row.Major,
+		Gpa:                 row.Gpa,
+		CvId:                row.CvId,
+		PhoneNumber:         row.PhoneNumber,
+		PortofolioLink:      row.PortofolioLink,
+		KabupatenKotaId:     row.KabupatenKotaId,
+		YearsExperience:     row.YearsExperience,
+		TechStack:           row.TechStack,
+		ProfilePicture:      row.ProfilePicture,
+		CandidateLevel:      row.CandidateLevel,
+		RecruitmentStatusId: row.RecruitmentStatusId,
+		UnavailableUntil:    row.UnavailableUntil,
+		RoleSystemId:        row.RoleSystemId,
+		RoleAppliedId:       row.RoleAppliedId,
+		AccountStatus:       row.AccountStatus,
+		Jabatan:             row.Jabatan,
 		CreatedAt:           row.CreatedAt,
 		UpdatedAt:           row.UpdatedAt,
 	}

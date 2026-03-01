@@ -11,7 +11,7 @@ import (
 type CV struct {
 	ID         string         `gorm:"column:id;primarykey;type:uuid;default:uuid_generate_v4()"`
 	UserID     string         `gorm:"column:user_id;type:uuid;not null"`
-	Name       string         `gorm:"column:name;type:varchar(255);not null"`
+	Filename   string         `gorm:"column:filename;type:varchar(255);not null"`
 	Path       string         `gorm:"column:path;type:varchar(255);not null"`
 	ParsedData *string        `gorm:"column:parsed_data;type:jsonb"`
 	Status     string         `gorm:"column:status;type:varchar(50);default:'UPLOADED'"`
@@ -20,12 +20,12 @@ type CV struct {
 	DeletedAt  gorm.DeletedAt `gorm:"column:deleted_at;index"`
 }
 
-var CVAllowedSort = []string{"name", "created_at", "updated_at"}
+var CVAllowedSort = []string{"filename", "created_at", "updated_at"}
 
 type CVFilter struct {
 	DefaultFilter
-	Name *string
-	Path *string
+	Filename *string
+	Path     *string
 }
 
 func (f *CVFilter) Query(q *gorm.DB) {
@@ -33,15 +33,15 @@ func (f *CVFilter) Query(q *gorm.DB) {
 	// default query
 	f.DefaultFilter.DefaultQuery(q)
 
-	if f.Name != nil {
-		q.Where("name = ?", *f.Name)
+	if f.Filename != nil {
+		q.Where("filename = ?", *f.Filename)
 	}
 
 }
 
 type CVResp struct {
 	ID         string    `json:"id"`
-	Name       string    `json:"name"`
+	Filename   string    `json:"filename"`
 	Path       string    `json:"path"`
 	ParsedData string    `json:"parsed_data,omitempty"`
 	Status     string    `json:"status"`
@@ -61,7 +61,7 @@ func (row *CV) ToCVResp() CVResp {
 	}
 	return CVResp{
 		ID:         row.ID,
-		Name:       row.Name,
+		Filename:   row.Filename,
 		Path:       path,
 		ParsedData: parsedData,
 		Status:     row.Status,
