@@ -163,8 +163,8 @@ func main() {
 		}()
 	}
 
-	// init middleware — pass nil redis client
-	mdl := middleware.NewMiddleware(nil)
+	// init middleware — pass nil redis client and the actual gorm repo
+	mdl := middleware.NewMiddleware(nil, repo)
 
 	// gin mode realease when go env is production
 	if os.Getenv("GO_ENV") == "production" || os.Getenv("GO_ENV") == "prod" {

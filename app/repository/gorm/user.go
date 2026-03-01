@@ -93,3 +93,17 @@ func (r *gormRepo) GetKabupatenName(ctx context.Context, id string) (name string
 	}
 	return
 }
+
+func (r *gormRepo) GetRoleNameByUserID(ctx context.Context, userID string) (roleName string, err error) {
+	err = r.db.WithContext(ctx).
+		Table("users u").
+		Joins("JOIN role_systems rs ON u.role_system_id = rs.id").
+		Where("u.id = ?", userID).
+		Select("rs.name").
+		Row().
+		Scan(&roleName)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+	return roleName, err
+}

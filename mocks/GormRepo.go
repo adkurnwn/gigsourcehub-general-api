@@ -649,6 +649,63 @@ func (_c *GormRepo_GetProvinsiName_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
+// GetRoleNameByUserID provides a mock function with given fields: ctx, userID
+func (_m *GormRepo) GetRoleNameByUserID(ctx context.Context, userID string) (string, error) {
+	ret := _m.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRoleNameByUserID")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return rf(ctx, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_GetRoleNameByUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRoleNameByUserID'
+type GormRepo_GetRoleNameByUserID_Call struct {
+	*mock.Call
+}
+
+// GetRoleNameByUserID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+func (_e *GormRepo_Expecter) GetRoleNameByUserID(ctx interface{}, userID interface{}) *GormRepo_GetRoleNameByUserID_Call {
+	return &GormRepo_GetRoleNameByUserID_Call{Call: _e.mock.On("GetRoleNameByUserID", ctx, userID)}
+}
+
+func (_c *GormRepo_GetRoleNameByUserID_Call) Run(run func(ctx context.Context, userID string)) *GormRepo_GetRoleNameByUserID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_GetRoleNameByUserID_Call) Return(_a0 string, _a1 error) *GormRepo_GetRoleNameByUserID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_GetRoleNameByUserID_Call) RunAndReturn(run func(context.Context, string) (string, error)) *GormRepo_GetRoleNameByUserID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetKabupatenName provides a mock function with given fields: ctx, id
 func (_m *GormRepo) GetKabupatenName(ctx context.Context, id string) (string, error) {
 	ret := _m.Called(ctx, id)

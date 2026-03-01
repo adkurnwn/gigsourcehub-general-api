@@ -18,7 +18,7 @@ func NewSearchHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc usecase_
 	handler := &SearchHandler{Usecase: uc}
 
 	api := r.Group("/search")
-	api.POST("", mdl.Auth(), handler.Search)
+	api.POST("", mdl.Auth(), mdl.AuthRole("Admin", "Superadmin"), handler.Search)
 }
 
 // Search
