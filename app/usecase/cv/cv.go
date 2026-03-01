@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
@@ -58,10 +59,10 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 	if err != nil {
 		// CV not found, insert new
 		cv := &gorm_model.CV{
-			ID:     uuid.New().String(),
-			UserID: userID,
-			Name:   fileHeader.Filename,
-			Path:   objectKey, // Store relative path
+			ID:       uuid.New().String(),
+			UserID:   userID,
+			Filename: fileHeader.Filename,
+			Path:     objectKey, // Store relative path
 			// ParsedData is omitted so it correctly inserts NULL
 		}
 
@@ -71,7 +72,7 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 		existingCV = cv
 	} else {
 		// CV exists, update it
-		existingCV.Name = fileHeader.Filename
+		existingCV.Filename = fileHeader.Filename
 		existingCV.Path = objectKey
 		existingCV.ParsedData = nil    // Reset parsed data
 		existingCV.Status = "UPLOADED" // Reset status
@@ -141,48 +142,86 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID, cvID string, editedDa
 		provID = p
 	}
 	kabID := ""
-	if k, ok := editedData["kabupaten_id"].(string); ok {
+	if k, ok := editedData["kabupaten_kota_id"].(string); ok {
+		kabID = k
+	} else if k, ok := editedData["kabupaten_id"].(string); ok {
 		kabID = k
 	}
 
 	// Update User Table Columns
 	user, err := u.gormRepo.FetchOneUser(ctx, gorm_model.UserFilter{DefaultFilter: gorm_model.DefaultFilter{ID: userID}})
 	if err == nil && user != nil {
-		if val, ok := editedData["pendidikan_terakhir"].(string); ok {
-			user.PendidikanTerakhir = &val
+		if val, ok := editedData["school_university"].(string); ok {
+			user.SchoolUniversity = &val
+		} else if val, ok := editedData["pendidikan_terakhir"].(string); ok {
+			user.SchoolUniversity = &val
 		}
-		if val, ok := editedData["instansi_pendidikan"].(string); ok {
-			user.InstansiPendidikan = &val
+
+		if val, ok := editedData["major"].(string); ok {
+			user.Major = &val
+		} else if val, ok := editedData["jurusan"].(string); ok {
+			user.Major = &val
 		}
-		if val, ok := editedData["jurusan"].(string); ok {
-			user.Jurusan = &val
+
+		if val, ok := editedData["gpa"]; ok {
+			if v, ok := val.(string); ok {
+				if f, err := strconv.ParseFloat(v, 64); err == nil {
+					user.Gpa = &f
+				}
+			} else if v, ok := val.(float64); ok {
+				user.Gpa = &v
+			}
+		} else if val, ok := editedData["ipk"]; ok {
+			if v, ok := val.(string); ok {
+				if f, err := strconv.ParseFloat(v, 64); err == nil {
+					user.Gpa = &f
+				}
+			} else if v, ok := val.(float64); ok {
+				user.Gpa = &v
+			}
 		}
-		if val, ok := editedData["ipk"].(string); ok {
-			user.Ipk = &val
-		}
-		if provID != "" {
-			user.ProvinsiId = &provID
-		}
+
 		if kabID != "" {
-			user.KabupatenId = &kabID
+			user.KabupatenKotaId = &kabID
 		}
-		if val, ok := editedData["lama_pengalaman_kerja"].(string); ok {
-			user.LamaPengalamanKerja = &val
+
+		if val, ok := editedData["years_experience"]; ok {
+			if v, ok := val.(string); ok {
+				if i, err := strconv.Atoi(v); err == nil {
+					user.YearsExperience = &i
+				}
+			} else if v, ok := val.(float64); ok {
+				i := int(v)
+				user.YearsExperience = &i
+			}
+		} else if val, ok := editedData["lama_pengalaman_kerja"].(string); ok {
+			if i, err := strconv.Atoi(val); err == nil {
+				user.YearsExperience = &i
+			}
 		}
-		if val, ok := editedData["bidang_minat"].(string); ok {
-			user.BidangMinat = &val
+
+		if val, ok := editedData["candidate_level"].(string); ok {
+			user.CandidateLevel = &val
 		}
-		if val, ok := editedData["applied_role"].(string); ok {
-			user.AppliedRole = &val
+
+		if val, ok := editedData["role_applied_id"].(string); ok {
+			user.RoleAppliedId = &val
 		}
-		if val, ok := editedData["link_portofolio"].(string); ok {
-			user.LinkPortofolio = &val
+
+		if val, ok := editedData["portofolio_link"].(string); ok {
+			user.PortofolioLink = &val
+		} else if val, ok := editedData["link_portofolio"].(string); ok {
+			user.PortofolioLink = &val
+		}
+
+		if val, ok := editedData["phone_number"].(string); ok {
+			user.PhoneNumber = &val
 		}
 
 		if skillsArr, ok := editedData["tech_stack"]; ok {
 			if marshaled, err := json.Marshal(skillsArr); err == nil {
 				skillsStr := string(marshaled)
-				user.Skills = &skillsStr
+				user.TechStack = &skillsStr
 			}
 		}
 
@@ -198,7 +237,8 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID, cvID string, editedDa
 	}
 	if kabID != "" {
 		if kabName, err := u.gormRepo.GetKabupatenName(ctx, kabID); err == nil && kabName != "" {
-			editedData["kabupaten"] = kabName
+			editedData["kabupaten_kota"] = kabName
+			delete(editedData, "kabupaten_kota_id")
 			delete(editedData, "kabupaten_id")
 		}
 	}

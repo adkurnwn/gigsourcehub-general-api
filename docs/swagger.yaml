@@ -1,16 +1,46 @@
 definitions:
   gorm_model.UserResp:
     properties:
-      created_at:
+      account_status:
+        type: string
+      birthdate:
+        type: string
+      candidate_level:
         type: string
       email:
         type: string
+      gpa:
+        type: number
       id:
+        type: string
+      jabatan:
+        type: string
+      kabupaten_kota_id:
+        type: string
+      major:
         type: string
       name:
         type: string
-      updated_at:
+      phone_number:
         type: string
+      portofolio_link:
+        type: string
+      profile_picture:
+        type: string
+      recruitment_status_id:
+        type: string
+      role_applied_id:
+        type: string
+      role_system_name:
+        type: string
+      school_university:
+        type: string
+      tech_stack:
+        type: string
+      unavailable_until:
+        type: string
+      years_experience:
+        type: integer
     type: object
   http_cv.ConfirmCVRequest:
     properties:
@@ -95,14 +125,14 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Base'
-      summary: Login as member
+      summary: Login as user
       tags:
-      - auth
+      - Auth
   /auth/me:
     get:
       consumes:
       - application/json
-      description: Get detail current member
+      description: Get detail current user
       produces:
       - application/json
       responses:
@@ -124,14 +154,14 @@ paths:
             $ref: '#/definitions/response.Base'
       security:
       - BearerAuth: []
-      summary: Detail member
+      summary: Detail user
       tags:
-      - auth
+      - Auth
   /auth/register:
     post:
       consumes:
       - application/json
-      description: Create a new member
+      description: Create a new user
       parameters:
       - description: Register Request
         in: body
@@ -158,9 +188,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Base'
-      summary: Register member
+      summary: Register user
       tags:
-      - auth
+      - Auth
   /cv/{id}/confirm:
     post:
       consumes:
@@ -258,6 +288,67 @@ paths:
       summary: Upload CV
       tags:
       - CV
+  /roles:
+    get:
+      consumes:
+      - application/json
+      description: Get All Role Applied
+      parameters:
+      - description: Sector ID
+        in: query
+        name: sector_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Role Applied
+      tags:
+      - Role Applied
+  /roles/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get Role Applied By ID
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Role Applied By ID
+      tags:
+      - Role Applied
   /search:
     post:
       consumes:
@@ -290,6 +381,129 @@ paths:
       summary: Search
       tags:
       - Search
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Fetch a paginated list of all users
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch All Users
+      tags:
+      - Users
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Fetch detail of a specific user including their CV URL
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch User Detail
+      tags:
+      - Users
+  /users/candidates:
+    get:
+      consumes:
+      - application/json
+      description: Fetch a paginated list of Candidate users
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch Candidates
+      tags:
+      - Users
 securityDefinitions:
   BearerAuth:
     description: 'Insert JWT Token with format: **Bearer {your token}**'

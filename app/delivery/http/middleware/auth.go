@@ -79,3 +79,59 @@ func (m *appMiddleware) Auth() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func (m *appMiddleware) AuthRole(allowedRoles ...string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Ensure token_data is set by Auth()
+		claimsVal, exists := c.Get("token_data")
+		if !exists {
+			response := response.Error(http.StatusUnauthorized, "Unauthorized: Token data missing. Ensure Auth() is called first.")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
+		claims, ok := claimsVal.(domain.JWTClaimUser)
+		if !ok {
+			response := response.Error(http.StatusUnauthorized, "Unauthorized: Invalid token data structure.")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
+		// Retrieve the user's string role from the database cleanly
+		roleName, err := m.repo.GetRoleNameByUserID(c.Request.Context(), claims.UserID)
+		if err != nil {
+			response := response.Error(http.StatusInternalServerError, "Internal Server Error: Unable to verify user role.")
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response)
+			return
+		}
+
+		// Check if the exact role string exists in our allowed array
+		isAllowed := false
+		for _, allowed := range allowedRoles {
+			if roleName == allowed {
+				isAllowed = true
+				break
+			}
+		}
+
+		if !isAllowed {
+			response := response.Error(http.StatusForbidden, "Forbidden: You do not have the necessary permissions.")
+			c.AbortWithStatusJSON(http.StatusForbidden, response)
+			return
+		}
+
+		c.Next()
+	}
+}
+
+func (m *appMiddleware) AuthAdmin() gin.HandlerFunc {
+	return m.AuthRole("Admin")
+}
+
+func (m *appMiddleware) AuthSuperadmin() gin.HandlerFunc {
+	return m.AuthRole("Superadmin")
+}
+
+func (m *appMiddleware) AuthEmployee() gin.HandlerFunc {
+	return m.AuthRole("Employee")
+}

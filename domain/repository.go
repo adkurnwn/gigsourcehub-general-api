@@ -19,6 +19,7 @@ type GormRepo interface {
 	CountUser(ctx context.Context, options gorm_model.UserFilter) int64
 	CreateUser(ctx context.Context, model *gorm_model.User) (err error)
 	UpdateUser(ctx context.Context, model *gorm_model.User) (err error)
+	GetRoleNameByUserID(ctx context.Context, userID string) (string, error)
 
 	CreateCV(ctx context.Context, cv *gorm_model.CV) error
 	GetCVByUserID(ctx context.Context, userID string) (*gorm_model.CV, error)
@@ -27,6 +28,8 @@ type GormRepo interface {
 
 	GetProvinsiName(ctx context.Context, id string) (string, error)
 	GetKabupatenName(ctx context.Context, id string) (string, error)
+
+	FetchRoleApplied(ctx context.Context, options gorm_model.RoleAppliedFilter) (*sql.Rows, error)
 
 	GetDB() *gorm.DB
 }

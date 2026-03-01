@@ -5,6 +5,7 @@ import (
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
 	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
+	http_role_applied "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/role_applied"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
 	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
 	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
@@ -12,6 +13,7 @@ import (
 	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
 	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
+	usecase_role_applied "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/role_applied"
 	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
 
@@ -78,7 +80,7 @@ func main() {
 		docs.SwaggerInfo.Schemes = []string{"http", "https"}
 	}
 
-	docs.SwaggerInfo.BasePath = "/"
+	docs.SwaggerInfo.BasePath = "/api"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	timeoutStr := os.Getenv("TIMEOUT")
@@ -132,13 +134,19 @@ func main() {
 	// init repo
 	repo := gormrepo.NewGormRepo(psqlPrep, logger.Default)
 
-	// init usecase
-	ucMember := usecase_member.NewAppUsecase(usecase_member.RepoInjection{
-		GormDbRepo: repo,
-	}, timeoutContext)
-
 	// init storage repo
 	storageRepo := s3repo.NewS3Repo()
+
+	// init usecase
+	ucMember := usecase_member.NewAppUsecase(usecase_member.RepoInjection{
+		GormDbRepo:  repo,
+		StorageRepo: storageRepo,
+	}, timeoutContext)
+
+	// init role applied usecase
+	ucRoleApplied := usecase_role_applied.NewAppUsecase(usecase_role_applied.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
 
 	// init mq repo
 	mqRepo, err := rabbitmqrepo.NewRabbitMQRepo(os.Getenv("RABBITMQ_URL"))
@@ -163,8 +171,8 @@ func main() {
 		}()
 	}
 
-	// init middleware — pass nil redis client
-	mdl := middleware.NewMiddleware(nil)
+	// init middleware — pass nil redis client and the actual gorm repo
+	mdl := middleware.NewMiddleware(nil, repo)
 
 	// gin mode realease when go env is production
 	if os.Getenv("GO_ENV") == "production" || os.Getenv("GO_ENV") == "prod" {
@@ -194,8 +202,10 @@ func main() {
 	ginEngine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// init route
-	http_member.NewRouteHandler(ginEngine.Group(""), mdl, ucMember)
-	http_cv.NewCVHandler(ginEngine.Group(""), mdl, ucCV)
+	apiGroup := ginEngine.Group("/api")
+	http_member.NewRouteHandler(apiGroup, mdl, ucMember)
+	http_cv.NewCVHandler(apiGroup, mdl, ucCV)
+	http_role_applied.NewRoleAppliedHandler(apiGroup, mdl, ucRoleApplied)
 
 	// init search (AI)
 	aiRepo, err := aisearchrepo.NewAISearchRepository(os.Getenv("AI_API_URL"))
@@ -204,7 +214,7 @@ func main() {
 	} else {
 		// defer aiRepo.Close() // In a real app we might want to close on shutdown, but here we keep it open
 		ucSearch := usecase_search.NewSearchUsecase(aiRepo, timeoutContext)
-		http_search.NewSearchHandler(ginEngine.Group(""), mdl, ucSearch)
+		http_search.NewSearchHandler(apiGroup, mdl, ucSearch)
 	}
 
 	port := os.Getenv("PORT")

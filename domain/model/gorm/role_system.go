@@ -6,25 +6,22 @@ import (
 	"gorm.io/gorm"
 )
 
-type Role struct {
+type RoleSystem struct {
 	ID        string         `gorm:"column:id;primarykey;type:uuid;default:uuid_generate_v4()"`
-	SectorID  string         `gorm:"column:sector_id;type:uuid;not null"`
-	Name      string         `gorm:"column:name;type:varchar(255);not null"`
+	Name      string         `gorm:"column:name;type:varchar(150);not null"`
 	CreatedAt time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt time.Time      `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;index"`
 }
 
-var RoleAllowedSort = []string{"name", "created_at", "updated_at"}
+var RoleSystemAllowedSort = []string{"name", "created_at", "updated_at"}
 
-type RoleFilter struct {
+type RoleSystemFilter struct {
 	DefaultFilter
-	SectorID *string
-	Name     *string
+	Name *string
 }
 
-func (f *RoleFilter) Query(q *gorm.DB) {
-
+func (f *RoleSystemFilter) Query(q *gorm.DB) {
 	// default query
 	f.DefaultFilter.DefaultQuery(q)
 
@@ -33,16 +30,15 @@ func (f *RoleFilter) Query(q *gorm.DB) {
 	}
 }
 
-type RoleResp struct {
+type RoleSystemResp struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
-	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (row *Role) ToRoleResp() RoleResp {
-	return RoleResp{
+func (row *RoleSystem) ToRoleSystemResp() RoleSystemResp {
+	return RoleSystemResp{
 		ID:        row.ID,
 		Name:      row.Name,
 		CreatedAt: row.CreatedAt,

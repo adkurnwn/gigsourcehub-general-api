@@ -10,10 +10,11 @@ type Base struct {
 }
 
 type List struct {
-	List  []interface{} `json:"list"`
-	Limit int64         `json:"limit"`
-	Page  int64         `json:"page"`
-	Total int64         `json:"total"`
+	List   []interface{} `json:"list"`
+	Limit  int64         `json:"limit"`
+	Page   int64         `json:"page"`
+	Total  int64         `json:"total"`
+	Cursor *string       `json:"cursor,omitempty"`
 }
 
 // constructors / helpers

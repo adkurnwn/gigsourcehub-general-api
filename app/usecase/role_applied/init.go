@@ -1,4 +1,4 @@
-package usecase_member
+package usecase_role_applied
 
 import (
 	"time"
@@ -8,19 +8,16 @@ import (
 
 type appUsecase struct {
 	gormDbRepo     domain.GormRepo
-	storageRepo    domain.StorageRepo
 	contextTimeout time.Duration
 }
 
 type RepoInjection struct {
-	GormDbRepo  domain.GormRepo
-	StorageRepo domain.StorageRepo
+	GormDbRepo domain.GormRepo
 }
 
-func NewAppUsecase(r RepoInjection, timeout time.Duration) domain.MemberAppUsecase {
+func NewAppUsecase(r RepoInjection, timeout time.Duration) domain.RoleAppliedAppUsecase {
 	return &appUsecase{
 		gormDbRepo:     r.GormDbRepo,
-		storageRepo:    r.StorageRepo,
 		contextTimeout: timeout,
 	}
 }
