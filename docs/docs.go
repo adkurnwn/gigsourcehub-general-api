@@ -33,9 +33,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Auth"
                 ],
-                "summary": "Login as member",
+                "summary": "Login as user",
                 "parameters": [
                     {
                         "description": "Login Request",
@@ -82,7 +82,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get detail current member",
+                "description": "Get detail current user",
                 "consumes": [
                     "application/json"
                 ],
@@ -90,9 +90,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Auth"
                 ],
-                "summary": "Detail member",
+                "summary": "Detail user",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -123,7 +123,7 @@ const docTemplate = `{
         },
         "/auth/register": {
             "post": {
-                "description": "Create a new member",
+                "description": "Create a new user",
                 "consumes": [
                     "application/json"
                 ],
@@ -131,9 +131,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Auth"
                 ],
-                "summary": "Register member",
+                "summary": "Register user",
                 "parameters": [
                     {
                         "description": "Register Request",

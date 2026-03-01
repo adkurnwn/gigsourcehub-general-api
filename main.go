@@ -80,7 +80,7 @@ func main() {
 		docs.SwaggerInfo.Schemes = []string{"http", "https"}
 	}
 
-	docs.SwaggerInfo.BasePath = "/"
+	docs.SwaggerInfo.BasePath = "/api"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	timeoutStr := os.Getenv("TIMEOUT")
@@ -202,9 +202,10 @@ func main() {
 	ginEngine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// init route
-	http_member.NewRouteHandler(ginEngine.Group(""), mdl, ucMember)
-	http_cv.NewCVHandler(ginEngine.Group(""), mdl, ucCV)
-	http_role_applied.NewRoleAppliedHandler(ginEngine.Group(""), mdl, ucRoleApplied)
+	apiGroup := ginEngine.Group("/api")
+	http_member.NewRouteHandler(apiGroup, mdl, ucMember)
+	http_cv.NewCVHandler(apiGroup, mdl, ucCV)
+	http_role_applied.NewRoleAppliedHandler(apiGroup, mdl, ucRoleApplied)
 
 	// init search (AI)
 	aiRepo, err := aisearchrepo.NewAISearchRepository(os.Getenv("AI_API_URL"))
@@ -213,7 +214,7 @@ func main() {
 	} else {
 		// defer aiRepo.Close() // In a real app we might want to close on shutdown, but here we keep it open
 		ucSearch := usecase_search.NewSearchUsecase(aiRepo, timeoutContext)
-		http_search.NewSearchHandler(ginEngine.Group(""), mdl, ucSearch)
+		http_search.NewSearchHandler(apiGroup, mdl, ucSearch)
 	}
 
 	port := os.Getenv("PORT")

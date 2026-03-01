@@ -125,14 +125,14 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Base'
-      summary: Login as member
+      summary: Login as user
       tags:
-      - auth
+      - Auth
   /auth/me:
     get:
       consumes:
       - application/json
-      description: Get detail current member
+      description: Get detail current user
       produces:
       - application/json
       responses:
@@ -154,14 +154,14 @@ paths:
             $ref: '#/definitions/response.Base'
       security:
       - BearerAuth: []
-      summary: Detail member
+      summary: Detail user
       tags:
-      - auth
+      - Auth
   /auth/register:
     post:
       consumes:
       - application/json
-      description: Create a new member
+      description: Create a new user
       parameters:
       - description: Register Request
         in: body
@@ -188,9 +188,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Base'
-      summary: Register member
+      summary: Register user
       tags:
-      - auth
+      - Auth
   /cv/{id}/confirm:
     post:
       consumes:
