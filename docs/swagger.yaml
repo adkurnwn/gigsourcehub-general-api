@@ -288,6 +288,67 @@ paths:
       summary: Upload CV
       tags:
       - CV
+  /roles:
+    get:
+      consumes:
+      - application/json
+      description: Get All Role Applied
+      parameters:
+      - description: Sector ID
+        in: query
+        name: sector_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Role Applied
+      tags:
+      - Role Applied
+  /roles/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get Role Applied By ID
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Role Applied By ID
+      tags:
+      - Role Applied
   /search:
     post:
       consumes:

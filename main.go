@@ -5,6 +5,7 @@ import (
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
 	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
+	http_role_applied "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/role_applied"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
 	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
 	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
@@ -12,6 +13,7 @@ import (
 	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
 	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
+	usecase_role_applied "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/role_applied"
 	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
 
@@ -141,6 +143,11 @@ func main() {
 		StorageRepo: storageRepo,
 	}, timeoutContext)
 
+	// init role applied usecase
+	ucRoleApplied := usecase_role_applied.NewAppUsecase(usecase_role_applied.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// init mq repo
 	mqRepo, err := rabbitmqrepo.NewRabbitMQRepo(os.Getenv("RABBITMQ_URL"))
 	if err != nil {
@@ -197,6 +204,7 @@ func main() {
 	// init route
 	http_member.NewRouteHandler(ginEngine.Group(""), mdl, ucMember)
 	http_cv.NewCVHandler(ginEngine.Group(""), mdl, ucCV)
+	http_role_applied.NewRoleAppliedHandler(ginEngine.Group(""), mdl, ucRoleApplied)
 
 	// init search (AI)
 	aiRepo, err := aisearchrepo.NewAISearchRepository(os.Getenv("AI_API_URL"))

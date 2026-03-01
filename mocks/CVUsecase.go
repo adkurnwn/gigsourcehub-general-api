@@ -24,6 +24,103 @@ func (_m *CVUsecase) EXPECT() *CVUsecase_Expecter {
 	return &CVUsecase_Expecter{mock: &_m.Mock}
 }
 
+// ConfirmCV provides a mock function with given fields: ctx, userID, cvID, editedData
+func (_m *CVUsecase) ConfirmCV(ctx context.Context, userID string, cvID string, editedData map[string]interface{}) response.Base {
+	ret := _m.Called(ctx, userID, cvID, editedData)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConfirmCV")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, map[string]interface{}) response.Base); ok {
+		r0 = rf(ctx, userID, cvID, editedData)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// CVUsecase_ConfirmCV_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ConfirmCV'
+type CVUsecase_ConfirmCV_Call struct {
+	*mock.Call
+}
+
+// ConfirmCV is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - cvID string
+//   - editedData map[string]interface{}
+func (_e *CVUsecase_Expecter) ConfirmCV(ctx interface{}, userID interface{}, cvID interface{}, editedData interface{}) *CVUsecase_ConfirmCV_Call {
+	return &CVUsecase_ConfirmCV_Call{Call: _e.mock.On("ConfirmCV", ctx, userID, cvID, editedData)}
+}
+
+func (_c *CVUsecase_ConfirmCV_Call) Run(run func(ctx context.Context, userID string, cvID string, editedData map[string]interface{})) *CVUsecase_ConfirmCV_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(map[string]interface{}))
+	})
+	return _c
+}
+
+func (_c *CVUsecase_ConfirmCV_Call) Return(_a0 response.Base) *CVUsecase_ConfirmCV_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CVUsecase_ConfirmCV_Call) RunAndReturn(run func(context.Context, string, string, map[string]interface{}) response.Base) *CVUsecase_ConfirmCV_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetParsedCV provides a mock function with given fields: ctx, userID, cvID
+func (_m *CVUsecase) GetParsedCV(ctx context.Context, userID string, cvID string) response.Base {
+	ret := _m.Called(ctx, userID, cvID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetParsedCV")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) response.Base); ok {
+		r0 = rf(ctx, userID, cvID)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// CVUsecase_GetParsedCV_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetParsedCV'
+type CVUsecase_GetParsedCV_Call struct {
+	*mock.Call
+}
+
+// GetParsedCV is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - cvID string
+func (_e *CVUsecase_Expecter) GetParsedCV(ctx interface{}, userID interface{}, cvID interface{}) *CVUsecase_GetParsedCV_Call {
+	return &CVUsecase_GetParsedCV_Call{Call: _e.mock.On("GetParsedCV", ctx, userID, cvID)}
+}
+
+func (_c *CVUsecase_GetParsedCV_Call) Run(run func(ctx context.Context, userID string, cvID string)) *CVUsecase_GetParsedCV_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *CVUsecase_GetParsedCV_Call) Return(_a0 response.Base) *CVUsecase_GetParsedCV_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CVUsecase_GetParsedCV_Call) RunAndReturn(run func(context.Context, string, string) response.Base) *CVUsecase_GetParsedCV_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UploadCV provides a mock function with given fields: ctx, userID, fileHeader
 func (_m *CVUsecase) UploadCV(ctx context.Context, userID string, fileHeader *multipart.FileHeader) response.Base {
 	ret := _m.Called(ctx, userID, fileHeader)

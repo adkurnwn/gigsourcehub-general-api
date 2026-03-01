@@ -26,6 +26,103 @@ func (_m *MemberAppUsecase) EXPECT() *MemberAppUsecase_Expecter {
 	return &MemberAppUsecase_Expecter{mock: &_m.Mock}
 }
 
+// FetchUserDetail provides a mock function with given fields: ctx, id
+func (_m *MemberAppUsecase) FetchUserDetail(ctx context.Context, id string) response.Base {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchUserDetail")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string) response.Base); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_FetchUserDetail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchUserDetail'
+type MemberAppUsecase_FetchUserDetail_Call struct {
+	*mock.Call
+}
+
+// FetchUserDetail is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *MemberAppUsecase_Expecter) FetchUserDetail(ctx interface{}, id interface{}) *MemberAppUsecase_FetchUserDetail_Call {
+	return &MemberAppUsecase_FetchUserDetail_Call{Call: _e.mock.On("FetchUserDetail", ctx, id)}
+}
+
+func (_c *MemberAppUsecase_FetchUserDetail_Call) Run(run func(ctx context.Context, id string)) *MemberAppUsecase_FetchUserDetail_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_FetchUserDetail_Call) Return(_a0 response.Base) *MemberAppUsecase_FetchUserDetail_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_FetchUserDetail_Call) RunAndReturn(run func(context.Context, string) response.Base) *MemberAppUsecase_FetchUserDetail_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FetchUsers provides a mock function with given fields: ctx, page, limit, cursor, roleName
+func (_m *MemberAppUsecase) FetchUsers(ctx context.Context, page int64, limit int64, cursor string, roleName *string) response.Base {
+	ret := _m.Called(ctx, page, limit, cursor, roleName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchUsers")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, string, *string) response.Base); ok {
+		r0 = rf(ctx, page, limit, cursor, roleName)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_FetchUsers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchUsers'
+type MemberAppUsecase_FetchUsers_Call struct {
+	*mock.Call
+}
+
+// FetchUsers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - page int64
+//   - limit int64
+//   - cursor string
+//   - roleName *string
+func (_e *MemberAppUsecase_Expecter) FetchUsers(ctx interface{}, page interface{}, limit interface{}, cursor interface{}, roleName interface{}) *MemberAppUsecase_FetchUsers_Call {
+	return &MemberAppUsecase_FetchUsers_Call{Call: _e.mock.On("FetchUsers", ctx, page, limit, cursor, roleName)}
+}
+
+func (_c *MemberAppUsecase_FetchUsers_Call) Run(run func(ctx context.Context, page int64, limit int64, cursor string, roleName *string)) *MemberAppUsecase_FetchUsers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int64), args[2].(int64), args[3].(string), args[4].(*string))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_FetchUsers_Call) Return(_a0 response.Base) *MemberAppUsecase_FetchUsers_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_FetchUsers_Call) RunAndReturn(run func(context.Context, int64, int64, string, *string) response.Base) *MemberAppUsecase_FetchUsers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetMe provides a mock function with given fields: ctx, claim
 func (_m *MemberAppUsecase) GetMe(ctx context.Context, claim domain.JWTClaimUser) response.Base {
 	ret := _m.Called(ctx, claim)

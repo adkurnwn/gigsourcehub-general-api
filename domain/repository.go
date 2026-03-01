@@ -29,6 +29,8 @@ type GormRepo interface {
 	GetProvinsiName(ctx context.Context, id string) (string, error)
 	GetKabupatenName(ctx context.Context, id string) (string, error)
 
+	FetchRoleApplied(ctx context.Context, options gorm_model.RoleAppliedFilter) (*sql.Rows, error)
+
 	GetDB() *gorm.DB
 }
 

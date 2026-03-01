@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 
+	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
@@ -14,4 +15,9 @@ type MemberAppUsecase interface {
 	GetMe(ctx context.Context, claim JWTClaimUser) response.Base
 	FetchUsers(ctx context.Context, page, limit int64, cursor string, roleName *string) response.Base
 	FetchUserDetail(ctx context.Context, id string) response.Base
+}
+
+type RoleAppliedAppUsecase interface {
+	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.RoleAppliedFilter) response.Base
+	FetchData(ctx context.Context, id string) response.Base
 }
