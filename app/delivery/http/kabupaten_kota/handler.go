@@ -3,6 +3,7 @@ package http_kabupaten_kota
 import (
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
+	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,7 +28,7 @@ func NewKabupatenKotaHandler(r *gin.RouterGroup, uc domain.KabupatenKotaAppUseca
 // @Tags Domisili
 // @Accept json
 // @Produce json
-// @Param provinsi_id query string false "Provinsi ID"
+// @Param provinsi_id query string true "Provinsi ID"
 // @Success 200 {object} response.Base
 // @Failure 400 {object} response.Base
 // @Failure 500 {object} response.Base
@@ -36,9 +37,11 @@ func (h *routeHandler) FetchAll(c *gin.Context) {
 	filter := gorm_model.KabupatenKotaFilter{}
 
 	provinsiID := c.Query("provinsi_id")
-	if provinsiID != "" {
-		filter.ProvinsiID = &provinsiID
+	if provinsiID == "" {
+		c.JSON(400, response.ErrorValidation(map[string]string{"provinsi_id": "required"}, "provinsi_id is required"))
+		return
 	}
+	filter.ProvinsiID = &provinsiID
 
 	res := h.kabupatenKotaAppUsecase.FetchAll(c.Request.Context(), filter)
 	c.JSON(res.Status, res)

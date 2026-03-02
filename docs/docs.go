@@ -344,7 +344,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Provinsi ID",
                         "name": "provinsi_id",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
