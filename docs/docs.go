@@ -198,7 +198,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/http_cv.ConfirmCVRequest"
+                            "$ref": "#/definitions/request_model.ConfirmCVRequest"
                         }
                     }
                 ],
@@ -1293,7 +1293,7 @@ const docTemplate = `{
                 }
             }
         },
-        "http_cv.ConfirmCVRequest": {
+        "request_model.ConfirmCVRequest": {
             "type": "object",
             "required": [
                 "edited_data"

@@ -55,7 +55,7 @@ definitions:
       years_experience:
         type: integer
     type: object
-  http_cv.ConfirmCVRequest:
+  request_model.ConfirmCVRequest:
     properties:
       edited_data:
         additionalProperties: true
@@ -249,7 +249,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/http_cv.ConfirmCVRequest'
+          $ref: '#/definitions/request_model.ConfirmCVRequest'
       produces:
       - application/json
       responses:
