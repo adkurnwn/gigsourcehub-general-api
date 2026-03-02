@@ -17,8 +17,8 @@ func NewCVHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc usecase_cv.C
 
 	api := r.Group("/cv")
 	api.POST("/upload", mdl.Auth(), mdl.AuthRole("Candidate"), handler.Upload) // <--- Protected Route
-	api.GET("/:id/parsed", mdl.Auth(), mdl.AuthRole("Candidate"), handler.GetParsedCV)
-	api.POST("/:id/confirm", mdl.Auth(), mdl.AuthRole("Candidate"), handler.ConfirmCV)
+	api.GET("/parsed", mdl.Auth(), mdl.AuthRole("Candidate"), handler.GetParsedCV)
+	api.POST("/confirm", mdl.Auth(), mdl.AuthRole("Candidate"), handler.ConfirmCV)
 }
 
 //	CV Upload
@@ -57,16 +57,14 @@ func (h *CVHandler) Upload(c *gin.Context) {
 // @Description Fetch the parsed CV data by CV ID
 // @Tags CV
 // @Produce json
-// @Param id path string true "CV ID"
 // @Success 200 {object} response.Base
 // @Failure 404 {object} response.Base
-// @Router /cv/{id}/parsed [get]
+// @Router /cv/parsed [get]
 //
 //	@Security		BearerAuth
 func (h *CVHandler) GetParsedCV(c *gin.Context) {
-	id := c.Param("id")
 	userClaim := c.MustGet("token_data").(domain.JWTClaimUser)
-	resp := h.Usecase.GetParsedCV(c.Request.Context(), userClaim.UserID, id)
+	resp := h.Usecase.GetParsedCV(c.Request.Context(), userClaim.UserID)
 	c.JSON(resp.Status, resp)
 }
 
@@ -81,17 +79,15 @@ type ConfirmCVRequest struct {
 // @Tags CV
 // @Accept json
 // @Produce json
-// @Param id path string true "CV ID"
 // @Param body body ConfirmCVRequest true "Edited CV data"
 // @Success 200 {object} response.Base
 // @Failure 400 {object} response.Base
 // @Failure 403 {object} response.Base
 // @Failure 404 {object} response.Base
-// @Router /cv/{id}/confirm [post]
+// @Router /cv/confirm [post]
 //
 //	@Security		BearerAuth
 func (h *CVHandler) ConfirmCV(c *gin.Context) {
-	id := c.Param("id")
 	var req ConfirmCVRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, response.Error(400, "invalid request body"))
@@ -99,6 +95,6 @@ func (h *CVHandler) ConfirmCV(c *gin.Context) {
 	}
 
 	userClaim := c.MustGet("token_data").(domain.JWTClaimUser)
-	resp := h.Usecase.ConfirmCV(c.Request.Context(), userClaim.UserID, id, req.EditedData)
+	resp := h.Usecase.ConfirmCV(c.Request.Context(), userClaim.UserID, req.EditedData)
 	c.JSON(resp.Status, resp)
 }

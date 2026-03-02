@@ -191,17 +191,12 @@ paths:
       summary: Register user
       tags:
       - Auth
-  /cv/{id}/confirm:
+  /cv/confirm:
     post:
       consumes:
       - application/json
       description: Confirm the parsed CV data after editing
       parameters:
-      - description: CV ID
-        in: path
-        name: id
-        required: true
-        type: string
       - description: Edited CV data
         in: body
         name: body
@@ -232,15 +227,9 @@ paths:
       summary: Confirm parsed CV data
       tags:
       - CV
-  /cv/{id}/parsed:
+  /cv/parsed:
     get:
       description: Fetch the parsed CV data by CV ID
-      parameters:
-      - description: CV ID
-        in: path
-        name: id
-        required: true
-        type: string
       produces:
       - application/json
       responses:
