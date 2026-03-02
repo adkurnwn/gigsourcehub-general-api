@@ -21,3 +21,13 @@ type RoleAppliedAppUsecase interface {
 	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.RoleAppliedFilter) response.Base
 	FetchData(ctx context.Context, id string) response.Base
 }
+
+type KabupatenKotaAppUsecase interface {
+	FetchAll(ctx context.Context, filter gorm_model.KabupatenKotaFilter) response.Base
+	FetchData(ctx context.Context, id string) response.Base
+}
+
+type ProvinsiAppUsecase interface {
+	FetchAll(ctx context.Context, filter gorm_model.ProvinsiFilter) response.Base
+	FetchData(ctx context.Context, id string) response.Base
+}

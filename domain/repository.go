@@ -31,6 +31,9 @@ type GormRepo interface {
 
 	FetchRoleApplied(ctx context.Context, options gorm_model.RoleAppliedFilter) (*sql.Rows, error)
 
+	FetchKabupatenKota(ctx context.Context, options gorm_model.KabupatenKotaFilter) (*sql.Rows, error)
+	FetchProvinsi(ctx context.Context, options gorm_model.ProvinsiFilter) (*sql.Rows, error)
+
 	GetDB() *gorm.DB
 }
 

@@ -168,6 +168,65 @@ func (_c *GormRepo_CreateUser_Call) RunAndReturn(run func(context.Context, *gorm
 	return _c
 }
 
+// FetchKabupatenKota provides a mock function with given fields: ctx, options
+func (_m *GormRepo) FetchKabupatenKota(ctx context.Context, options gorm_model.KabupatenKotaFilter) (*sql.Rows, error) {
+	ret := _m.Called(ctx, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchKabupatenKota")
+	}
+
+	var r0 *sql.Rows
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.KabupatenKotaFilter) (*sql.Rows, error)); ok {
+		return rf(ctx, options)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.KabupatenKotaFilter) *sql.Rows); ok {
+		r0 = rf(ctx, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sql.Rows)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, gorm_model.KabupatenKotaFilter) error); ok {
+		r1 = rf(ctx, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_FetchKabupatenKota_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchKabupatenKota'
+type GormRepo_FetchKabupatenKota_Call struct {
+	*mock.Call
+}
+
+// FetchKabupatenKota is a helper method to define mock.On call
+//   - ctx context.Context
+//   - options gorm_model.KabupatenKotaFilter
+func (_e *GormRepo_Expecter) FetchKabupatenKota(ctx interface{}, options interface{}) *GormRepo_FetchKabupatenKota_Call {
+	return &GormRepo_FetchKabupatenKota_Call{Call: _e.mock.On("FetchKabupatenKota", ctx, options)}
+}
+
+func (_c *GormRepo_FetchKabupatenKota_Call) Run(run func(ctx context.Context, options gorm_model.KabupatenKotaFilter)) *GormRepo_FetchKabupatenKota_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(gorm_model.KabupatenKotaFilter))
+	})
+	return _c
+}
+
+func (_c *GormRepo_FetchKabupatenKota_Call) Return(_a0 *sql.Rows, _a1 error) *GormRepo_FetchKabupatenKota_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_FetchKabupatenKota_Call) RunAndReturn(run func(context.Context, gorm_model.KabupatenKotaFilter) (*sql.Rows, error)) *GormRepo_FetchKabupatenKota_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FetchOneUser provides a mock function with given fields: ctx, options
 func (_m *GormRepo) FetchOneUser(ctx context.Context, options gorm_model.UserFilter) (*gorm_model.User, error) {
 	ret := _m.Called(ctx, options)
@@ -223,6 +282,65 @@ func (_c *GormRepo_FetchOneUser_Call) Return(_a0 *gorm_model.User, _a1 error) *G
 }
 
 func (_c *GormRepo_FetchOneUser_Call) RunAndReturn(run func(context.Context, gorm_model.UserFilter) (*gorm_model.User, error)) *GormRepo_FetchOneUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FetchProvinsi provides a mock function with given fields: ctx, options
+func (_m *GormRepo) FetchProvinsi(ctx context.Context, options gorm_model.ProvinsiFilter) (*sql.Rows, error) {
+	ret := _m.Called(ctx, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchProvinsi")
+	}
+
+	var r0 *sql.Rows
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.ProvinsiFilter) (*sql.Rows, error)); ok {
+		return rf(ctx, options)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.ProvinsiFilter) *sql.Rows); ok {
+		r0 = rf(ctx, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sql.Rows)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, gorm_model.ProvinsiFilter) error); ok {
+		r1 = rf(ctx, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_FetchProvinsi_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchProvinsi'
+type GormRepo_FetchProvinsi_Call struct {
+	*mock.Call
+}
+
+// FetchProvinsi is a helper method to define mock.On call
+//   - ctx context.Context
+//   - options gorm_model.ProvinsiFilter
+func (_e *GormRepo_Expecter) FetchProvinsi(ctx interface{}, options interface{}) *GormRepo_FetchProvinsi_Call {
+	return &GormRepo_FetchProvinsi_Call{Call: _e.mock.On("FetchProvinsi", ctx, options)}
+}
+
+func (_c *GormRepo_FetchProvinsi_Call) Run(run func(ctx context.Context, options gorm_model.ProvinsiFilter)) *GormRepo_FetchProvinsi_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(gorm_model.ProvinsiFilter))
+	})
+	return _c
+}
+
+func (_c *GormRepo_FetchProvinsi_Call) Return(_a0 *sql.Rows, _a1 error) *GormRepo_FetchProvinsi_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_FetchProvinsi_Call) RunAndReturn(run func(context.Context, gorm_model.ProvinsiFilter) (*sql.Rows, error)) *GormRepo_FetchProvinsi_Call {
 	_c.Call.Return(run)
 	return _c
 }

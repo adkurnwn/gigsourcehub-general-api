@@ -3,8 +3,10 @@ package main
 import (
 	"github.com/adkurnwn/gigsourcehub-general-api/app/consumer"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
+	http_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/kabupaten_kota"
 	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
+	http_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/provinsi"
 	http_role_applied "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/role_applied"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
 	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
@@ -12,7 +14,9 @@ import (
 	rabbitmqrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/rabbitmq"
 	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
+	usecase_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/kabupaten_kota"
 	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
+	usecase_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/provinsi"
 	usecase_role_applied "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/role_applied"
 	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
@@ -148,6 +152,16 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init kabupaten kota usecase
+	ucKabupatenKota := usecase_kabupaten_kota.NewAppUsecase(usecase_kabupaten_kota.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init provinsi usecase
+	ucProvinsi := usecase_provinsi.NewAppUsecase(usecase_provinsi.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// init mq repo
 	mqRepo, err := rabbitmqrepo.NewRabbitMQRepo(os.Getenv("RABBITMQ_URL"))
 	if err != nil {
@@ -206,6 +220,8 @@ func main() {
 	http_member.NewRouteHandler(apiGroup, mdl, ucMember)
 	http_cv.NewCVHandler(apiGroup, mdl, ucCV)
 	http_role_applied.NewRoleAppliedHandler(apiGroup, mdl, ucRoleApplied)
+	http_kabupaten_kota.NewKabupatenKotaHandler(apiGroup, ucKabupatenKota)
+	http_provinsi.NewProvinsiHandler(apiGroup, ucProvinsi)
 
 	// init search (AI)
 	aiRepo, err := aisearchrepo.NewAISearchRepository(os.Getenv("AI_API_URL"))
