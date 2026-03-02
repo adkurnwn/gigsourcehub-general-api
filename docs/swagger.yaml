@@ -63,6 +63,16 @@ definitions:
     required:
     - edited_data
     type: object
+  request_model.CreateRoleAppliedRequest:
+    properties:
+      name:
+        type: string
+      sector_id:
+        type: string
+    required:
+    - name
+    - sector_id
+    type: object
   request_model.LoginRequest:
     properties:
       email:
@@ -85,6 +95,16 @@ definitions:
         type: string
     required:
     - query
+    type: object
+  request_model.UpdateRoleAppliedRequest:
+    properties:
+      name:
+        type: string
+      sector_id:
+        type: string
+    required:
+    - name
+    - sector_id
     type: object
   response.Base:
     properties:
@@ -428,7 +448,60 @@ paths:
       summary: Get All Role Applied
       tags:
       - Role Applied
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateRoleAppliedRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Role Applied
+      tags:
+      - Role Applied
   /roles/{id}:
+    delete:
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Role Applied
+      tags:
+      - Role Applied
     get:
       consumes:
       - application/json
@@ -457,6 +530,45 @@ paths:
       security:
       - BearerAuth: []
       summary: Get Role Applied By ID
+      tags:
+      - Role Applied
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateRoleAppliedRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Role Applied
       tags:
       - Role Applied
   /search:

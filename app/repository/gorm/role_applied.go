@@ -21,3 +21,15 @@ func (r *gormRepo) FetchRoleApplied(ctx context.Context, options gorm_model.Role
 
 	return
 }
+
+func (r *gormRepo) CreateRoleApplied(ctx context.Context, model *gorm_model.RoleApplied) error {
+	return r.db.WithContext(ctx).Create(model).Error
+}
+
+func (r *gormRepo) UpdateRoleApplied(ctx context.Context, model *gorm_model.RoleApplied) error {
+	return r.db.WithContext(ctx).Save(model).Error
+}
+
+func (r *gormRepo) DeleteRoleApplied(ctx context.Context, id string) error {
+	return r.db.WithContext(ctx).Delete(&gorm_model.RoleApplied{}, "id = ?", id).Error
+}

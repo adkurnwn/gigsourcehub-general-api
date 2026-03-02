@@ -170,6 +170,53 @@ func (_c *MemberAppUsecase_GetMe_Call) RunAndReturn(run func(context.Context, do
 	return _c
 }
 
+// GetProfile provides a mock function with given fields: ctx, claim
+func (_m *MemberAppUsecase) GetProfile(ctx context.Context, claim domain.JWTClaimUser) response.Base {
+	ret := _m.Called(ctx, claim)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetProfile")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, domain.JWTClaimUser) response.Base); ok {
+		r0 = rf(ctx, claim)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_GetProfile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetProfile'
+type MemberAppUsecase_GetProfile_Call struct {
+	*mock.Call
+}
+
+// GetProfile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - claim domain.JWTClaimUser
+func (_e *MemberAppUsecase_Expecter) GetProfile(ctx interface{}, claim interface{}) *MemberAppUsecase_GetProfile_Call {
+	return &MemberAppUsecase_GetProfile_Call{Call: _e.mock.On("GetProfile", ctx, claim)}
+}
+
+func (_c *MemberAppUsecase_GetProfile_Call) Run(run func(ctx context.Context, claim domain.JWTClaimUser)) *MemberAppUsecase_GetProfile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(domain.JWTClaimUser))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_GetProfile_Call) Return(_a0 response.Base) *MemberAppUsecase_GetProfile_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_GetProfile_Call) RunAndReturn(run func(context.Context, domain.JWTClaimUser) response.Base) *MemberAppUsecase_GetProfile_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Login provides a mock function with given fields: ctx, payload
 func (_m *MemberAppUsecase) Login(ctx context.Context, payload request_model.LoginRequest) response.Base {
 	ret := _m.Called(ctx, payload)

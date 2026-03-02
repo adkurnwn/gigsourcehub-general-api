@@ -30,6 +30,9 @@ type GormRepo interface {
 	GetKabupatenName(ctx context.Context, id string) (string, error)
 
 	FetchRoleApplied(ctx context.Context, options gorm_model.RoleAppliedFilter) (*sql.Rows, error)
+	CreateRoleApplied(ctx context.Context, model *gorm_model.RoleApplied) error
+	UpdateRoleApplied(ctx context.Context, model *gorm_model.RoleApplied) error
+	DeleteRoleApplied(ctx context.Context, id string) error
 
 	FetchKabupatenKota(ctx context.Context, options gorm_model.KabupatenKotaFilter) (*sql.Rows, error)
 	FetchProvinsi(ctx context.Context, options gorm_model.ProvinsiFilter) (*sql.Rows, error)
