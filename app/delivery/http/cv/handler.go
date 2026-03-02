@@ -16,9 +16,9 @@ func NewCVHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc usecase_cv.C
 	handler := &CVHandler{Usecase: uc}
 
 	api := r.Group("/cv")
-	api.POST("/upload", mdl.Auth(), handler.Upload) // <--- Protected Route
-	api.GET("/:id/parsed", mdl.Auth(), handler.GetParsedCV)
-	api.POST("/:id/confirm", mdl.Auth(), handler.ConfirmCV)
+	api.POST("/upload", mdl.Auth(), mdl.AuthRole("Candidate"), handler.Upload) // <--- Protected Route
+	api.GET("/:id/parsed", mdl.Auth(), mdl.AuthRole("Candidate"), handler.GetParsedCV)
+	api.POST("/:id/confirm", mdl.Auth(), mdl.AuthRole("Candidate"), handler.ConfirmCV)
 }
 
 //	CV Upload

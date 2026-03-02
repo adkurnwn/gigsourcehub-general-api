@@ -110,6 +110,20 @@ table "users" {
     on_delete   = SET_NULL
   }
 
+  foreign_key "user_kabupaten_kota_fk" {
+    columns     = [column.kabupaten_kota_id]
+    ref_columns = [table.kabupaten_kota.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
+  }
+
+  foreign_key "user_recruitment_status_fk" {
+    columns     = [column.recruitment_status_id]
+    ref_columns = [table.recruitment_statuses.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
+  }
+
   foreign_key "user_role_applied_fk" {
     columns     = [column.role_applied_id]
     ref_columns = [table.role_applieds.column.id]
@@ -186,6 +200,13 @@ table "cvs" {
   index "idx_cvs_user_id" {
     columns = [column.user_id]
     unique  = true
+  }
+
+  foreign_key "cv_user_fk" {
+    columns     = [column.user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
   }
 }
 
@@ -423,5 +444,12 @@ table "kabupaten_kota" {
 
   index "idx_kabupaten_kota_provinsi_id" {
     columns = [column.provinsi_id]
+  }
+
+  foreign_key "kabupaten_kota_provinsi_id_fk" {
+    columns     = [column.provinsi_id]
+    ref_columns = [table.provinsi.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
   }
 }

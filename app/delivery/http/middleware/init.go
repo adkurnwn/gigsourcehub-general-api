@@ -62,6 +62,7 @@ type Middleware interface {
 	AuthAdmin() gin.HandlerFunc
 	AuthSuperadmin() gin.HandlerFunc
 	AuthEmployee() gin.HandlerFunc
+	AuthCandidate() gin.HandlerFunc
 
 	Cors() gin.HandlerFunc
 	Logger(writer io.Writer) gin.HandlerFunc
