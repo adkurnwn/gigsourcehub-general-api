@@ -1,4 +1,4 @@
-package http_role_applied
+package http_sector
 
 import (
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
@@ -11,41 +11,41 @@ import (
 )
 
 type routeHandler struct {
-	Usecase    domain.RoleAppliedAppUsecase
+	Usecase    domain.SectorAppUsecase
 	Route      *gin.RouterGroup
 	Middleware middleware.Middleware
 }
 
-func NewRoleAppliedHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.RoleAppliedAppUsecase) {
+func NewSectorHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.SectorAppUsecase) {
 	handler := &routeHandler{
 		Usecase:    uc,
 		Route:      r,
 		Middleware: mdl,
 	}
 
-	api := r.Group("/roles", mdl.Auth())
+	api := r.Group("/sectors", mdl.Auth())
 	api.GET("", handler.FetchAll)
 	api.GET("/:id", handler.FetchData)
 
-	// Note: Role Modifications should typically be protected by Admin/Superadmin layers.
+	// Note: Sector Modifications should typically be protected by Admin/Superadmin layers.
 	api.POST("", mdl.AuthRole("Superadmin"), handler.Create)
 	api.PUT("/:id", mdl.AuthRole("Superadmin"), handler.Update)
 	api.DELETE("/:id", mdl.AuthRole("Superadmin"), handler.Delete)
 }
 
-// Create Role Applied
+// Create Sector
 // @Security BearerAuth
-// @Summary Create Role Applied
-// @Tags Role Applied
+// @Summary Create Sector
+// @Tags Sector (Bidang)
 // @Accept json
 // @Produce json
-// @Param request body request_model.CreateRoleAppliedRequest true "Create Request"
+// @Param request body request_model.CreateSectorRequest true "Create Request"
 // @Success 200 {object} response.Base
 // @Failure 400 {object} response.Base
 // @Failure 500 {object} response.Base
-// @Router /roles [post]
+// @Router /sectors [post]
 func (h *routeHandler) Create(c *gin.Context) {
-	var req request_model.CreateRoleAppliedRequest
+	var req request_model.CreateSectorRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, response.Error(400, "invalid payload"))
 		return
@@ -55,23 +55,23 @@ func (h *routeHandler) Create(c *gin.Context) {
 	c.JSON(res.Status, res)
 }
 
-// Update Role Applied
+// Update Sector
 // @Security BearerAuth
-// @Summary Update Role Applied
-// @Tags Role Applied
+// @Summary Update Sector
+// @Tags Sector (Bidang)
 // @Accept json
 // @Produce json
-// @Param id path string true "Role ID"
-// @Param request body request_model.UpdateRoleAppliedRequest true "Update Request"
+// @Param id path string true "Sector ID"
+// @Param request body request_model.UpdateSectorRequest true "Update Request"
 // @Success 200 {object} response.Base
 // @Failure 400 {object} response.Base
 // @Failure 404 {object} response.Base
 // @Failure 500 {object} response.Base
-// @Router /roles/{id} [put]
+// @Router /sectors/{id} [put]
 func (h *routeHandler) Update(c *gin.Context) {
 	id := c.Param("id")
 
-	var req request_model.UpdateRoleAppliedRequest
+	var req request_model.UpdateSectorRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, response.Error(400, "invalid payload"))
 		return
@@ -81,36 +81,36 @@ func (h *routeHandler) Update(c *gin.Context) {
 	c.JSON(res.Status, res)
 }
 
-// Delete Role Applied
+// Delete Sector
 // @Security BearerAuth
-// @Summary Delete Role Applied
-// @Tags Role Applied
+// @Summary Delete Sector
+// @Tags Sector (Bidang)
 // @Produce json
-// @Param id path string true "Role ID"
+// @Param id path string true "Sector ID"
 // @Success 200 {object} response.Base
 // @Failure 500 {object} response.Base
-// @Router /roles/{id} [delete]
+// @Router /sectors/{id} [delete]
 func (h *routeHandler) Delete(c *gin.Context) {
 	id := c.Param("id")
 	res := h.Usecase.Delete(c.Request.Context(), id)
 	c.JSON(res.Status, res)
 }
 
-// Get All Role Applied
+// Get All Sector
 // @Security BearerAuth
-// @Summary Get All Role Applied
-// @Description Get All Role Applied
-// @Tags Role Applied
+// @Summary Get All Sector
+// @Description Get All Sector
+// @Tags Sector (Bidang)
 // @Accept json
 // @Produce json
 // @Param sector_id query string false "Sector ID"
 // @Success 200 {object} response.Base
 // @Failure 400 {object} response.Base
 // @Failure 500 {object} response.Base
-// @Router /roles [get]
+// @Router /sectors [get]
 func (h *routeHandler) FetchAll(c *gin.Context) {
 	pagination := helpers.GetPagination(c)
-	filter := gorm_model.RoleAppliedFilter{}
+	filter := gorm_model.SectorFilter{}
 
 	sectorID := c.Query("sector_id")
 	if sectorID != "" {
@@ -121,18 +121,18 @@ func (h *routeHandler) FetchAll(c *gin.Context) {
 	c.JSON(res.Status, res)
 }
 
-// Get Role Applied By ID
+// Get Sector By ID
 // @Security BearerAuth
-// @Summary Get Role Applied By ID
-// @Description Get Role Applied By ID
-// @Tags Role Applied
+// @Summary Get Sector By ID
+// @Description Get Sector By ID
+// @Tags Sector (Bidang)
 // @Accept json
 // @Produce json
-// @Param id path string true "Role ID"
+// @Param id path string true "Sector ID"
 // @Success 200 {object} response.Base
 // @Failure 400 {object} response.Base
 // @Failure 500 {object} response.Base
-// @Router /roles/{id} [get]
+// @Router /sectors/{id} [get]
 func (h *routeHandler) FetchData(c *gin.Context) {
 	id := c.Param("id")
 	res := h.Usecase.FetchData(c.Request.Context(), id)

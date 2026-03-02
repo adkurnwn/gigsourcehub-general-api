@@ -6,7 +6,9 @@ import (
 	"strconv"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
+	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -94,4 +96,71 @@ func (u *appUsecase) FetchData(ctx context.Context, id string) response.Base {
 	}
 
 	return response.Success(role.ToRoleAppliedResp())
+}
+
+func (u *appUsecase) Create(ctx context.Context, req request_model.CreateRoleAppliedRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	// Initializing new RoleApplied instance
+	newRole := gorm_model.RoleApplied{
+		ID:       uuid.New().String(),
+		SectorID: req.SectorID,
+		Name:     req.Name,
+	}
+
+	if err := u.gormDbRepo.CreateRoleApplied(ctx, &newRole); err != nil {
+		logrus.Error("RoleApplied Create error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to create Role Applied")
+	}
+
+	return response.Success(newRole.ToRoleAppliedResp())
+}
+
+func (u *appUsecase) Update(ctx context.Context, id string, req request_model.UpdateRoleAppliedRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	// Locate existing record
+	data, err := u.gormDbRepo.FetchRoleApplied(ctx, gorm_model.RoleAppliedFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch existing Role")
+	}
+	defer data.Close()
+
+	if !data.Next() {
+		return response.Error(http.StatusNotFound, "Role not found")
+	}
+
+	var existingRole gorm_model.RoleApplied
+	if err := u.gormDbRepo.StructScan(data, &existingRole); err != nil {
+		logrus.Error("Role struct map error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to serialize Role data")
+	}
+
+	// Overwrite modifiable components
+	existingRole.Name = req.Name
+	existingRole.SectorID = req.SectorID
+
+	// Write modifications to DB
+	if err := u.gormDbRepo.UpdateRoleApplied(ctx, &existingRole); err != nil {
+		logrus.Error("RoleApplied Update error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to update Role Applied")
+	}
+
+	return response.Success(existingRole.ToRoleAppliedResp())
+}
+
+func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	if err := u.gormDbRepo.DeleteRoleApplied(ctx, id); err != nil {
+		logrus.Error("RoleApplied Delete error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to delete Role Applied")
+	}
+
+	return response.Success(nil)
 }

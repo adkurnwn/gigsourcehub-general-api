@@ -9,6 +9,8 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
+	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
+
 	response "github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 )
 
@@ -23,6 +25,100 @@ type RoleAppliedAppUsecase_Expecter struct {
 
 func (_m *RoleAppliedAppUsecase) EXPECT() *RoleAppliedAppUsecase_Expecter {
 	return &RoleAppliedAppUsecase_Expecter{mock: &_m.Mock}
+}
+
+// Create provides a mock function with given fields: ctx, req
+func (_m *RoleAppliedAppUsecase) Create(ctx context.Context, req request_model.CreateRoleAppliedRequest) response.Base {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Create")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, request_model.CreateRoleAppliedRequest) response.Base); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// RoleAppliedAppUsecase_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
+type RoleAppliedAppUsecase_Create_Call struct {
+	*mock.Call
+}
+
+// Create is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req request_model.CreateRoleAppliedRequest
+func (_e *RoleAppliedAppUsecase_Expecter) Create(ctx interface{}, req interface{}) *RoleAppliedAppUsecase_Create_Call {
+	return &RoleAppliedAppUsecase_Create_Call{Call: _e.mock.On("Create", ctx, req)}
+}
+
+func (_c *RoleAppliedAppUsecase_Create_Call) Run(run func(ctx context.Context, req request_model.CreateRoleAppliedRequest)) *RoleAppliedAppUsecase_Create_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(request_model.CreateRoleAppliedRequest))
+	})
+	return _c
+}
+
+func (_c *RoleAppliedAppUsecase_Create_Call) Return(_a0 response.Base) *RoleAppliedAppUsecase_Create_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *RoleAppliedAppUsecase_Create_Call) RunAndReturn(run func(context.Context, request_model.CreateRoleAppliedRequest) response.Base) *RoleAppliedAppUsecase_Create_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Delete provides a mock function with given fields: ctx, id
+func (_m *RoleAppliedAppUsecase) Delete(ctx context.Context, id string) response.Base {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Delete")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string) response.Base); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// RoleAppliedAppUsecase_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type RoleAppliedAppUsecase_Delete_Call struct {
+	*mock.Call
+}
+
+// Delete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *RoleAppliedAppUsecase_Expecter) Delete(ctx interface{}, id interface{}) *RoleAppliedAppUsecase_Delete_Call {
+	return &RoleAppliedAppUsecase_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
+}
+
+func (_c *RoleAppliedAppUsecase_Delete_Call) Run(run func(ctx context.Context, id string)) *RoleAppliedAppUsecase_Delete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *RoleAppliedAppUsecase_Delete_Call) Return(_a0 response.Base) *RoleAppliedAppUsecase_Delete_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *RoleAppliedAppUsecase_Delete_Call) RunAndReturn(run func(context.Context, string) response.Base) *RoleAppliedAppUsecase_Delete_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // FetchAll provides a mock function with given fields: ctx, page, limit, cursor, filter
@@ -118,6 +214,54 @@ func (_c *RoleAppliedAppUsecase_FetchData_Call) Return(_a0 response.Base) *RoleA
 }
 
 func (_c *RoleAppliedAppUsecase_FetchData_Call) RunAndReturn(run func(context.Context, string) response.Base) *RoleAppliedAppUsecase_FetchData_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Update provides a mock function with given fields: ctx, id, req
+func (_m *RoleAppliedAppUsecase) Update(ctx context.Context, id string, req request_model.UpdateRoleAppliedRequest) response.Base {
+	ret := _m.Called(ctx, id, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Update")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string, request_model.UpdateRoleAppliedRequest) response.Base); ok {
+		r0 = rf(ctx, id, req)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// RoleAppliedAppUsecase_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
+type RoleAppliedAppUsecase_Update_Call struct {
+	*mock.Call
+}
+
+// Update is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+//   - req request_model.UpdateRoleAppliedRequest
+func (_e *RoleAppliedAppUsecase_Expecter) Update(ctx interface{}, id interface{}, req interface{}) *RoleAppliedAppUsecase_Update_Call {
+	return &RoleAppliedAppUsecase_Update_Call{Call: _e.mock.On("Update", ctx, id, req)}
+}
+
+func (_c *RoleAppliedAppUsecase_Update_Call) Run(run func(ctx context.Context, id string, req request_model.UpdateRoleAppliedRequest)) *RoleAppliedAppUsecase_Update_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(request_model.UpdateRoleAppliedRequest))
+	})
+	return _c
+}
+
+func (_c *RoleAppliedAppUsecase_Update_Call) Return(_a0 response.Base) *RoleAppliedAppUsecase_Update_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *RoleAppliedAppUsecase_Update_Call) RunAndReturn(run func(context.Context, string, request_model.UpdateRoleAppliedRequest) response.Base) *RoleAppliedAppUsecase_Update_Call {
 	_c.Call.Return(run)
 	return _c
 }

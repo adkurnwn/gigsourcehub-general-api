@@ -21,6 +21,7 @@ var SectorAllowedSort = []string{"name", "created_at", "updated_at"}
 type SectorFilter struct {
 	DefaultFilter
 	Name     *string
+	SectorID *string
 	IsActive *bool
 }
 

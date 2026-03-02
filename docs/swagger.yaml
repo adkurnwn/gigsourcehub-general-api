@@ -1,4 +1,17 @@
 definitions:
+  gorm_model.AuthMeResp:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      profile_picture:
+        type: string
+      role_system_name:
+        type: string
+    type: object
   gorm_model.UserResp:
     properties:
       account_status:
@@ -42,13 +55,30 @@ definitions:
       years_experience:
         type: integer
     type: object
-  http_cv.ConfirmCVRequest:
+  request_model.ConfirmCVRequest:
     properties:
       edited_data:
         additionalProperties: true
         type: object
     required:
     - edited_data
+    type: object
+  request_model.CreateRoleAppliedRequest:
+    properties:
+      name:
+        type: string
+      sector_id:
+        type: string
+    required:
+    - name
+    - sector_id
+    type: object
+  request_model.CreateSectorRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
     type: object
   request_model.LoginRequest:
     properties:
@@ -72,6 +102,23 @@ definitions:
         type: string
     required:
     - query
+    type: object
+  request_model.UpdateRoleAppliedRequest:
+    properties:
+      name:
+        type: string
+      sector_id:
+        type: string
+    required:
+    - name
+    - sector_id
+    type: object
+  request_model.UpdateSectorRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
     type: object
   response.Base:
     properties:
@@ -139,7 +186,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/gorm_model.UserResp'
+            $ref: '#/definitions/gorm_model.AuthMeResp'
         "400":
           description: Bad Request
           schema:
@@ -191,23 +238,18 @@ paths:
       summary: Register user
       tags:
       - Auth
-  /cv/{id}/confirm:
+  /cv/confirm:
     post:
       consumes:
       - application/json
       description: Confirm the parsed CV data after editing
       parameters:
-      - description: CV ID
-        in: path
-        name: id
-        required: true
-        type: string
       - description: Edited CV data
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/http_cv.ConfirmCVRequest'
+          $ref: '#/definitions/request_model.ConfirmCVRequest'
       produces:
       - application/json
       responses:
@@ -232,15 +274,32 @@ paths:
       summary: Confirm parsed CV data
       tags:
       - CV
-  /cv/{id}/parsed:
+  /cv/generate:
+    get:
+      description: Get presigned CV download link for current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Generate CV Link
+      tags:
+      - CV
+  /cv/parsed:
     get:
       description: Fetch the parsed CV data by CV ID
-      parameters:
-      - description: CV ID
-        in: path
-        name: id
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -297,6 +356,7 @@ paths:
       - description: Provinsi ID
         in: query
         name: provinsi_id
+        required: true
         type: string
       produces:
       - application/json
@@ -316,6 +376,39 @@ paths:
       summary: Get All Kabupaten Kota by Province ID
       tags:
       - Domisili
+  /profile:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed profile of current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gorm_model.UserResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Profile
+      tags:
+      - Profile
   /provinsi:
     get:
       consumes:
@@ -369,7 +462,60 @@ paths:
       summary: Get All Role Applied
       tags:
       - Role Applied
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateRoleAppliedRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Role Applied
+      tags:
+      - Role Applied
   /roles/{id}:
+    delete:
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Role Applied
+      tags:
+      - Role Applied
     get:
       consumes:
       - application/json
@@ -398,6 +544,45 @@ paths:
       security:
       - BearerAuth: []
       summary: Get Role Applied By ID
+      tags:
+      - Role Applied
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateRoleAppliedRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Role Applied
       tags:
       - Role Applied
   /search:
@@ -432,6 +617,159 @@ paths:
       summary: Search
       tags:
       - AI Search
+  /sectors:
+    get:
+      consumes:
+      - application/json
+      description: Get All Sector
+      parameters:
+      - description: Sector ID
+        in: query
+        name: sector_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Sector
+      tags:
+      - Sector (Bidang)
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateSectorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Sector
+      tags:
+      - Sector (Bidang)
+  /sectors/{id}:
+    delete:
+      parameters:
+      - description: Sector ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Sector
+      tags:
+      - Sector (Bidang)
+    get:
+      consumes:
+      - application/json
+      description: Get Sector By ID
+      parameters:
+      - description: Sector ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Sector By ID
+      tags:
+      - Sector (Bidang)
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Sector ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateSectorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Sector
+      tags:
+      - Sector (Bidang)
   /users:
     get:
       consumes:

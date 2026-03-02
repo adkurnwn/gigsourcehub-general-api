@@ -119,6 +119,53 @@ func (_c *Middleware_AuthAdmin_Call) RunAndReturn(run func() gin.HandlerFunc) *M
 	return _c
 }
 
+// AuthCandidate provides a mock function with no fields
+func (_m *Middleware) AuthCandidate() gin.HandlerFunc {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for AuthCandidate")
+	}
+
+	var r0 gin.HandlerFunc
+	if rf, ok := ret.Get(0).(func() gin.HandlerFunc); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(gin.HandlerFunc)
+		}
+	}
+
+	return r0
+}
+
+// Middleware_AuthCandidate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AuthCandidate'
+type Middleware_AuthCandidate_Call struct {
+	*mock.Call
+}
+
+// AuthCandidate is a helper method to define mock.On call
+func (_e *Middleware_Expecter) AuthCandidate() *Middleware_AuthCandidate_Call {
+	return &Middleware_AuthCandidate_Call{Call: _e.mock.On("AuthCandidate")}
+}
+
+func (_c *Middleware_AuthCandidate_Call) Run(run func()) *Middleware_AuthCandidate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *Middleware_AuthCandidate_Call) Return(_a0 gin.HandlerFunc) *Middleware_AuthCandidate_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Middleware_AuthCandidate_Call) RunAndReturn(run func() gin.HandlerFunc) *Middleware_AuthCandidate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AuthEmployee provides a mock function with no fields
 func (_m *Middleware) AuthEmployee() gin.HandlerFunc {
 	ret := _m.Called()
