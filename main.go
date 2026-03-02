@@ -9,6 +9,7 @@ import (
 	http_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/provinsi"
 	http_role_applied "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/role_applied"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
+	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
 	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
 	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
 	rabbitmqrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/rabbitmq"
@@ -19,6 +20,7 @@ import (
 	usecase_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/provinsi"
 	usecase_role_applied "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/role_applied"
 	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
+	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
 
 	"context"
@@ -152,6 +154,11 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init sector usecase
+	ucSector := usecase_sector.NewAppUsecase(usecase_sector.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// init kabupaten kota usecase
 	ucKabupatenKota := usecase_kabupaten_kota.NewAppUsecase(usecase_kabupaten_kota.RepoInjection{
 		GormDbRepo: repo,
@@ -220,6 +227,7 @@ func main() {
 	http_member.NewRouteHandler(apiGroup, mdl, ucMember)
 	http_cv.NewCVHandler(apiGroup, mdl, ucCV)
 	http_role_applied.NewRoleAppliedHandler(apiGroup, mdl, ucRoleApplied)
+	http_sector.NewSectorHandler(apiGroup, mdl, ucSector)
 	http_kabupaten_kota.NewKabupatenKotaHandler(apiGroup, ucKabupatenKota)
 	http_provinsi.NewProvinsiHandler(apiGroup, ucProvinsi)
 

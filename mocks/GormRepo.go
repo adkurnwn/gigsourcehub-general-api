@@ -168,6 +168,53 @@ func (_c *GormRepo_CreateRoleApplied_Call) RunAndReturn(run func(context.Context
 	return _c
 }
 
+// CreateSector provides a mock function with given fields: ctx, model
+func (_m *GormRepo) CreateSector(ctx context.Context, model *gorm_model.Sector) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateSector")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.Sector) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_CreateSector_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateSector'
+type GormRepo_CreateSector_Call struct {
+	*mock.Call
+}
+
+// CreateSector is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.Sector
+func (_e *GormRepo_Expecter) CreateSector(ctx interface{}, model interface{}) *GormRepo_CreateSector_Call {
+	return &GormRepo_CreateSector_Call{Call: _e.mock.On("CreateSector", ctx, model)}
+}
+
+func (_c *GormRepo_CreateSector_Call) Run(run func(ctx context.Context, model *gorm_model.Sector)) *GormRepo_CreateSector_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.Sector))
+	})
+	return _c
+}
+
+func (_c *GormRepo_CreateSector_Call) Return(_a0 error) *GormRepo_CreateSector_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_CreateSector_Call) RunAndReturn(run func(context.Context, *gorm_model.Sector) error) *GormRepo_CreateSector_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateUser provides a mock function with given fields: ctx, model
 func (_m *GormRepo) CreateUser(ctx context.Context, model *gorm_model.User) error {
 	ret := _m.Called(ctx, model)
@@ -258,6 +305,53 @@ func (_c *GormRepo_DeleteRoleApplied_Call) Return(_a0 error) *GormRepo_DeleteRol
 }
 
 func (_c *GormRepo_DeleteRoleApplied_Call) RunAndReturn(run func(context.Context, string) error) *GormRepo_DeleteRoleApplied_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteSector provides a mock function with given fields: ctx, id
+func (_m *GormRepo) DeleteSector(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteSector")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_DeleteSector_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSector'
+type GormRepo_DeleteSector_Call struct {
+	*mock.Call
+}
+
+// DeleteSector is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *GormRepo_Expecter) DeleteSector(ctx interface{}, id interface{}) *GormRepo_DeleteSector_Call {
+	return &GormRepo_DeleteSector_Call{Call: _e.mock.On("DeleteSector", ctx, id)}
+}
+
+func (_c *GormRepo_DeleteSector_Call) Run(run func(ctx context.Context, id string)) *GormRepo_DeleteSector_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_DeleteSector_Call) Return(_a0 error) *GormRepo_DeleteSector_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_DeleteSector_Call) RunAndReturn(run func(context.Context, string) error) *GormRepo_DeleteSector_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -494,6 +588,65 @@ func (_c *GormRepo_FetchRoleApplied_Call) Return(_a0 *sql.Rows, _a1 error) *Gorm
 }
 
 func (_c *GormRepo_FetchRoleApplied_Call) RunAndReturn(run func(context.Context, gorm_model.RoleAppliedFilter) (*sql.Rows, error)) *GormRepo_FetchRoleApplied_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FetchSector provides a mock function with given fields: ctx, options
+func (_m *GormRepo) FetchSector(ctx context.Context, options gorm_model.SectorFilter) (*sql.Rows, error) {
+	ret := _m.Called(ctx, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchSector")
+	}
+
+	var r0 *sql.Rows
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.SectorFilter) (*sql.Rows, error)); ok {
+		return rf(ctx, options)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.SectorFilter) *sql.Rows); ok {
+		r0 = rf(ctx, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sql.Rows)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, gorm_model.SectorFilter) error); ok {
+		r1 = rf(ctx, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_FetchSector_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchSector'
+type GormRepo_FetchSector_Call struct {
+	*mock.Call
+}
+
+// FetchSector is a helper method to define mock.On call
+//   - ctx context.Context
+//   - options gorm_model.SectorFilter
+func (_e *GormRepo_Expecter) FetchSector(ctx interface{}, options interface{}) *GormRepo_FetchSector_Call {
+	return &GormRepo_FetchSector_Call{Call: _e.mock.On("FetchSector", ctx, options)}
+}
+
+func (_c *GormRepo_FetchSector_Call) Run(run func(ctx context.Context, options gorm_model.SectorFilter)) *GormRepo_FetchSector_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(gorm_model.SectorFilter))
+	})
+	return _c
+}
+
+func (_c *GormRepo_FetchSector_Call) Return(_a0 *sql.Rows, _a1 error) *GormRepo_FetchSector_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_FetchSector_Call) RunAndReturn(run func(context.Context, gorm_model.SectorFilter) (*sql.Rows, error)) *GormRepo_FetchSector_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1030,6 +1183,53 @@ func (_c *GormRepo_UpdateRoleApplied_Call) Return(_a0 error) *GormRepo_UpdateRol
 }
 
 func (_c *GormRepo_UpdateRoleApplied_Call) RunAndReturn(run func(context.Context, *gorm_model.RoleApplied) error) *GormRepo_UpdateRoleApplied_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateSector provides a mock function with given fields: ctx, model
+func (_m *GormRepo) UpdateSector(ctx context.Context, model *gorm_model.Sector) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateSector")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.Sector) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_UpdateSector_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateSector'
+type GormRepo_UpdateSector_Call struct {
+	*mock.Call
+}
+
+// UpdateSector is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.Sector
+func (_e *GormRepo_Expecter) UpdateSector(ctx interface{}, model interface{}) *GormRepo_UpdateSector_Call {
+	return &GormRepo_UpdateSector_Call{Call: _e.mock.On("UpdateSector", ctx, model)}
+}
+
+func (_c *GormRepo_UpdateSector_Call) Run(run func(ctx context.Context, model *gorm_model.Sector)) *GormRepo_UpdateSector_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.Sector))
+	})
+	return _c
+}
+
+func (_c *GormRepo_UpdateSector_Call) Return(_a0 error) *GormRepo_UpdateSector_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_UpdateSector_Call) RunAndReturn(run func(context.Context, *gorm_model.Sector) error) *GormRepo_UpdateSector_Call {
 	_c.Call.Return(run)
 	return _c
 }

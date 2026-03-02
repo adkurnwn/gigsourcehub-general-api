@@ -73,6 +73,13 @@ definitions:
     - name
     - sector_id
     type: object
+  request_model.CreateSectorRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
   request_model.LoginRequest:
     properties:
       email:
@@ -105,6 +112,13 @@ definitions:
     required:
     - name
     - sector_id
+    type: object
+  request_model.UpdateSectorRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
     type: object
   response.Base:
     properties:
@@ -603,6 +617,159 @@ paths:
       summary: Search
       tags:
       - AI Search
+  /sectors:
+    get:
+      consumes:
+      - application/json
+      description: Get All Sector
+      parameters:
+      - description: Sector ID
+        in: query
+        name: sector_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Sector
+      tags:
+      - Sector (Bidang)
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateSectorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Sector
+      tags:
+      - Sector (Bidang)
+  /sectors/{id}:
+    delete:
+      parameters:
+      - description: Sector ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Sector
+      tags:
+      - Sector (Bidang)
+    get:
+      consumes:
+      - application/json
+      description: Get Sector By ID
+      parameters:
+      - description: Sector ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Sector By ID
+      tags:
+      - Sector (Bidang)
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Sector ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateSectorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Sector
+      tags:
+      - Sector (Bidang)
   /users:
     get:
       consumes:
