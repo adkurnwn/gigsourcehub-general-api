@@ -1,4 +1,17 @@
 definitions:
+  gorm_model.AuthMeResp:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      profile_picture:
+        type: string
+      role_system_name:
+        type: string
+    type: object
   gorm_model.UserResp:
     properties:
       account_status:
@@ -139,7 +152,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/gorm_model.UserResp'
+            $ref: '#/definitions/gorm_model.AuthMeResp'
         "400":
           description: Bad Request
           schema:
@@ -227,6 +240,29 @@ paths:
       summary: Confirm parsed CV data
       tags:
       - CV
+  /cv/generate:
+    get:
+      description: Get presigned CV download link for current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Generate CV Link
+      tags:
+      - CV
   /cv/parsed:
     get:
       description: Fetch the parsed CV data by CV ID
@@ -306,6 +342,39 @@ paths:
       summary: Get All Kabupaten Kota by Province ID
       tags:
       - Domisili
+  /profile:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed profile of current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gorm_model.UserResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Profile
+      tags:
+      - Profile
   /provinsi:
     get:
       consumes:

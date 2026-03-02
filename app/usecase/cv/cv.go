@@ -20,6 +20,7 @@ type CVUsecase interface {
 	UploadCV(ctx context.Context, userID string, fileHeader *multipart.FileHeader) response.Base
 	GetParsedCV(ctx context.Context, userID string) response.Base
 	ConfirmCV(ctx context.Context, userID string, editedData map[string]interface{}) response.Base
+	GenerateCVLink(ctx context.Context, userID string) response.Base
 }
 
 type cvUsecase struct {
@@ -120,7 +121,15 @@ func (u *cvUsecase) GetParsedCV(ctx context.Context, userID string) response.Bas
 		return response.Error(http.StatusForbidden, "not authorized to view this cv")
 	}
 
-	return response.Success(cv.ToCVResp())
+	var parsedData json.RawMessage
+	if cv.ParsedData != nil {
+		parsedData = json.RawMessage(*cv.ParsedData)
+	}
+
+	return response.Success(map[string]interface{}{
+		"id":          cv.ID,
+		"parsed_data": parsedData,
+	})
 }
 
 func (u *cvUsecase) ConfirmCV(ctx context.Context, userID string, editedData map[string]interface{}) response.Base {
@@ -265,4 +274,27 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID string, editedData map
 	}
 
 	return response.Success(cv.ToCVResp())
+}
+
+func (u *cvUsecase) GenerateCVLink(ctx context.Context, userID string) response.Base {
+	cv, err := u.gormRepo.GetCVByUserID(ctx, userID)
+	if err != nil {
+		return response.Error(http.StatusNotFound, "cv not found")
+	}
+
+	if cv.UserID != userID {
+		return response.Error(http.StatusForbidden, "not authorized to view this cv")
+	}
+
+	// Generate 1-hour presigned view link
+	expireDuration := time.Hour
+	presignedLink := u.storageRepo.GetPresignedLink(cv.Path, &expireDuration)
+
+	res := gorm_model.CVPrivateResp{
+		ID:   cv.ID,
+		Name: cv.Filename,
+		URL:  presignedLink,
+	}
+
+	return response.Success(res)
 }

@@ -19,6 +19,7 @@ func NewCVHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc usecase_cv.C
 	api.POST("/upload", mdl.Auth(), mdl.AuthRole("Candidate"), handler.Upload) // <--- Protected Route
 	api.GET("/parsed", mdl.Auth(), mdl.AuthRole("Candidate"), handler.GetParsedCV)
 	api.POST("/confirm", mdl.Auth(), mdl.AuthRole("Candidate"), handler.ConfirmCV)
+	api.GET("/generate", mdl.Auth(), mdl.AuthRole("Candidate"), handler.GenerateCVLink)
 }
 
 //	CV Upload
@@ -96,5 +97,23 @@ func (h *CVHandler) ConfirmCV(c *gin.Context) {
 
 	userClaim := c.MustGet("token_data").(domain.JWTClaimUser)
 	resp := h.Usecase.ConfirmCV(c.Request.Context(), userClaim.UserID, req.EditedData)
+	c.JSON(resp.Status, resp)
+}
+
+//	Generate CV Link
+//
+// @Summary Generate CV Link
+// @Description Get presigned CV download link for current user
+// @Tags CV
+// @Produce json
+// @Success 200 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Router /cv/generate [get]
+//
+//	@Security		BearerAuth
+func (h *CVHandler) GenerateCVLink(c *gin.Context) {
+	userClaim := c.MustGet("token_data").(domain.JWTClaimUser)
+	resp := h.Usecase.GenerateCVLink(c.Request.Context(), userClaim.UserID)
 	c.JSON(resp.Status, resp)
 }

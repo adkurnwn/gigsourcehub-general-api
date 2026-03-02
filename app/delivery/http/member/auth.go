@@ -80,7 +80,7 @@ func (r *routeHandler) Register(c *gin.Context) {
 //	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	gorm_model.UserResp
+//	@Success		200	{object}	gorm_model.AuthMeResp
 //	@Failure		400	{object}	response.Base
 //	@Failure		404	{object}	response.Base
 //	@Failure		500	{object}	response.Base

@@ -22,4 +22,5 @@ func NewRouteHandler(route *gin.RouterGroup, middleware middleware.Middleware, u
 
 	handler.handleAuthRoute("/auth")
 	handler.handleUserRoute("/users")
+	route.GET("/profile", middleware.Auth(), handler.GetProfile)
 }

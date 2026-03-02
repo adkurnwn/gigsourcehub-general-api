@@ -78,6 +78,14 @@ type UserResp struct {
 	Jabatan             *string    `json:"jabatan,omitempty"`
 }
 
+type AuthMeResp struct {
+	ID             string  `json:"id"`
+	Name           string  `json:"name"`
+	Email          string  `json:"email"`
+	ProfilePicture *string `json:"profile_picture"`
+	RoleSystemName *string `json:"role_system_name"`
+}
+
 func (row *User) ToUserResp() UserResp {
 	var roleName *string
 	if row.RoleSystem != nil {
@@ -113,6 +121,20 @@ func (row *User) ToUserResp() UserResp {
 		RoleAppliedId:       row.RoleAppliedId,
 		AccountStatus:       row.AccountStatus,
 		Jabatan:             jabatan,
+	}
+}
+
+func (row *User) ToAuthMeResp() AuthMeResp {
+	var roleName *string
+	if row.RoleSystem != nil {
+		roleName = &row.RoleSystem.Name
+	}
+	return AuthMeResp{
+		ID:             row.ID,
+		Name:           row.Name,
+		Email:          row.Email,
+		ProfilePicture: row.ProfilePicture,
+		RoleSystemName: roleName,
 	}
 }
 

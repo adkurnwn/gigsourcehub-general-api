@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 	"github.com/sirupsen/logrus"
@@ -100,4 +101,30 @@ func (u *appUsecase) FetchUserDetail(ctx context.Context, id string) response.Ba
 	}
 
 	return response.Success(res)
+}
+
+func (u *appUsecase) GetProfile(ctx context.Context, claim domain.JWTClaimUser) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: claim.UserID},
+	})
+
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+
+	// Pre-hydrate role system safely
+	roleName, errRole := u.gormDbRepo.GetRoleNameByUserID(ctx, user.ID)
+	if errRole == nil && roleName != "" {
+		user.RoleSystem = &gorm_model.RoleSystem{
+			Name: roleName,
+		}
+	}
+
+	return response.Success(user.ToUserResp())
 }

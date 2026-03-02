@@ -183,5 +183,5 @@ func (u *appUsecase) GetMe(ctx context.Context, claim domain.JWTClaimUser) respo
 		}
 	}
 
-	return response.Success(user.ToUserResp())
+	return response.Success(user.ToAuthMeResp())
 }
