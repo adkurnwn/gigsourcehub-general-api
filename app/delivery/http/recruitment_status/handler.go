@@ -23,7 +23,7 @@ func NewRecruitmentStatusHandler(r *gin.RouterGroup, mdl middleware.Middleware, 
 		Middleware: mdl,
 	}
 
-	api := r.Group("/recruitment-statuses", mdl.Auth())
+	api := r.Group("/recruitment-statuses", mdl.Auth(), mdl.AuthRole("Admin", "Superadmin"))
 	api.GET("", handler.FetchAll)
 	api.GET("/:id", handler.FetchData)
 
@@ -103,6 +103,8 @@ func (h *routeHandler) Delete(c *gin.Context) {
 // @Tags Recruitment Status
 // @Accept json
 // @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Limit per page" default(10)
 // @Param recruitment_status_id query string false "Recruitment Status ID"
 // @Success 200 {object} response.Base
 // @Failure 400 {object} response.Base

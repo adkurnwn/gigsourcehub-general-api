@@ -452,6 +452,16 @@ paths:
       - application/json
       description: Get All Recruitment Status
       parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
       - description: Recruitment Status ID
         in: query
         name: recruitment_status_id

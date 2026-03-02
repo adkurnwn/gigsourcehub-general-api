@@ -498,6 +498,20 @@ const docTemplate = `{
                 "summary": "Get All Recruitment Status",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit per page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "Recruitment Status ID",
                         "name": "recruitment_status_id",
