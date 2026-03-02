@@ -288,6 +288,57 @@ paths:
       summary: Upload CV
       tags:
       - CV
+  /kabupaten:
+    get:
+      consumes:
+      - application/json
+      description: Get All Kabupaten Kota by Province ID
+      parameters:
+      - description: Provinsi ID
+        in: query
+        name: provinsi_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Get All Kabupaten Kota by Province ID
+      tags:
+      - Domisili
+  /provinsi:
+    get:
+      consumes:
+      - application/json
+      description: Get All Provinsi
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Get All Provinsi
+      tags:
+      - Domisili
   /roles:
     get:
       consumes:
