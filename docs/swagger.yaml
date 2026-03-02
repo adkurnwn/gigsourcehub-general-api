@@ -63,6 +63,13 @@ definitions:
     required:
     - edited_data
     type: object
+  request_model.CreateRecruitmentStatusRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
   request_model.CreateRoleAppliedRequest:
     properties:
       name:
@@ -102,6 +109,13 @@ definitions:
         type: string
     required:
     - query
+    type: object
+  request_model.UpdateRecruitmentStatusRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
     type: object
   request_model.UpdateRoleAppliedRequest:
     properties:
@@ -432,6 +446,159 @@ paths:
       summary: Get All Provinsi
       tags:
       - Domisili
+  /recruitment-statuses:
+    get:
+      consumes:
+      - application/json
+      description: Get All Recruitment Status
+      parameters:
+      - description: Recruitment Status ID
+        in: query
+        name: recruitment_status_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Recruitment Status
+      tags:
+      - Recruitment Status
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateRecruitmentStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Recruitment Status
+      tags:
+      - Recruitment Status
+  /recruitment-statuses/{id}:
+    delete:
+      parameters:
+      - description: Recruitment Status ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Recruitment Status
+      tags:
+      - Recruitment Status
+    get:
+      consumes:
+      - application/json
+      description: Get Recruitment Status By ID
+      parameters:
+      - description: Recruitment Status ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Recruitment Status By ID
+      tags:
+      - Recruitment Status
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Recruitment Status ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateRecruitmentStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Recruitment Status
+      tags:
+      - Recruitment Status
   /roles:
     get:
       consumes:

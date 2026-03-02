@@ -7,6 +7,7 @@ import (
 	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
 	http_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/provinsi"
+	http_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/recruitment_status"
 	http_role_applied "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/role_applied"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
 	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
@@ -18,6 +19,7 @@ import (
 	usecase_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/kabupaten_kota"
 	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
 	usecase_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/provinsi"
+	usecase_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/recruitment_status"
 	usecase_role_applied "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/role_applied"
 	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
 	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
@@ -159,6 +161,11 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init recruitment status usecase
+	ucRecruitmentStatus := usecase_recruitment_status.NewAppUsecase(usecase_recruitment_status.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// init kabupaten kota usecase
 	ucKabupatenKota := usecase_kabupaten_kota.NewAppUsecase(usecase_kabupaten_kota.RepoInjection{
 		GormDbRepo: repo,
@@ -230,6 +237,7 @@ func main() {
 	http_sector.NewSectorHandler(apiGroup, mdl, ucSector)
 	http_kabupaten_kota.NewKabupatenKotaHandler(apiGroup, ucKabupatenKota)
 	http_provinsi.NewProvinsiHandler(apiGroup, ucProvinsi)
+	http_recruitment_status.NewRecruitmentStatusHandler(apiGroup, mdl, ucRecruitmentStatus)
 
 	// init search (AI)
 	aiRepo, err := aisearchrepo.NewAISearchRepository(os.Getenv("AI_API_URL"))

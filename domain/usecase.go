@@ -34,6 +34,14 @@ type SectorAppUsecase interface {
 	Delete(ctx context.Context, id string) response.Base
 }
 
+type RecruitmentStatusAppUsecase interface {
+	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.RecruitmentStatusFilter) response.Base
+	FetchData(ctx context.Context, id string) response.Base
+	Create(ctx context.Context, req request_model.CreateRecruitmentStatusRequest) response.Base
+	Update(ctx context.Context, id string, req request_model.UpdateRecruitmentStatusRequest) response.Base
+	Delete(ctx context.Context, id string) response.Base
+}
+
 type KabupatenKotaAppUsecase interface {
 	FetchAll(ctx context.Context, filter gorm_model.KabupatenKotaFilter) response.Base
 	FetchData(ctx context.Context, id string) response.Base

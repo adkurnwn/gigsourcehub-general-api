@@ -39,6 +39,11 @@ type GormRepo interface {
 	UpdateSector(ctx context.Context, model *gorm_model.Sector) error
 	DeleteSector(ctx context.Context, id string) error
 
+	FetchRecruitmentStatus(ctx context.Context, options gorm_model.RecruitmentStatusFilter) (*sql.Rows, error)
+	CreateRecruitmentStatus(ctx context.Context, model *gorm_model.RecruitmentStatus) error
+	UpdateRecruitmentStatus(ctx context.Context, model *gorm_model.RecruitmentStatus) error
+	DeleteRecruitmentStatus(ctx context.Context, id string) error
+
 	FetchKabupatenKota(ctx context.Context, options gorm_model.KabupatenKotaFilter) (*sql.Rows, error)
 	FetchProvinsi(ctx context.Context, options gorm_model.ProvinsiFilter) (*sql.Rows, error)
 

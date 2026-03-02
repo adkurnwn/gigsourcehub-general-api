@@ -121,6 +121,53 @@ func (_c *GormRepo_CreateCV_Call) RunAndReturn(run func(context.Context, *gorm_m
 	return _c
 }
 
+// CreateRecruitmentStatus provides a mock function with given fields: ctx, model
+func (_m *GormRepo) CreateRecruitmentStatus(ctx context.Context, model *gorm_model.RecruitmentStatus) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateRecruitmentStatus")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.RecruitmentStatus) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_CreateRecruitmentStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateRecruitmentStatus'
+type GormRepo_CreateRecruitmentStatus_Call struct {
+	*mock.Call
+}
+
+// CreateRecruitmentStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.RecruitmentStatus
+func (_e *GormRepo_Expecter) CreateRecruitmentStatus(ctx interface{}, model interface{}) *GormRepo_CreateRecruitmentStatus_Call {
+	return &GormRepo_CreateRecruitmentStatus_Call{Call: _e.mock.On("CreateRecruitmentStatus", ctx, model)}
+}
+
+func (_c *GormRepo_CreateRecruitmentStatus_Call) Run(run func(ctx context.Context, model *gorm_model.RecruitmentStatus)) *GormRepo_CreateRecruitmentStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.RecruitmentStatus))
+	})
+	return _c
+}
+
+func (_c *GormRepo_CreateRecruitmentStatus_Call) Return(_a0 error) *GormRepo_CreateRecruitmentStatus_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_CreateRecruitmentStatus_Call) RunAndReturn(run func(context.Context, *gorm_model.RecruitmentStatus) error) *GormRepo_CreateRecruitmentStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateRoleApplied provides a mock function with given fields: ctx, model
 func (_m *GormRepo) CreateRoleApplied(ctx context.Context, model *gorm_model.RoleApplied) error {
 	ret := _m.Called(ctx, model)
@@ -258,6 +305,53 @@ func (_c *GormRepo_CreateUser_Call) Return(err error) *GormRepo_CreateUser_Call 
 }
 
 func (_c *GormRepo_CreateUser_Call) RunAndReturn(run func(context.Context, *gorm_model.User) error) *GormRepo_CreateUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteRecruitmentStatus provides a mock function with given fields: ctx, id
+func (_m *GormRepo) DeleteRecruitmentStatus(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteRecruitmentStatus")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_DeleteRecruitmentStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteRecruitmentStatus'
+type GormRepo_DeleteRecruitmentStatus_Call struct {
+	*mock.Call
+}
+
+// DeleteRecruitmentStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *GormRepo_Expecter) DeleteRecruitmentStatus(ctx interface{}, id interface{}) *GormRepo_DeleteRecruitmentStatus_Call {
+	return &GormRepo_DeleteRecruitmentStatus_Call{Call: _e.mock.On("DeleteRecruitmentStatus", ctx, id)}
+}
+
+func (_c *GormRepo_DeleteRecruitmentStatus_Call) Run(run func(ctx context.Context, id string)) *GormRepo_DeleteRecruitmentStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_DeleteRecruitmentStatus_Call) Return(_a0 error) *GormRepo_DeleteRecruitmentStatus_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_DeleteRecruitmentStatus_Call) RunAndReturn(run func(context.Context, string) error) *GormRepo_DeleteRecruitmentStatus_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -529,6 +623,65 @@ func (_c *GormRepo_FetchProvinsi_Call) Return(_a0 *sql.Rows, _a1 error) *GormRep
 }
 
 func (_c *GormRepo_FetchProvinsi_Call) RunAndReturn(run func(context.Context, gorm_model.ProvinsiFilter) (*sql.Rows, error)) *GormRepo_FetchProvinsi_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FetchRecruitmentStatus provides a mock function with given fields: ctx, options
+func (_m *GormRepo) FetchRecruitmentStatus(ctx context.Context, options gorm_model.RecruitmentStatusFilter) (*sql.Rows, error) {
+	ret := _m.Called(ctx, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchRecruitmentStatus")
+	}
+
+	var r0 *sql.Rows
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.RecruitmentStatusFilter) (*sql.Rows, error)); ok {
+		return rf(ctx, options)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.RecruitmentStatusFilter) *sql.Rows); ok {
+		r0 = rf(ctx, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sql.Rows)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, gorm_model.RecruitmentStatusFilter) error); ok {
+		r1 = rf(ctx, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_FetchRecruitmentStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchRecruitmentStatus'
+type GormRepo_FetchRecruitmentStatus_Call struct {
+	*mock.Call
+}
+
+// FetchRecruitmentStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - options gorm_model.RecruitmentStatusFilter
+func (_e *GormRepo_Expecter) FetchRecruitmentStatus(ctx interface{}, options interface{}) *GormRepo_FetchRecruitmentStatus_Call {
+	return &GormRepo_FetchRecruitmentStatus_Call{Call: _e.mock.On("FetchRecruitmentStatus", ctx, options)}
+}
+
+func (_c *GormRepo_FetchRecruitmentStatus_Call) Run(run func(ctx context.Context, options gorm_model.RecruitmentStatusFilter)) *GormRepo_FetchRecruitmentStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(gorm_model.RecruitmentStatusFilter))
+	})
+	return _c
+}
+
+func (_c *GormRepo_FetchRecruitmentStatus_Call) Return(_a0 *sql.Rows, _a1 error) *GormRepo_FetchRecruitmentStatus_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_FetchRecruitmentStatus_Call) RunAndReturn(run func(context.Context, gorm_model.RecruitmentStatusFilter) (*sql.Rows, error)) *GormRepo_FetchRecruitmentStatus_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1136,6 +1289,53 @@ func (_c *GormRepo_UpdateCV_Call) Return(_a0 error) *GormRepo_UpdateCV_Call {
 }
 
 func (_c *GormRepo_UpdateCV_Call) RunAndReturn(run func(context.Context, *gorm_model.CV) error) *GormRepo_UpdateCV_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateRecruitmentStatus provides a mock function with given fields: ctx, model
+func (_m *GormRepo) UpdateRecruitmentStatus(ctx context.Context, model *gorm_model.RecruitmentStatus) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateRecruitmentStatus")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.RecruitmentStatus) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_UpdateRecruitmentStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateRecruitmentStatus'
+type GormRepo_UpdateRecruitmentStatus_Call struct {
+	*mock.Call
+}
+
+// UpdateRecruitmentStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.RecruitmentStatus
+func (_e *GormRepo_Expecter) UpdateRecruitmentStatus(ctx interface{}, model interface{}) *GormRepo_UpdateRecruitmentStatus_Call {
+	return &GormRepo_UpdateRecruitmentStatus_Call{Call: _e.mock.On("UpdateRecruitmentStatus", ctx, model)}
+}
+
+func (_c *GormRepo_UpdateRecruitmentStatus_Call) Run(run func(ctx context.Context, model *gorm_model.RecruitmentStatus)) *GormRepo_UpdateRecruitmentStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.RecruitmentStatus))
+	})
+	return _c
+}
+
+func (_c *GormRepo_UpdateRecruitmentStatus_Call) Return(_a0 error) *GormRepo_UpdateRecruitmentStatus_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_UpdateRecruitmentStatus_Call) RunAndReturn(run func(context.Context, *gorm_model.RecruitmentStatus) error) *GormRepo_UpdateRecruitmentStatus_Call {
 	_c.Call.Return(run)
 	return _c
 }
