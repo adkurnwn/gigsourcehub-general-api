@@ -516,7 +516,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Search"
+                    "AI Search"
                 ],
                 "summary": "Search",
                 "parameters": [

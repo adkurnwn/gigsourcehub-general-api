@@ -135,3 +135,7 @@ func (m *appMiddleware) AuthSuperadmin() gin.HandlerFunc {
 func (m *appMiddleware) AuthEmployee() gin.HandlerFunc {
 	return m.AuthRole("Employee")
 }
+
+func (m *appMiddleware) AuthCandidate() gin.HandlerFunc {
+	return m.AuthRole("Candidate")
+}

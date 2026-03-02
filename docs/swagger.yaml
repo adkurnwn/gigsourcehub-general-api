@@ -431,7 +431,7 @@ paths:
       - BearerAuth: []
       summary: Search
       tags:
-      - Search
+      - AI Search
   /users:
     get:
       consumes:

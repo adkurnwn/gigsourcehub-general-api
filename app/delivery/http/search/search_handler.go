@@ -24,7 +24,7 @@ func NewSearchHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc usecase_
 // Search
 // @Summary Search
 // @Description Search for items
-// @Tags Search
+// @Tags AI Search
 // @Accept json
 // @Produce json
 // @Param request body request_model.SearchRequest true "Search Request"
