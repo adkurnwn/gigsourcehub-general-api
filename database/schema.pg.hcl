@@ -146,6 +146,11 @@ table "users" {
   index "idx_users_role_applied_id" {
     columns = [column.role_applied_id]
   }
+
+  index "idx_users_email" {
+    columns = [column.email]
+    unique  = true
+  }
 }
 
 table "cvs" {

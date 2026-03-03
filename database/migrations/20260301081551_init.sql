@@ -40,3 +40,5 @@ CREATE INDEX "idx_users_deleted_at" ON "public"."users" ("deleted_at");
 CREATE INDEX "idx_users_kabupaten_kota_id" ON "public"."users" ("kabupaten_kota_id");
 -- Create index "idx_users_role_applied_id" to table: "users"
 CREATE INDEX "idx_users_role_applied_id" ON "public"."users" ("role_applied_id");
+-- Create index "idx_users_email" to table: "users"
+CREATE UNIQUE INDEX "idx_users_email" ON "public"."users" ("email");
