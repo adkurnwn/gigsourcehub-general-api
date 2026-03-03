@@ -87,6 +87,30 @@ definitions:
     required:
     - name
     type: object
+  request_model.CreateUserBySuperadminRequest:
+    properties:
+      account_status:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      role_applied_id:
+        type: string
+      role_system_id:
+        type: string
+    type: object
+  request_model.EditUserBySuperadminRequest:
+    properties:
+      account_status:
+        type: string
+      name:
+        type: string
+      role_applied_id:
+        type: string
+    type: object
   request_model.LoginRequest:
     properties:
       email:
@@ -987,6 +1011,41 @@ paths:
       summary: Fetch All Users
       tags:
       - Users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user by superadmin
+      parameters:
+      - description: User object
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateUserBySuperadminRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create User By Superadmin
+      tags:
+      - Users
   /users/{id}:
     get:
       consumes:
@@ -1028,6 +1087,97 @@ paths:
       security:
       - BearerAuth: []
       summary: Fetch User Detail
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Edit an existing user (Name, RoleAppliedId, AccountStatus) by superadmin
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User edit object
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.EditUserBySuperadminRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Edit User By Superadmin
+      tags:
+      - Users
+  /users/{id}/block:
+    patch:
+      consumes:
+      - application/json
+      description: Instantly block a user by setting AccountStatus to "Blocked"
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Block User By Superadmin
       tags:
       - Users
   /users/candidates:

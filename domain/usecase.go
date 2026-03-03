@@ -16,6 +16,9 @@ type MemberAppUsecase interface {
 	GetProfile(ctx context.Context, claim JWTClaimUser) response.Base
 	FetchUsers(ctx context.Context, page, limit int64, cursor string, roleName *string) response.Base
 	FetchUserDetail(ctx context.Context, id string) response.Base
+	CreateBySuperadmin(ctx context.Context, req request_model.CreateUserBySuperadminRequest) response.Base
+	EditUserBySuperadmin(ctx context.Context, id string, req request_model.EditUserBySuperadminRequest) response.Base
+	BlockUserBySuperadmin(ctx context.Context, id string) response.Base
 }
 
 type RoleAppliedAppUsecase interface {

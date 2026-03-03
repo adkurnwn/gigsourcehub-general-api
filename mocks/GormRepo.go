@@ -309,6 +309,53 @@ func (_c *GormRepo_CreateUser_Call) RunAndReturn(run func(context.Context, *gorm
 	return _c
 }
 
+// CreateUserBySuperadmin provides a mock function with given fields: ctx, model
+func (_m *GormRepo) CreateUserBySuperadmin(ctx context.Context, model *gorm_model.User) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateUserBySuperadmin")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.User) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_CreateUserBySuperadmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateUserBySuperadmin'
+type GormRepo_CreateUserBySuperadmin_Call struct {
+	*mock.Call
+}
+
+// CreateUserBySuperadmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.User
+func (_e *GormRepo_Expecter) CreateUserBySuperadmin(ctx interface{}, model interface{}) *GormRepo_CreateUserBySuperadmin_Call {
+	return &GormRepo_CreateUserBySuperadmin_Call{Call: _e.mock.On("CreateUserBySuperadmin", ctx, model)}
+}
+
+func (_c *GormRepo_CreateUserBySuperadmin_Call) Run(run func(ctx context.Context, model *gorm_model.User)) *GormRepo_CreateUserBySuperadmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.User))
+	})
+	return _c
+}
+
+func (_c *GormRepo_CreateUserBySuperadmin_Call) Return(err error) *GormRepo_CreateUserBySuperadmin_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *GormRepo_CreateUserBySuperadmin_Call) RunAndReturn(run func(context.Context, *gorm_model.User) error) *GormRepo_CreateUserBySuperadmin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteRecruitmentStatus provides a mock function with given fields: ctx, id
 func (_m *GormRepo) DeleteRecruitmentStatus(ctx context.Context, id string) error {
 	ret := _m.Called(ctx, id)

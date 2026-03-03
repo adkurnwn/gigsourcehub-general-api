@@ -3,6 +3,7 @@ package http_member
 import (
 	"net/http"
 
+	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,15 @@ func (h *routeHandler) handleUserRoute(path string) {
 
 	// User detail: For Admin & Superadmin
 	userGroup.GET("/:id", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin"), h.FetchUserDetail)
+
+	// Create user by superadmin: Only Superadmin
+	userGroup.POST("", h.Middleware.Auth(), h.Middleware.AuthSuperadmin(), h.CreateUserBySuperadmin)
+
+	// Edit user by superadmin: Only Superadmin
+	userGroup.PUT("/:id", h.Middleware.Auth(), h.Middleware.AuthSuperadmin(), h.EditUserBySuperadmin)
+
+	// Block user by superadmin: Only Superadmin
+	userGroup.PATCH("/:id/block", h.Middleware.Auth(), h.Middleware.AuthSuperadmin(), h.BlockUserBySuperadmin)
 }
 
 // FetchCandidates
@@ -88,5 +98,92 @@ func (h *routeHandler) FetchUserDetail(c *gin.Context) {
 	}
 
 	res := h.Usecase.FetchUserDetail(c.Request.Context(), id)
+	c.JSON(res.Status, res)
+}
+
+// CreateUserBySuperadmin
+// @Summary Create User By Superadmin
+// @Description Create a new user by superadmin
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param user body request_model.CreateUserBySuperadminRequest true "User object"
+// @Success 200 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /users [post]
+// @Security BearerAuth
+func (h *routeHandler) CreateUserBySuperadmin(c *gin.Context) {
+	var req request_model.CreateUserBySuperadminRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		res := response.Error(http.StatusBadRequest, "Invalid request body")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	res := h.Usecase.CreateBySuperadmin(c.Request.Context(), req)
+	c.JSON(res.Status, res)
+}
+
+// EditUserBySuperadmin
+// @Summary Edit User By Superadmin
+// @Description Edit an existing user (Name, RoleAppliedId, AccountStatus) by superadmin
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Param user body request_model.EditUserBySuperadminRequest true "User edit object"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /users/{id} [put]
+// @Security BearerAuth
+func (h *routeHandler) EditUserBySuperadmin(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		res := response.Error(http.StatusBadRequest, "Invalid ID parameter")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	var req request_model.EditUserBySuperadminRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		res := response.Error(http.StatusBadRequest, "Invalid request body")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	res := h.Usecase.EditUserBySuperadmin(c.Request.Context(), id, req)
+	c.JSON(res.Status, res)
+}
+
+// BlockUserBySuperadmin
+// @Summary Block User By Superadmin
+// @Description Instantly block a user by setting AccountStatus to "Blocked"
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /users/{id}/block [patch]
+// @Security BearerAuth
+func (h *routeHandler) BlockUserBySuperadmin(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		res := response.Error(http.StatusBadRequest, "Invalid ID parameter")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	res := h.Usecase.BlockUserBySuperadmin(c.Request.Context(), id)
 	c.JSON(res.Status, res)
 }
