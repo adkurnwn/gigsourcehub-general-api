@@ -77,7 +77,7 @@ table "users" {
     type = date
     null = true
   }
-  column "role_system_id" {
+  column "system_role_id" {
     type = uuid
     null = true
   }
@@ -108,9 +108,9 @@ table "users" {
 
 
 
-  foreign_key "user_role_system_fk" {
-    columns     = [column.role_system_id]
-    ref_columns = [table.role_systems.column.id]
+  foreign_key "user_system_role_fk" {
+    columns     = [column.system_role_id]
+    ref_columns = [table.system_roles.column.id]
     on_update   = NO_ACTION
     on_delete   = SET_NULL
   }
@@ -261,7 +261,7 @@ table "sectors" {
   }
 }
 
-table "role_systems" {
+table "system_roles" {
   schema = schema.public
 
   column "id" {
@@ -288,7 +288,7 @@ table "role_systems" {
     columns = [column.id]
   }
 
-  index "idx_role_systems_deleted_at" {
+  index "idx_system_roles_deleted_at" {
     columns = [column.deleted_at]
   }
 }

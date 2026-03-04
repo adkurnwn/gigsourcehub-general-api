@@ -9,7 +9,7 @@ definitions:
         type: string
       profile_picture:
         type: string
-      role_system_name:
+      system_role_name:
         type: string
     type: object
   gorm_model.UserResp:
@@ -44,9 +44,9 @@ definitions:
         type: string
       recruitment_status_id:
         type: string
-      role_system_name:
-        type: string
       school_university:
+        type: string
+      system_role_name:
         type: string
       tech_stack:
         type: string
@@ -99,7 +99,7 @@ definitions:
         type: string
       password:
         type: string
-      role_system_id:
+      system_role_id:
         type: string
     type: object
   request_model.EditUserBySuperadminRequest:

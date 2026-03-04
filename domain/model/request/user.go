@@ -5,7 +5,7 @@ type CreateUserBySuperadminRequest struct {
 	Email          string  `json:"email"`
 	Password       string  `json:"password"`
 	AssignedRoleId *string `json:"assigned_role_id"`
-	RoleSystemId   *string `json:"role_system_id"`
+	SystemRoleId   *string `json:"system_role_id"`
 	AccountStatus  *string `json:"account_status"`
 }
 

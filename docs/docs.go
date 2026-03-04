@@ -1810,7 +1810,7 @@ const docTemplate = `{
                 "profile_picture": {
                     "type": "string"
                 },
-                "role_system_name": {
+                "system_role_name": {
                     "type": "string"
                 }
             }
@@ -1863,10 +1863,10 @@ const docTemplate = `{
                 "recruitment_status_id": {
                     "type": "string"
                 },
-                "role_system_name": {
+                "school_university": {
                     "type": "string"
                 },
-                "school_university": {
+                "system_role_name": {
                     "type": "string"
                 },
                 "tech_stack": {
@@ -1947,7 +1947,7 @@ const docTemplate = `{
                 "password": {
                     "type": "string"
                 },
-                "role_system_id": {
+                "system_role_id": {
                     "type": "string"
                 }
             }

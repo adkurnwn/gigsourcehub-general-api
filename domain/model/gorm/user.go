@@ -24,8 +24,8 @@ type User struct {
 	CandidateLevel      *string        `gorm:"column:candidate_level;type:varchar(50)"`
 	RecruitmentStatusId *string        `gorm:"column:recruitment_status_id;type:uuid"`
 	UnavailableUntil    *time.Time     `gorm:"column:unavailable_until;type:date"`
-	RoleSystemId        *string        `gorm:"column:role_system_id;type:uuid"`
-	RoleSystem          *RoleSystem    `gorm:"foreignKey:RoleSystemId"`
+	SystemRoleId        *string        `gorm:"column:system_role_id;type:uuid"`
+	SystemRole          *SystemRole    `gorm:"foreignKey:SystemRoleId"`
 	AssignedRoleId      *string        `gorm:"column:assigned_role_id;type:uuid"`
 	JobRoles            []JobRole      `gorm:"many2many:user_has_job_roles;"`
 	AccountStatus       *string        `gorm:"column:account_status;type:user_account_status"`
@@ -73,7 +73,7 @@ type UserResp struct {
 	CandidateLevel      *string    `json:"candidate_level,omitempty"`
 	RecruitmentStatusId *string    `json:"recruitment_status_id"`
 	UnavailableUntil    *time.Time `json:"unavailable_until"`
-	RoleSystemName      *string    `json:"role_system_name"`
+	SystemRoleName      *string    `json:"system_role_name"`
 	AssignedRoleId      *string    `json:"assigned_role_id"`
 	AccountStatus       *string    `json:"account_status"`
 	Jabatan             *string    `json:"jabatan,omitempty"`
@@ -84,13 +84,13 @@ type AuthMeResp struct {
 	Name           string  `json:"name"`
 	Email          string  `json:"email"`
 	ProfilePicture *string `json:"profile_picture"`
-	RoleSystemName *string `json:"role_system_name"`
+	SystemRoleName *string `json:"system_role_name"`
 }
 
 func (row *User) ToUserResp() UserResp {
 	var roleName *string
-	if row.RoleSystem != nil {
-		roleName = &row.RoleSystem.Name
+	if row.SystemRole != nil {
+		roleName = &row.SystemRole.Name
 	}
 
 	candidateLevel := row.CandidateLevel
@@ -118,7 +118,7 @@ func (row *User) ToUserResp() UserResp {
 		CandidateLevel:      candidateLevel,
 		RecruitmentStatusId: row.RecruitmentStatusId,
 		UnavailableUntil:    row.UnavailableUntil,
-		RoleSystemName:      roleName,
+		SystemRoleName:      roleName,
 		AssignedRoleId:      row.AssignedRoleId,
 		AccountStatus:       row.AccountStatus,
 		Jabatan:             jabatan,
@@ -127,15 +127,15 @@ func (row *User) ToUserResp() UserResp {
 
 func (row *User) ToAuthMeResp() AuthMeResp {
 	var roleName *string
-	if row.RoleSystem != nil {
-		roleName = &row.RoleSystem.Name
+	if row.SystemRole != nil {
+		roleName = &row.SystemRole.Name
 	}
 	return AuthMeResp{
 		ID:             row.ID,
 		Name:           row.Name,
 		Email:          row.Email,
 		ProfilePicture: row.ProfilePicture,
-		RoleSystemName: roleName,
+		SystemRoleName: roleName,
 	}
 }
 
