@@ -89,8 +89,8 @@ table "users" {
     type = enum.user_account_status
     null = true
   }
-  column "jabatan" {
-    type = varchar(100)
+  column "job_title_id" {
+    type = uuid
     null = true
   }
   column "created_at" {
@@ -132,6 +132,13 @@ table "users" {
   foreign_key "user_assigned_role_fk" {
     columns     = [column.assigned_role_id]
     ref_columns = [table.job_roles.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
+  }
+
+  foreign_key "user_job_title_fk" {
+    columns     = [column.job_title_id]
+    ref_columns = [table.job_titles.column.id]
     on_update   = NO_ACTION
     on_delete   = SET_NULL
   }
@@ -333,6 +340,53 @@ table "job_roles" {
   }
 
   foreign_key "job_roles_sector_fk" {
+    columns     = [column.sector_id]
+    ref_columns = [table.sectors.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "job_titles" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "name" {
+    type = varchar(150)
+    null = false
+  }
+  column "sector_id" {
+    type = uuid
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_job_titles_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_job_titles_sector_id" {
+    columns = [column.sector_id]
+  }
+
+  foreign_key "job_titles_sector_fk" {
     columns     = [column.sector_id]
     ref_columns = [table.sectors.column.id]
     on_update   = NO_ACTION

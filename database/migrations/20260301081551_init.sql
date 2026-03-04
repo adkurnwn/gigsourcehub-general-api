@@ -24,6 +24,12 @@ CREATE TABLE "public"."job_roles" ("id" uuid NOT NULL, "name" character varying(
 CREATE INDEX "idx_job_roles_deleted_at" ON "public"."job_roles" ("deleted_at");
 -- Create index "idx_job_roles_sector_id" to table: "job_roles"
 CREATE INDEX "idx_job_roles_sector_id" ON "public"."job_roles" ("sector_id");
+-- Create "job_titles" table
+CREATE TABLE "public"."job_titles" ("id" uuid NOT NULL, "name" character varying(150) NOT NULL, "sector_id" uuid NOT NULL, "created_at" timestamptz NOT NULL, "updated_at" timestamptz NOT NULL, "deleted_at" timestamptz NULL, PRIMARY KEY ("id"));
+-- Create index "idx_job_titles_deleted_at" to table: "job_titles"
+CREATE INDEX "idx_job_titles_deleted_at" ON "public"."job_titles" ("deleted_at");
+-- Create index "idx_job_titles_sector_id" to table: "job_titles"
+CREATE INDEX "idx_job_titles_sector_id" ON "public"."job_titles" ("sector_id");
 -- Create "system_roles" table
 CREATE TABLE "public"."system_roles" ("id" uuid NOT NULL, "name" character varying(150) NOT NULL, "created_at" timestamptz NOT NULL, "updated_at" timestamptz NOT NULL, "deleted_at" timestamptz NULL, PRIMARY KEY ("id"));
 -- Create index "idx_system_roles_deleted_at" to table: "system_roles"
@@ -35,7 +41,7 @@ CREATE INDEX "idx_sectors_deleted_at" ON "public"."sectors" ("deleted_at");
 -- Create enum type "user_account_status"
 CREATE TYPE "public"."user_account_status" AS ENUM ('Active', 'Inactive', 'Blocked');
 -- Create "users" table
-CREATE TABLE "public"."users" ("id" uuid NOT NULL, "name" character varying(255) NOT NULL, "email" character varying(255) NOT NULL, "password" character varying(255) NOT NULL, "birthdate" date NULL, "school_university" character varying(255) NULL, "major" character varying(255) NULL, "gpa" numeric(3,2) NULL, "phone_number" character varying(20) NULL, "portofolio_link" text NULL, "kabupaten_kota_id" character varying(5) NULL, "years_experience" integer NULL, "tech_stack" jsonb NULL, "profile_picture" character varying(255) NULL, "candidate_level" character varying(50) NULL, "recruitment_status_id" uuid NULL, "unavailable_until" date NULL, "system_role_id" uuid NULL, "assigned_role_id" uuid NULL, "account_status" "public"."user_account_status" NULL, "jabatan" character varying(100) NULL, "created_at" timestamptz NOT NULL, "updated_at" timestamptz NOT NULL, "deleted_at" timestamptz NULL, PRIMARY KEY ("id"));
+CREATE TABLE "public"."users" ("id" uuid NOT NULL, "name" character varying(255) NOT NULL, "email" character varying(255) NOT NULL, "password" character varying(255) NOT NULL, "birthdate" date NULL, "school_university" character varying(255) NULL, "major" character varying(255) NULL, "gpa" numeric(3,2) NULL, "phone_number" character varying(20) NULL, "portofolio_link" text NULL, "kabupaten_kota_id" character varying(5) NULL, "years_experience" integer NULL, "tech_stack" jsonb NULL, "profile_picture" character varying(255) NULL, "candidate_level" character varying(50) NULL, "recruitment_status_id" uuid NULL, "unavailable_until" date NULL, "system_role_id" uuid NULL, "assigned_role_id" uuid NULL, "account_status" "public"."user_account_status" NULL, "job_title_id" uuid NULL, "created_at" timestamptz NOT NULL, "updated_at" timestamptz NOT NULL, "deleted_at" timestamptz NULL, PRIMARY KEY ("id"));
 -- Create index "idx_users_deleted_at" to table: "users"
 CREATE INDEX "idx_users_deleted_at" ON "public"."users" ("deleted_at");
 -- Create index "idx_users_kabupaten_kota_id" to table: "users"

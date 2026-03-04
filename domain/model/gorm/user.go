@@ -29,7 +29,7 @@ type User struct {
 	AssignedRoleId      *string        `gorm:"column:assigned_role_id;type:uuid"`
 	JobRoles            []JobRole      `gorm:"many2many:user_has_job_roles;"`
 	AccountStatus       *string        `gorm:"column:account_status;type:user_account_status"`
-	Jabatan             *string        `gorm:"column:jabatan;type:varchar(100)"`
+	JobTitleId          *string        `gorm:"column:job_title_id;type:uuid"`
 	CreatedAt           time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt           time.Time      `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt           gorm.DeletedAt `gorm:"column:deleted_at;index"`
@@ -76,7 +76,7 @@ type UserResp struct {
 	SystemRoleName      *string    `json:"system_role_name"`
 	AssignedRoleId      *string    `json:"assigned_role_id"`
 	AccountStatus       *string    `json:"account_status"`
-	Jabatan             *string    `json:"jabatan,omitempty"`
+	JobTitleId          *string    `json:"job_title_id,omitempty"`
 }
 
 type AuthMeResp struct {
@@ -94,11 +94,9 @@ func (row *User) ToUserResp() UserResp {
 	}
 
 	candidateLevel := row.CandidateLevel
-	jabatan := row.Jabatan
 
 	if roleName != nil && *roleName == "Candidate" {
 		candidateLevel = nil
-		jabatan = nil
 	}
 
 	return UserResp{
@@ -121,7 +119,7 @@ func (row *User) ToUserResp() UserResp {
 		SystemRoleName:      roleName,
 		AssignedRoleId:      row.AssignedRoleId,
 		AccountStatus:       row.AccountStatus,
-		Jabatan:             jabatan,
+		JobTitleId:          row.JobTitleId,
 	}
 }
 
