@@ -30,10 +30,15 @@ type GormRepo interface {
 	GetProvinsiName(ctx context.Context, id string) (string, error)
 	GetKabupatenName(ctx context.Context, id string) (string, error)
 
-	FetchRoleApplied(ctx context.Context, options gorm_model.RoleAppliedFilter) (*sql.Rows, error)
-	CreateRoleApplied(ctx context.Context, model *gorm_model.RoleApplied) error
-	UpdateRoleApplied(ctx context.Context, model *gorm_model.RoleApplied) error
-	DeleteRoleApplied(ctx context.Context, id string) error
+	FetchJobRole(ctx context.Context, options gorm_model.JobRoleFilter) (*sql.Rows, error)
+	CreateJobRole(ctx context.Context, model *gorm_model.JobRole) error
+	UpdateJobRole(ctx context.Context, model *gorm_model.JobRole) error
+	DeleteJobRole(ctx context.Context, id string) error
+
+	FetchJobTitle(ctx context.Context, options gorm_model.JobTitleFilter) (*sql.Rows, error)
+	CreateJobTitle(ctx context.Context, model *gorm_model.JobTitle) error
+	UpdateJobTitle(ctx context.Context, model *gorm_model.JobTitle) error
+	DeleteJobTitle(ctx context.Context, id string) error
 
 	FetchSector(ctx context.Context, options gorm_model.SectorFilter) (*sql.Rows, error)
 	CreateSector(ctx context.Context, model *gorm_model.Sector) error

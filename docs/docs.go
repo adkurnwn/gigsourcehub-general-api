@@ -347,6 +347,249 @@ const docTemplate = `{
                 }
             }
         },
+        "/job-titles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get All Job Titles",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job Title"
+                ],
+                "summary": "Get All Job Titles",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sector ID",
+                        "name": "sector_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job Title"
+                ],
+                "summary": "Create Job Title",
+                "parameters": [
+                    {
+                        "description": "Create Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.CreateJobTitleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            }
+        },
+        "/job-titles/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get Job Title By ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job Title"
+                ],
+                "summary": "Get Job Title By ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Title ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job Title"
+                ],
+                "summary": "Update Job Title",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Title ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.UpdateJobTitleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job Title"
+                ],
+                "summary": "Delete Job Title",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Title ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            }
+        },
         "/kabupaten": {
             "get": {
                 "description": "Get All Kabupaten Kota by Province ID",
@@ -742,7 +985,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get All Role Applied",
+                "description": "Get All Job Roles",
                 "consumes": [
                     "application/json"
                 ],
@@ -750,9 +993,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role Applied"
+                    "Job Role"
                 ],
-                "summary": "Get All Role Applied",
+                "summary": "Get All Job Roles",
                 "parameters": [
                     {
                         "type": "string",
@@ -795,9 +1038,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role Applied"
+                    "Job Role"
                 ],
-                "summary": "Create Role Applied",
+                "summary": "Create Job Role",
                 "parameters": [
                     {
                         "description": "Create Request",
@@ -805,7 +1048,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request_model.CreateRoleAppliedRequest"
+                            "$ref": "#/definitions/request_model.CreateJobRoleRequest"
                         }
                     }
                 ],
@@ -838,7 +1081,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get Role Applied By ID",
+                "description": "Get Job Role By ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -846,9 +1089,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role Applied"
+                    "Job Role"
                 ],
-                "summary": "Get Role Applied By ID",
+                "summary": "Get Job Role By ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -892,9 +1135,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role Applied"
+                    "Job Role"
                 ],
-                "summary": "Update Role Applied",
+                "summary": "Update Job Role",
                 "parameters": [
                     {
                         "type": "string",
@@ -909,7 +1152,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request_model.UpdateRoleAppliedRequest"
+                            "$ref": "#/definitions/request_model.UpdateJobRoleRequest"
                         }
                     }
                 ],
@@ -950,9 +1193,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role Applied"
+                    "Job Role"
                 ],
-                "summary": "Delete Role Applied",
+                "summary": "Delete Job Role",
                 "parameters": [
                     {
                         "type": "string",
@@ -1523,7 +1766,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Edit an existing user (Name, RoleAppliedId, AccountStatus) by superadmin",
+                "description": "Edit an existing user (Name, AssignedRoleId, AccountStatus) by superadmin",
                 "consumes": [
                     "application/json"
                 ],
@@ -1810,7 +2053,7 @@ const docTemplate = `{
                 "profile_picture": {
                     "type": "string"
                 },
-                "role_system_name": {
+                "system_role_name": {
                     "type": "string"
                 }
             }
@@ -1819,6 +2062,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "account_status": {
+                    "type": "string"
+                },
+                "assigned_role_id": {
                     "type": "string"
                 },
                 "birthdate": {
@@ -1836,7 +2082,7 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "jabatan": {
+                "job_title_id": {
                     "type": "string"
                 },
                 "kabupaten_kota_id": {
@@ -1860,13 +2106,10 @@ const docTemplate = `{
                 "recruitment_status_id": {
                     "type": "string"
                 },
-                "role_applied_id": {
-                    "type": "string"
-                },
-                "role_system_name": {
-                    "type": "string"
-                },
                 "school_university": {
+                    "type": "string"
+                },
+                "system_role_name": {
                     "type": "string"
                 },
                 "tech_stack": {
@@ -1892,18 +2135,7 @@ const docTemplate = `{
                 }
             }
         },
-        "request_model.CreateRecruitmentStatusRequest": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "request_model.CreateRoleAppliedRequest": {
+        "request_model.CreateJobRoleRequest": {
             "type": "object",
             "required": [
                 "name",
@@ -1914,6 +2146,32 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sector_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request_model.CreateJobTitleRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "sector_id"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "sector_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request_model.CreateRecruitmentStatusRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
                     "type": "string"
                 }
             }
@@ -1935,6 +2193,9 @@ const docTemplate = `{
                 "account_status": {
                     "type": "string"
                 },
+                "assigned_role_id": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -1944,10 +2205,7 @@ const docTemplate = `{
                 "password": {
                     "type": "string"
                 },
-                "role_applied_id": {
-                    "type": "string"
-                },
-                "role_system_id": {
+                "system_role_id": {
                     "type": "string"
                 }
             }
@@ -1958,10 +2216,10 @@ const docTemplate = `{
                 "account_status": {
                     "type": "string"
                 },
-                "name": {
+                "assigned_role_id": {
                     "type": "string"
                 },
-                "role_applied_id": {
+                "name": {
                     "type": "string"
                 }
             }
@@ -2002,18 +2260,7 @@ const docTemplate = `{
                 }
             }
         },
-        "request_model.UpdateRecruitmentStatusRequest": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "request_model.UpdateRoleAppliedRequest": {
+        "request_model.UpdateJobRoleRequest": {
             "type": "object",
             "required": [
                 "name",
@@ -2024,6 +2271,32 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sector_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request_model.UpdateJobTitleRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "sector_id"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "sector_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request_model.UpdateRecruitmentStatusRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
                     "type": "string"
                 }
             }

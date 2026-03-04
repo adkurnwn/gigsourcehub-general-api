@@ -9,12 +9,14 @@ definitions:
         type: string
       profile_picture:
         type: string
-      role_system_name:
+      system_role_name:
         type: string
     type: object
   gorm_model.UserResp:
     properties:
       account_status:
+        type: string
+      assigned_role_id:
         type: string
       birthdate:
         type: string
@@ -26,7 +28,7 @@ definitions:
         type: number
       id:
         type: string
-      jabatan:
+      job_title_id:
         type: string
       kabupaten_kota_id:
         type: string
@@ -42,11 +44,9 @@ definitions:
         type: string
       recruitment_status_id:
         type: string
-      role_applied_id:
-        type: string
-      role_system_name:
-        type: string
       school_university:
+        type: string
+      system_role_name:
         type: string
       tech_stack:
         type: string
@@ -63,14 +63,7 @@ definitions:
     required:
     - edited_data
     type: object
-  request_model.CreateRecruitmentStatusRequest:
-    properties:
-      name:
-        type: string
-    required:
-    - name
-    type: object
-  request_model.CreateRoleAppliedRequest:
+  request_model.CreateJobRoleRequest:
     properties:
       name:
         type: string
@@ -79,6 +72,23 @@ definitions:
     required:
     - name
     - sector_id
+    type: object
+  request_model.CreateJobTitleRequest:
+    properties:
+      name:
+        type: string
+      sector_id:
+        type: string
+    required:
+    - name
+    - sector_id
+    type: object
+  request_model.CreateRecruitmentStatusRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
     type: object
   request_model.CreateSectorRequest:
     properties:
@@ -91,24 +101,24 @@ definitions:
     properties:
       account_status:
         type: string
+      assigned_role_id:
+        type: string
       email:
         type: string
       name:
         type: string
       password:
         type: string
-      role_applied_id:
-        type: string
-      role_system_id:
+      system_role_id:
         type: string
     type: object
   request_model.EditUserBySuperadminRequest:
     properties:
       account_status:
         type: string
-      name:
+      assigned_role_id:
         type: string
-      role_applied_id:
+      name:
         type: string
     type: object
   request_model.LoginRequest:
@@ -134,14 +144,7 @@ definitions:
     required:
     - query
     type: object
-  request_model.UpdateRecruitmentStatusRequest:
-    properties:
-      name:
-        type: string
-    required:
-    - name
-    type: object
-  request_model.UpdateRoleAppliedRequest:
+  request_model.UpdateJobRoleRequest:
     properties:
       name:
         type: string
@@ -150,6 +153,23 @@ definitions:
     required:
     - name
     - sector_id
+    type: object
+  request_model.UpdateJobTitleRequest:
+    properties:
+      name:
+        type: string
+      sector_id:
+        type: string
+    required:
+    - name
+    - sector_id
+    type: object
+  request_model.UpdateRecruitmentStatusRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
     type: object
   request_model.UpdateSectorRequest:
     properties:
@@ -385,6 +405,159 @@ paths:
       summary: Upload CV
       tags:
       - CV
+  /job-titles:
+    get:
+      consumes:
+      - application/json
+      description: Get All Job Titles
+      parameters:
+      - description: Sector ID
+        in: query
+        name: sector_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Job Titles
+      tags:
+      - Job Title
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateJobTitleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Job Title
+      tags:
+      - Job Title
+  /job-titles/{id}:
+    delete:
+      parameters:
+      - description: Title ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Job Title
+      tags:
+      - Job Title
+    get:
+      consumes:
+      - application/json
+      description: Get Job Title By ID
+      parameters:
+      - description: Title ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Job Title By ID
+      tags:
+      - Job Title
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Title ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateJobTitleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Job Title
+      tags:
+      - Job Title
   /kabupaten:
     get:
       consumes:
@@ -637,7 +810,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get All Role Applied
+      description: Get All Job Roles
       parameters:
       - description: Sector ID
         in: query
@@ -660,9 +833,9 @@ paths:
             $ref: '#/definitions/response.Base'
       security:
       - BearerAuth: []
-      summary: Get All Role Applied
+      summary: Get All Job Roles
       tags:
-      - Role Applied
+      - Job Role
     post:
       consumes:
       - application/json
@@ -672,7 +845,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/request_model.CreateRoleAppliedRequest'
+          $ref: '#/definitions/request_model.CreateJobRoleRequest'
       produces:
       - application/json
       responses:
@@ -690,9 +863,9 @@ paths:
             $ref: '#/definitions/response.Base'
       security:
       - BearerAuth: []
-      summary: Create Role Applied
+      summary: Create Job Role
       tags:
-      - Role Applied
+      - Job Role
   /roles/{id}:
     delete:
       parameters:
@@ -714,13 +887,13 @@ paths:
             $ref: '#/definitions/response.Base'
       security:
       - BearerAuth: []
-      summary: Delete Role Applied
+      summary: Delete Job Role
       tags:
-      - Role Applied
+      - Job Role
     get:
       consumes:
       - application/json
-      description: Get Role Applied By ID
+      description: Get Job Role By ID
       parameters:
       - description: Role ID
         in: path
@@ -744,9 +917,9 @@ paths:
             $ref: '#/definitions/response.Base'
       security:
       - BearerAuth: []
-      summary: Get Role Applied By ID
+      summary: Get Job Role By ID
       tags:
-      - Role Applied
+      - Job Role
     put:
       consumes:
       - application/json
@@ -761,7 +934,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/request_model.UpdateRoleAppliedRequest'
+          $ref: '#/definitions/request_model.UpdateJobRoleRequest'
       produces:
       - application/json
       responses:
@@ -783,9 +956,9 @@ paths:
             $ref: '#/definitions/response.Base'
       security:
       - BearerAuth: []
-      summary: Update Role Applied
+      summary: Update Job Role
       tags:
-      - Role Applied
+      - Job Role
   /search:
     post:
       consumes:
@@ -1092,7 +1265,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: Edit an existing user (Name, RoleAppliedId, AccountStatus) by superadmin
+      description: Edit an existing user (Name, AssignedRoleId, AccountStatus) by
+        superadmin
       parameters:
       - description: User ID
         in: path

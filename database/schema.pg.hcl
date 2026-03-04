@@ -77,11 +77,11 @@ table "users" {
     type = date
     null = true
   }
-  column "role_system_id" {
+  column "system_role_id" {
     type = uuid
     null = true
   }
-  column "role_applied_id" {
+  column "assigned_role_id" {
     type = uuid
     null = true
   }
@@ -89,8 +89,8 @@ table "users" {
     type = enum.user_account_status
     null = true
   }
-  column "jabatan" {
-    type = varchar(100)
+  column "job_title_id" {
+    type = uuid
     null = true
   }
   column "created_at" {
@@ -108,9 +108,9 @@ table "users" {
 
 
 
-  foreign_key "user_role_system_fk" {
-    columns     = [column.role_system_id]
-    ref_columns = [table.role_systems.column.id]
+  foreign_key "user_system_role_fk" {
+    columns     = [column.system_role_id]
+    ref_columns = [table.system_roles.column.id]
     on_update   = NO_ACTION
     on_delete   = SET_NULL
   }
@@ -129,9 +129,16 @@ table "users" {
     on_delete   = SET_NULL
   }
 
-  foreign_key "user_role_applied_fk" {
-    columns     = [column.role_applied_id]
-    ref_columns = [table.role_applieds.column.id]
+  foreign_key "user_assigned_role_fk" {
+    columns     = [column.assigned_role_id]
+    ref_columns = [table.job_roles.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
+  }
+
+  foreign_key "user_job_title_fk" {
+    columns     = [column.job_title_id]
+    ref_columns = [table.job_titles.column.id]
     on_update   = NO_ACTION
     on_delete   = SET_NULL
   }
@@ -148,8 +155,8 @@ table "users" {
     columns = [column.kabupaten_kota_id]
   }
   
-  index "idx_users_role_applied_id" {
-    columns = [column.role_applied_id]
+  index "idx_users_assigned_role_id" {
+    columns = [column.assigned_role_id]
   }
 
   index "idx_users_email" {
@@ -261,7 +268,7 @@ table "sectors" {
   }
 }
 
-table "role_systems" {
+table "system_roles" {
   schema = schema.public
 
   column "id" {
@@ -288,12 +295,12 @@ table "role_systems" {
     columns = [column.id]
   }
 
-  index "idx_role_systems_deleted_at" {
+  index "idx_system_roles_deleted_at" {
     columns = [column.deleted_at]
   }
 }
 
-table "role_applieds" {
+table "job_roles" {
   schema = schema.public
 
   column "id" {
@@ -324,15 +331,62 @@ table "role_applieds" {
     columns = [column.id]
   }
 
-  index "idx_role_applieds_deleted_at" {
+  index "idx_job_roles_deleted_at" {
     columns = [column.deleted_at]
   }
 
-  index "idx_role_applieds_sector_id" {
+  index "idx_job_roles_sector_id" {
     columns = [column.sector_id]
   }
 
-  foreign_key "role_applieds_sector_fk" {
+  foreign_key "job_roles_sector_fk" {
+    columns     = [column.sector_id]
+    ref_columns = [table.sectors.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "job_titles" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "name" {
+    type = varchar(150)
+    null = false
+  }
+  column "sector_id" {
+    type = uuid
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_job_titles_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_job_titles_sector_id" {
+    columns = [column.sector_id]
+  }
+
+  foreign_key "job_titles_sector_fk" {
     columns     = [column.sector_id]
     ref_columns = [table.sectors.column.id]
     on_update   = NO_ACTION
@@ -378,6 +432,37 @@ table "recruitment_statuses" {
 
   index "idx_recruitment_statuses_deleted_at" {
     columns = [column.deleted_at]
+  }
+}
+
+table "user_has_job_roles" {
+  schema = schema.public
+
+  column "user_id" {
+    type = uuid
+    null = false
+  }
+  column "job_role_id" {
+    type = uuid
+    null = false
+  }
+
+  primary_key {
+    columns = [column.user_id, column.job_role_id]
+  }
+
+  foreign_key "user_has_job_roles_user_fk" {
+    columns     = [column.user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "user_has_job_roles_job_role_fk" {
+    columns     = [column.job_role_id]
+    ref_columns = [table.job_roles.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
   }
 }
 
@@ -459,6 +544,45 @@ table "kabupaten_kota" {
   foreign_key "kabupaten_kota_provinsi_id_fk" {
     columns     = [column.provinsi_id]
     ref_columns = [table.provinsi.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "bookmarks" {
+  schema = schema.public
+
+  column "admin_id" {
+    type = uuid
+    null = false
+  }
+  column "candidate_id" {
+    type = uuid
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+
+  primary_key {
+    columns = [column.admin_id, column.candidate_id]
+  }
+
+  foreign_key "bookmarks_admin_fk" {
+    columns     = [column.admin_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "bookmarks_candidate_fk" {
+    columns     = [column.candidate_id]
+    ref_columns = [table.users.column.id]
     on_update   = NO_ACTION
     on_delete   = CASCADE
   }

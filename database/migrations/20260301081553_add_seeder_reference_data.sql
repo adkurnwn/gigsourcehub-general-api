@@ -11,13 +11,13 @@ INSERT INTO sectors (id, name, is_active, created_at, updated_at) VALUES
 ('9d07bd24-2c67-4bd9-948f-36cd66ea8d65', 'Human Resources', true, NOW(), NOW()),
 ('ff744111-e2e7-49bc-9528-ebbbfa43d607', 'Information Technology', true, NOW(), NOW());
 
--- Seeder for ROLE_SYSTEMS
-INSERT INTO role_systems (id, name, created_at, updated_at) VALUES
+-- Seeder for SYSTEM_ROLES
+INSERT INTO system_roles (id, name, created_at, updated_at) VALUES
 ('593fc0c5-e51c-4b55-aab7-aeaf8e8ece2a', 'Candidate', NOW(), NOW()),
 ('d2c7302f-b4de-4d43-9dd1-b0e6e22fb2ea', 'Admin', NOW(), NOW()),
 ('eac7b8e1-e123-4567-bd04-ae6305aabfa4', 'Superadmin', NOW(), NOW()),
 ('5a72fd34-4b95-46c9-ae5f-b51f8a842880', 'Employee', NOW(), NOW());
 
--- Seeder for ROLE_APPLIEDS (Linking to SECTOR 'Information Technology')
-INSERT INTO role_applieds (id, name, sector_id, created_at, updated_at) VALUES
+-- Seeder for JOB_ROLES (Linking to SECTOR 'Information Technology')
+INSERT INTO job_roles (id, name, sector_id, created_at, updated_at) VALUES
 ('d1a93ca3-c283-4a87-a8ac-fbee426685f0', 'Frontend Developer', 'ff744111-e2e7-49bc-9528-ebbbfa43d607', NOW(), NOW());

@@ -214,8 +214,8 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID string, editedData map
 			user.CandidateLevel = &val
 		}
 
-		if val, ok := editedData["role_applied_id"].(string); ok {
-			user.RoleAppliedId = &val
+		if val, ok := editedData["assigned_role_id"].(string); ok {
+			user.AssignedRoleId = &val
 		}
 
 		if val, ok := editedData["portofolio_link"].(string); ok {

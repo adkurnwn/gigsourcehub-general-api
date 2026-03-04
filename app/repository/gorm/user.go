@@ -15,7 +15,7 @@ func (r *gormRepo) FetchUser(ctx context.Context, options gorm_model.UserFilter)
 	q := r.db.Model(&gorm_model.User{})
 	options.Query(q)
 
-	q = q.Preload("RoleSystem")
+	q = q.Preload("SystemRole")
 
 	cur, err = q.WithContext(ctx).Rows()
 	if err != nil {
@@ -31,7 +31,7 @@ func (r *gormRepo) FetchOneUser(ctx context.Context, options gorm_model.UserFilt
 	q := r.db.Model(&gorm_model.User{})
 	options.Query(q)
 
-	q = q.Preload("RoleSystem")
+	q = q.Preload("SystemRole")
 
 	// set row
 	row = new(gorm_model.User)
@@ -101,7 +101,7 @@ func (r *gormRepo) GetKabupatenName(ctx context.Context, id string) (name string
 func (r *gormRepo) GetRoleNameByUserID(ctx context.Context, userID string) (roleName string, err error) {
 	err = r.db.WithContext(ctx).
 		Table("users u").
-		Joins("JOIN role_systems rs ON u.role_system_id = rs.id").
+		Joins("JOIN system_roles rs ON u.system_role_id = rs.id").
 		Where("u.id = ?", userID).
 		Select("rs.name").
 		Row().

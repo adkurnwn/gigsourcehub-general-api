@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type RoleSystem struct {
+type SystemRole struct {
 	ID        string         `gorm:"column:id;primarykey;type:uuid;default:uuid_generate_v4()"`
 	Name      string         `gorm:"column:name;type:varchar(150);not null"`
 	CreatedAt time.Time      `gorm:"column:created_at;autoCreateTime"`
@@ -14,14 +14,14 @@ type RoleSystem struct {
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;index"`
 }
 
-var RoleSystemAllowedSort = []string{"name", "created_at", "updated_at"}
+var SystemRoleAllowedSort = []string{"name", "created_at", "updated_at"}
 
-type RoleSystemFilter struct {
+type SystemRoleFilter struct {
 	DefaultFilter
 	Name *string
 }
 
-func (f *RoleSystemFilter) Query(q *gorm.DB) {
+func (f *SystemRoleFilter) Query(q *gorm.DB) {
 	// default query
 	f.DefaultFilter.DefaultQuery(q)
 
@@ -30,15 +30,15 @@ func (f *RoleSystemFilter) Query(q *gorm.DB) {
 	}
 }
 
-type RoleSystemResp struct {
+type SystemRoleResp struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (row *RoleSystem) ToRoleSystemResp() RoleSystemResp {
-	return RoleSystemResp{
+func (row *SystemRole) ToSystemRoleResp() SystemRoleResp {
+	return SystemRoleResp{
 		ID:        row.ID,
 		Name:      row.Name,
 		CreatedAt: row.CreatedAt,
