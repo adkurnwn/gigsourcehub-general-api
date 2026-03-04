@@ -19,6 +19,8 @@ type MemberAppUsecase interface {
 	CreateBySuperadmin(ctx context.Context, req request_model.CreateUserBySuperadminRequest) response.Base
 	EditUserBySuperadmin(ctx context.Context, id string, req request_model.EditUserBySuperadminRequest) response.Base
 	BlockUserBySuperadmin(ctx context.Context, id string) response.Base
+	DisableUserBySuperadmin(ctx context.Context, id string) response.Base
+	ActivateUserBySuperadmin(ctx context.Context, id string) response.Base
 }
 
 type RoleAppliedAppUsecase interface {

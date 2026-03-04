@@ -1137,6 +1137,49 @@ paths:
       summary: Edit User By Superadmin
       tags:
       - Users
+  /users/{id}/activate:
+    patch:
+      consumes:
+      - application/json
+      description: Instantly activate a user by setting AccountStatus to "Inactive"
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Activate User By Superadmin
+      tags:
+      - Users
   /users/{id}/block:
     patch:
       consumes:
@@ -1178,6 +1221,49 @@ paths:
       security:
       - BearerAuth: []
       summary: Block User By Superadmin
+      tags:
+      - Users
+  /users/{id}/disable:
+    patch:
+      consumes:
+      - application/json
+      description: Instantly disable a user by setting AccountStatus to "Inactive"
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Disable User By Superadmin
       tags:
       - Users
   /users/candidates:

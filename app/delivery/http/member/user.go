@@ -12,23 +12,29 @@ import (
 func (h *routeHandler) handleUserRoute(path string) {
 	userGroup := h.Route.Group(path)
 
-	// Candidates list: Only for Admin & Superadmin
+	// candidates list: Admin & Superadmin
 	userGroup.GET("/candidates", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin"), h.FetchCandidates)
 
-	// Standard users list: Only Superadmin
+	// users list: Superadmin
 	userGroup.GET("", h.Middleware.Auth(), h.Middleware.AuthSuperadmin(), h.FetchAllUsers)
 
-	// User detail: For Admin & Superadmin
+	// user detail: Admin & Superadmin
 	userGroup.GET("/:id", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin"), h.FetchUserDetail)
 
-	// Create user by superadmin: Only Superadmin
+	// create user by superadmin
 	userGroup.POST("", h.Middleware.Auth(), h.Middleware.AuthSuperadmin(), h.CreateUserBySuperadmin)
 
-	// Edit user by superadmin: Only Superadmin
+	// edit user by id user: Superadmin
 	userGroup.PUT("/:id", h.Middleware.Auth(), h.Middleware.AuthSuperadmin(), h.EditUserBySuperadmin)
 
-	// Block user by superadmin: Only Superadmin
+	// block user by id user: Superadmin
 	userGroup.PATCH("/:id/block", h.Middleware.Auth(), h.Middleware.AuthSuperadmin(), h.BlockUserBySuperadmin)
+
+	// disable user by id user: Superadmin
+	userGroup.PATCH("/:id/disable", h.Middleware.Auth(), h.Middleware.AuthSuperadmin(), h.DisableUserBySuperadmin)
+
+	// activate user by superadmin
+	userGroup.PATCH("/:id/activate", h.Middleware.Auth(), h.Middleware.AuthSuperadmin(), h.ActivateUserBySuperadmin)
 }
 
 // FetchCandidates
@@ -185,5 +191,59 @@ func (h *routeHandler) BlockUserBySuperadmin(c *gin.Context) {
 	}
 
 	res := h.Usecase.BlockUserBySuperadmin(c.Request.Context(), id)
+	c.JSON(res.Status, res)
+}
+
+// DisableUserBySuperadmin
+// @Summary Disable User By Superadmin
+// @Description Instantly disable a user by setting AccountStatus to "Inactive"
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /users/{id}/disable [patch]
+// @Security BearerAuth
+func (h *routeHandler) DisableUserBySuperadmin(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		res := response.Error(http.StatusBadRequest, "Invalid ID parameter")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	res := h.Usecase.DisableUserBySuperadmin(c.Request.Context(), id)
+	c.JSON(res.Status, res)
+}
+
+// ActivateUserBySuperadmin
+// @Summary Activate User By Superadmin
+// @Description Instantly activate a user by setting AccountStatus to "Inactive"
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /users/{id}/activate [patch]
+// @Security BearerAuth
+func (h *routeHandler) ActivateUserBySuperadmin(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		res := response.Error(http.StatusBadRequest, "Invalid ID parameter")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	res := h.Usecase.ActivateUserBySuperadmin(c.Request.Context(), id)
 	c.JSON(res.Status, res)
 }

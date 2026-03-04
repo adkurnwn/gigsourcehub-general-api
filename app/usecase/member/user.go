@@ -233,3 +233,51 @@ func (u *appUsecase) BlockUserBySuperadmin(ctx context.Context, id string) respo
 
 	return response.Success(user.ToUserResp())
 }
+
+func (u *appUsecase) DisableUserBySuperadmin(ctx context.Context, id string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+
+	inactiveStatus := "Inactive"
+	user.AccountStatus = &inactiveStatus
+
+	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+
+	return response.Success(user.ToUserResp())
+}
+
+func (u *appUsecase) ActivateUserBySuperadmin(ctx context.Context, id string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+
+	activeStatus := "Active"
+	user.AccountStatus = &activeStatus
+
+	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+
+	return response.Success(user.ToUserResp())
+}
