@@ -548,3 +548,42 @@ table "kabupaten_kota" {
     on_delete   = CASCADE
   }
 }
+
+table "bookmarks" {
+  schema = schema.public
+
+  column "admin_id" {
+    type = uuid
+    null = false
+  }
+  column "candidate_id" {
+    type = uuid
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+
+  primary_key {
+    columns = [column.admin_id, column.candidate_id]
+  }
+
+  foreign_key "bookmarks_admin_fk" {
+    columns     = [column.admin_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "bookmarks_candidate_fk" {
+    columns     = [column.candidate_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
