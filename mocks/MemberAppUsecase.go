@@ -26,6 +26,148 @@ func (_m *MemberAppUsecase) EXPECT() *MemberAppUsecase_Expecter {
 	return &MemberAppUsecase_Expecter{mock: &_m.Mock}
 }
 
+// BlockUserBySuperadmin provides a mock function with given fields: ctx, id
+func (_m *MemberAppUsecase) BlockUserBySuperadmin(ctx context.Context, id string) response.Base {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BlockUserBySuperadmin")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string) response.Base); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_BlockUserBySuperadmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BlockUserBySuperadmin'
+type MemberAppUsecase_BlockUserBySuperadmin_Call struct {
+	*mock.Call
+}
+
+// BlockUserBySuperadmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *MemberAppUsecase_Expecter) BlockUserBySuperadmin(ctx interface{}, id interface{}) *MemberAppUsecase_BlockUserBySuperadmin_Call {
+	return &MemberAppUsecase_BlockUserBySuperadmin_Call{Call: _e.mock.On("BlockUserBySuperadmin", ctx, id)}
+}
+
+func (_c *MemberAppUsecase_BlockUserBySuperadmin_Call) Run(run func(ctx context.Context, id string)) *MemberAppUsecase_BlockUserBySuperadmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_BlockUserBySuperadmin_Call) Return(_a0 response.Base) *MemberAppUsecase_BlockUserBySuperadmin_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_BlockUserBySuperadmin_Call) RunAndReturn(run func(context.Context, string) response.Base) *MemberAppUsecase_BlockUserBySuperadmin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateBySuperadmin provides a mock function with given fields: ctx, req
+func (_m *MemberAppUsecase) CreateBySuperadmin(ctx context.Context, req request_model.CreateUserBySuperadminRequest) response.Base {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateBySuperadmin")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, request_model.CreateUserBySuperadminRequest) response.Base); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_CreateBySuperadmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateBySuperadmin'
+type MemberAppUsecase_CreateBySuperadmin_Call struct {
+	*mock.Call
+}
+
+// CreateBySuperadmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req request_model.CreateUserBySuperadminRequest
+func (_e *MemberAppUsecase_Expecter) CreateBySuperadmin(ctx interface{}, req interface{}) *MemberAppUsecase_CreateBySuperadmin_Call {
+	return &MemberAppUsecase_CreateBySuperadmin_Call{Call: _e.mock.On("CreateBySuperadmin", ctx, req)}
+}
+
+func (_c *MemberAppUsecase_CreateBySuperadmin_Call) Run(run func(ctx context.Context, req request_model.CreateUserBySuperadminRequest)) *MemberAppUsecase_CreateBySuperadmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(request_model.CreateUserBySuperadminRequest))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_CreateBySuperadmin_Call) Return(_a0 response.Base) *MemberAppUsecase_CreateBySuperadmin_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_CreateBySuperadmin_Call) RunAndReturn(run func(context.Context, request_model.CreateUserBySuperadminRequest) response.Base) *MemberAppUsecase_CreateBySuperadmin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// EditUserBySuperadmin provides a mock function with given fields: ctx, id, req
+func (_m *MemberAppUsecase) EditUserBySuperadmin(ctx context.Context, id string, req request_model.EditUserBySuperadminRequest) response.Base {
+	ret := _m.Called(ctx, id, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EditUserBySuperadmin")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string, request_model.EditUserBySuperadminRequest) response.Base); ok {
+		r0 = rf(ctx, id, req)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_EditUserBySuperadmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EditUserBySuperadmin'
+type MemberAppUsecase_EditUserBySuperadmin_Call struct {
+	*mock.Call
+}
+
+// EditUserBySuperadmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+//   - req request_model.EditUserBySuperadminRequest
+func (_e *MemberAppUsecase_Expecter) EditUserBySuperadmin(ctx interface{}, id interface{}, req interface{}) *MemberAppUsecase_EditUserBySuperadmin_Call {
+	return &MemberAppUsecase_EditUserBySuperadmin_Call{Call: _e.mock.On("EditUserBySuperadmin", ctx, id, req)}
+}
+
+func (_c *MemberAppUsecase_EditUserBySuperadmin_Call) Run(run func(ctx context.Context, id string, req request_model.EditUserBySuperadminRequest)) *MemberAppUsecase_EditUserBySuperadmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(request_model.EditUserBySuperadminRequest))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_EditUserBySuperadmin_Call) Return(_a0 response.Base) *MemberAppUsecase_EditUserBySuperadmin_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_EditUserBySuperadmin_Call) RunAndReturn(run func(context.Context, string, request_model.EditUserBySuperadminRequest) response.Base) *MemberAppUsecase_EditUserBySuperadmin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FetchUserDetail provides a mock function with given fields: ctx, id
 func (_m *MemberAppUsecase) FetchUserDetail(ctx context.Context, id string) response.Base {
 	ret := _m.Called(ctx, id)

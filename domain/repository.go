@@ -18,6 +18,7 @@ type GormRepo interface {
 	FetchOneUser(ctx context.Context, options gorm_model.UserFilter) (*gorm_model.User, error)
 	CountUser(ctx context.Context, options gorm_model.UserFilter) int64
 	CreateUser(ctx context.Context, model *gorm_model.User) (err error)
+	CreateUserBySuperadmin(ctx context.Context, model *gorm_model.User) (err error)
 	UpdateUser(ctx context.Context, model *gorm_model.User) (err error)
 	GetRoleNameByUserID(ctx context.Context, userID string) (string, error)
 
@@ -38,6 +39,11 @@ type GormRepo interface {
 	CreateSector(ctx context.Context, model *gorm_model.Sector) error
 	UpdateSector(ctx context.Context, model *gorm_model.Sector) error
 	DeleteSector(ctx context.Context, id string) error
+
+	FetchRecruitmentStatus(ctx context.Context, options gorm_model.RecruitmentStatusFilter) (*sql.Rows, error)
+	CreateRecruitmentStatus(ctx context.Context, model *gorm_model.RecruitmentStatus) error
+	UpdateRecruitmentStatus(ctx context.Context, model *gorm_model.RecruitmentStatus) error
+	DeleteRecruitmentStatus(ctx context.Context, id string) error
 
 	FetchKabupatenKota(ctx context.Context, options gorm_model.KabupatenKotaFilter) (*sql.Rows, error)
 	FetchProvinsi(ctx context.Context, options gorm_model.ProvinsiFilter) (*sql.Rows, error)

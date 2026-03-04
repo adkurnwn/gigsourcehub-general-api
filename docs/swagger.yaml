@@ -63,6 +63,13 @@ definitions:
     required:
     - edited_data
     type: object
+  request_model.CreateRecruitmentStatusRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
   request_model.CreateRoleAppliedRequest:
     properties:
       name:
@@ -79,6 +86,30 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  request_model.CreateUserBySuperadminRequest:
+    properties:
+      account_status:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      role_applied_id:
+        type: string
+      role_system_id:
+        type: string
+    type: object
+  request_model.EditUserBySuperadminRequest:
+    properties:
+      account_status:
+        type: string
+      name:
+        type: string
+      role_applied_id:
+        type: string
     type: object
   request_model.LoginRequest:
     properties:
@@ -102,6 +133,13 @@ definitions:
         type: string
     required:
     - query
+    type: object
+  request_model.UpdateRecruitmentStatusRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
     type: object
   request_model.UpdateRoleAppliedRequest:
     properties:
@@ -432,6 +470,169 @@ paths:
       summary: Get All Provinsi
       tags:
       - Domisili
+  /recruitment-statuses:
+    get:
+      consumes:
+      - application/json
+      description: Get All Recruitment Status
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      - description: Recruitment Status ID
+        in: query
+        name: recruitment_status_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Recruitment Status
+      tags:
+      - Recruitment Status
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateRecruitmentStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Recruitment Status
+      tags:
+      - Recruitment Status
+  /recruitment-statuses/{id}:
+    delete:
+      parameters:
+      - description: Recruitment Status ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Recruitment Status
+      tags:
+      - Recruitment Status
+    get:
+      consumes:
+      - application/json
+      description: Get Recruitment Status By ID
+      parameters:
+      - description: Recruitment Status ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Recruitment Status By ID
+      tags:
+      - Recruitment Status
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Recruitment Status ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateRecruitmentStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Recruitment Status
+      tags:
+      - Recruitment Status
   /roles:
     get:
       consumes:
@@ -810,6 +1011,41 @@ paths:
       summary: Fetch All Users
       tags:
       - Users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user by superadmin
+      parameters:
+      - description: User object
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateUserBySuperadminRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create User By Superadmin
+      tags:
+      - Users
   /users/{id}:
     get:
       consumes:
@@ -851,6 +1087,183 @@ paths:
       security:
       - BearerAuth: []
       summary: Fetch User Detail
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Edit an existing user (Name, RoleAppliedId, AccountStatus) by superadmin
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User edit object
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.EditUserBySuperadminRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Edit User By Superadmin
+      tags:
+      - Users
+  /users/{id}/activate:
+    patch:
+      consumes:
+      - application/json
+      description: Instantly activate a user by setting AccountStatus to "Inactive"
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Activate User By Superadmin
+      tags:
+      - Users
+  /users/{id}/block:
+    patch:
+      consumes:
+      - application/json
+      description: Instantly block a user by setting AccountStatus to "Blocked"
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Block User By Superadmin
+      tags:
+      - Users
+  /users/{id}/disable:
+    patch:
+      consumes:
+      - application/json
+      description: Instantly disable a user by setting AccountStatus to "Inactive"
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Disable User By Superadmin
       tags:
       - Users
   /users/candidates:

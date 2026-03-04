@@ -8,6 +8,7 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	jwt_helper "github.com/adkurnwn/gigsourcehub-general-api/helpers/jsonwebtoken"
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
@@ -89,6 +90,8 @@ func (u *appUsecase) Register(ctx context.Context, payload request_model.Registe
 
 	if payload.Email == "" {
 		errValidation["email"] = "email field is required"
+	} else if !helpers.IsValidEmail(payload.Email) {
+		errValidation["email"] = "invalid email format"
 	}
 
 	if payload.Password == "" {
@@ -119,7 +122,7 @@ func (u *appUsecase) Register(ctx context.Context, payload request_model.Registe
 		roleSystemID = &candidateRole.ID
 	}
 
-	activeStatus := "active"
+	activeStatus := "Active"
 
 	newUser := gorm_model.User{
 		ID:            uuid.New().String(),

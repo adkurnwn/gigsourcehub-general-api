@@ -22,6 +22,7 @@ type RecruitmentStatusFilter struct {
 	DefaultFilter
 	Name     *string
 	IsActive *bool
+	RecruitmentStatusID *string
 }
 
 func (f *RecruitmentStatusFilter) Query(q *gorm.DB) {

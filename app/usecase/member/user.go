@@ -8,8 +8,12 @@ import (
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
+	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor string, roleName *string) response.Base {
@@ -127,4 +131,172 @@ func (u *appUsecase) GetProfile(ctx context.Context, claim domain.JWTClaimUser) 
 	}
 
 	return response.Success(user.ToUserResp())
+}
+
+func (u *appUsecase) CreateBySuperadmin(ctx context.Context, req request_model.CreateUserBySuperadminRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	if req.Email == "" || !helpers.IsValidEmail(req.Email) {
+		return response.Error(http.StatusBadRequest, "invalid email format")
+	}
+
+	// check the db
+	existingUser, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		Email: &req.Email,
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if existingUser != nil {
+		return response.Error(http.StatusBadRequest, "email already taken")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to hash password")
+	}
+
+	user := gorm_model.User{
+		ID:            uuid.New().String(),
+		Email:         req.Email,
+		Name:          req.Name,
+		Password:      string(hashedPassword),
+		RoleAppliedId: req.RoleAppliedId,
+		RoleSystemId:  req.RoleSystemId,
+	}
+
+	if req.AccountStatus != nil {
+		user.AccountStatus = req.AccountStatus
+	}
+
+	if err := u.gormDbRepo.CreateUser(ctx, &user); err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+
+	return response.Success(user.ToUserResp())
+}
+
+func (u *appUsecase) EditUserBySuperadmin(ctx context.Context, id string, req request_model.EditUserBySuperadminRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+
+	if req.Name != nil && *req.Name != "" {
+		user.Name = *req.Name
+	}
+
+	if req.RoleAppliedId != nil {
+		user.RoleAppliedId = req.RoleAppliedId
+	}
+
+	if req.AccountStatus != nil {
+		user.AccountStatus = req.AccountStatus
+	}
+
+	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+
+	return response.Success(user.ToUserResp())
+}
+
+func (u *appUsecase) BlockUserBySuperadmin(ctx context.Context, id string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+	if *user.AccountStatus == "Blocked" {
+		return response.Error(http.StatusBadRequest, "User already blocked")
+	}
+
+	if user.RoleSystem.Name == "Admin" || user.RoleSystem.Name == "Employee" || user.RoleSystem.Name == "Superadmin" {
+		return response.Error(http.StatusBadRequest, "Admin, Employee, and Superadmin users cannot be blocked")
+	}
+
+	blockedStatus := "Blocked"
+	user.AccountStatus = &blockedStatus
+
+	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+
+	return response.SuccessAction("User", user.Email, "blocked")
+}
+
+func (u *appUsecase) DisableUserBySuperadmin(ctx context.Context, id string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+	if *user.AccountStatus == "Inactive" {
+		return response.Error(http.StatusBadRequest, "User already inactive")
+	}
+
+	if user.RoleSystem.Name == "Candidate" {
+		return response.Error(http.StatusBadRequest, "Candidate user cannot be disabled")
+	}
+
+	inactiveStatus := "Inactive"
+	user.AccountStatus = &inactiveStatus
+
+	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+
+	return response.SuccessAction("User", user.Email, "disabled")
+}
+
+func (u *appUsecase) ActivateUserBySuperadmin(ctx context.Context, id string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+
+	oldStatus := user.AccountStatus
+	activeStatus := "Active"
+	user.AccountStatus = &activeStatus
+
+	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+
+	if *oldStatus == "Blocked" {
+		return response.SuccessAction("User", user.Email, "ublocked")
+	}
+
+	return response.SuccessAction("User", user.Email, "activated")
 }

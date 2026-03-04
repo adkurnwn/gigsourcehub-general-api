@@ -1,6 +1,9 @@
 package response
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 type Base struct {
 	Status     int               `json:"status"`
@@ -15,6 +18,13 @@ type List struct {
 	Page   int64         `json:"page"`
 	Total  int64         `json:"total"`
 	Cursor *string       `json:"cursor,omitempty"`
+}
+
+func SuccessAction(model, id, action string) Base {
+	return Base{
+		Status:  http.StatusOK,
+		Message: fmt.Sprintf("%s %s %s successfully", model, id, action),
+	}
 }
 
 // constructors / helpers

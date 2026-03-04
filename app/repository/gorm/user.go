@@ -111,3 +111,13 @@ func (r *gormRepo) GetRoleNameByUserID(ctx context.Context, userID string) (role
 	}
 	return roleName, err
 }
+
+func (r *gormRepo) CreateUserBySuperadmin(ctx context.Context, row *gorm_model.User) (err error) {
+	err = r.db.WithContext(ctx).Create(row).Error
+	if err != nil {
+		logrus.Error("CreateUserBySuperadmin Exec:", err)
+		return
+	}
+
+	return
+}

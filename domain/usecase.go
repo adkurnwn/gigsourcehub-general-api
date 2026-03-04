@@ -16,6 +16,11 @@ type MemberAppUsecase interface {
 	GetProfile(ctx context.Context, claim JWTClaimUser) response.Base
 	FetchUsers(ctx context.Context, page, limit int64, cursor string, roleName *string) response.Base
 	FetchUserDetail(ctx context.Context, id string) response.Base
+	CreateBySuperadmin(ctx context.Context, req request_model.CreateUserBySuperadminRequest) response.Base
+	EditUserBySuperadmin(ctx context.Context, id string, req request_model.EditUserBySuperadminRequest) response.Base
+	BlockUserBySuperadmin(ctx context.Context, id string) response.Base
+	DisableUserBySuperadmin(ctx context.Context, id string) response.Base
+	ActivateUserBySuperadmin(ctx context.Context, id string) response.Base
 }
 
 type RoleAppliedAppUsecase interface {
@@ -31,6 +36,14 @@ type SectorAppUsecase interface {
 	FetchData(ctx context.Context, id string) response.Base
 	Create(ctx context.Context, req request_model.CreateSectorRequest) response.Base
 	Update(ctx context.Context, id string, req request_model.UpdateSectorRequest) response.Base
+	Delete(ctx context.Context, id string) response.Base
+}
+
+type RecruitmentStatusAppUsecase interface {
+	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.RecruitmentStatusFilter) response.Base
+	FetchData(ctx context.Context, id string) response.Base
+	Create(ctx context.Context, req request_model.CreateRecruitmentStatusRequest) response.Base
+	Update(ctx context.Context, id string, req request_model.UpdateRecruitmentStatusRequest) response.Base
 	Delete(ctx context.Context, id string) response.Base
 }
 

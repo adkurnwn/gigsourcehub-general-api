@@ -1,6 +1,11 @@
 schema "public" {
 }
 
+enum "user_account_status" {
+  schema = schema.public
+  values = ["Active", "Inactive", "Blocked"]
+}
+
 table "users" {
   schema = schema.public
 
@@ -81,7 +86,7 @@ table "users" {
     null = true
   }
   column "account_status" {
-    type = varchar(10)
+    type = enum.user_account_status
     null = true
   }
   column "jabatan" {
@@ -145,6 +150,11 @@ table "users" {
   
   index "idx_users_role_applied_id" {
     columns = [column.role_applied_id]
+  }
+
+  index "idx_users_email" {
+    columns = [column.email]
+    unique  = true
   }
 }
 

@@ -9,7 +9,7 @@ import (
 type User struct {
 	ID                  string         `gorm:"column:id;primarykey;type:uuid;default:uuid_generate_v4()"`
 	Name                string         `gorm:"column:name;type:varchar(255);not null"`
-	Email               string         `gorm:"column:email;type:varchar(255);not null"`
+	Email               string         `gorm:"column:email;type:varchar(255);unique;not null"`
 	Password            string         `gorm:"column:password;type:varchar(255);not null"`
 	Birthdate           *time.Time     `gorm:"column:birthdate;type:date"`
 	SchoolUniversity    *string        `gorm:"column:school_university;type:varchar(255)"`
@@ -27,7 +27,7 @@ type User struct {
 	RoleSystemId        *string        `gorm:"column:role_system_id;type:uuid"`
 	RoleSystem          *RoleSystem    `gorm:"foreignKey:RoleSystemId"`
 	RoleAppliedId       *string        `gorm:"column:role_applied_id;type:uuid"`
-	AccountStatus       *string        `gorm:"column:account_status;type:varchar(10)"`
+	AccountStatus       *string        `gorm:"column:account_status;type:user_account_status"`
 	Jabatan             *string        `gorm:"column:jabatan;type:varchar(100)"`
 	CreatedAt           time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt           time.Time      `gorm:"column:updated_at;autoUpdateTime"`
