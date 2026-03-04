@@ -158,12 +158,12 @@ func (u *appUsecase) CreateBySuperadmin(ctx context.Context, req request_model.C
 	}
 
 	user := gorm_model.User{
-		ID:            uuid.New().String(),
-		Email:         req.Email,
-		Name:          req.Name,
-		Password:      string(hashedPassword),
-		RoleAppliedId: req.RoleAppliedId,
-		RoleSystemId:  req.RoleSystemId,
+		ID:             uuid.New().String(),
+		Email:          req.Email,
+		Name:           req.Name,
+		Password:       string(hashedPassword),
+		AssignedRoleId: req.AssignedRoleId,
+		RoleSystemId:   req.RoleSystemId,
 	}
 
 	if req.AccountStatus != nil {
@@ -195,8 +195,8 @@ func (u *appUsecase) EditUserBySuperadmin(ctx context.Context, id string, req re
 		user.Name = *req.Name
 	}
 
-	if req.RoleAppliedId != nil {
-		user.RoleAppliedId = req.RoleAppliedId
+	if req.AssignedRoleId != nil {
+		user.AssignedRoleId = req.AssignedRoleId
 	}
 
 	if req.AccountStatus != nil {

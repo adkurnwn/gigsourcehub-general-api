@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type RoleApplied struct {
+type JobRole struct {
 	ID        string         `gorm:"column:id;primarykey;type:uuid;default:uuid_generate_v4()"`
 	SectorID  string         `gorm:"column:sector_id;type:uuid;not null"`
 	Name      string         `gorm:"column:name;type:varchar(150);not null"`
@@ -15,15 +15,15 @@ type RoleApplied struct {
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;index"`
 }
 
-var RoleAppliedAllowedSort = []string{"name", "created_at", "updated_at"}
+var JobRoleAllowedSort = []string{"name", "created_at", "updated_at"}
 
-type RoleAppliedFilter struct {
+type JobRoleFilter struct {
 	DefaultFilter
 	SectorID *string
 	Name     *string
 }
 
-func (f *RoleAppliedFilter) Query(q *gorm.DB) {
+func (f *JobRoleFilter) Query(q *gorm.DB) {
 	f.DefaultFilter.DefaultQuery(q)
 
 	if f.Name != nil {
@@ -34,7 +34,7 @@ func (f *RoleAppliedFilter) Query(q *gorm.DB) {
 	}
 }
 
-type RoleAppliedResp struct {
+type JobRoleResp struct {
 	ID        string    `json:"id"`
 	SectorID  string    `json:"sector_id"`
 	Name      string    `json:"name"`
@@ -42,8 +42,8 @@ type RoleAppliedResp struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (row *RoleApplied) ToRoleAppliedResp() RoleAppliedResp {
-	return RoleAppliedResp{
+func (row *JobRole) ToJobRoleResp() JobRoleResp {
+	return JobRoleResp{
 		ID:        row.ID,
 		SectorID:  row.SectorID,
 		Name:      row.Name,

@@ -3,12 +3,12 @@ package main
 import (
 	"github.com/adkurnwn/gigsourcehub-general-api/app/consumer"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
+	http_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_role"
 	http_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/kabupaten_kota"
 	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
 	http_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/provinsi"
 	http_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/recruitment_status"
-	http_role_applied "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/role_applied"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
 	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
 	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
@@ -16,11 +16,11 @@ import (
 	rabbitmqrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/rabbitmq"
 	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
+	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
 	usecase_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/kabupaten_kota"
 	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
 	usecase_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/provinsi"
 	usecase_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/recruitment_status"
-	usecase_role_applied "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/role_applied"
 	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
 	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
@@ -151,8 +151,8 @@ func main() {
 		StorageRepo: storageRepo,
 	}, timeoutContext)
 
-	// init role applied usecase
-	ucRoleApplied := usecase_role_applied.NewAppUsecase(usecase_role_applied.RepoInjection{
+	// init job role usecase
+	ucJobRole := usecase_job_role.NewAppUsecase(usecase_job_role.RepoInjection{
 		GormDbRepo: repo,
 	}, timeoutContext)
 
@@ -233,7 +233,7 @@ func main() {
 	apiGroup := ginEngine.Group("/api")
 	http_member.NewRouteHandler(apiGroup, mdl, ucMember)
 	http_cv.NewCVHandler(apiGroup, mdl, ucCV)
-	http_role_applied.NewRoleAppliedHandler(apiGroup, mdl, ucRoleApplied)
+	http_job_role.NewJobRoleHandler(apiGroup, mdl, ucJobRole)
 	http_sector.NewSectorHandler(apiGroup, mdl, ucSector)
 	http_kabupaten_kota.NewKabupatenKotaHandler(apiGroup, ucKabupatenKota)
 	http_provinsi.NewProvinsiHandler(apiGroup, ucProvinsi)

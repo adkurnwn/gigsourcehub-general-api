@@ -23,11 +23,11 @@ type MemberAppUsecase interface {
 	ActivateUserBySuperadmin(ctx context.Context, id string) response.Base
 }
 
-type RoleAppliedAppUsecase interface {
-	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.RoleAppliedFilter) response.Base
+type JobRoleAppUsecase interface {
+	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.JobRoleFilter) response.Base
 	FetchData(ctx context.Context, id string) response.Base
-	Create(ctx context.Context, req request_model.CreateRoleAppliedRequest) response.Base
-	Update(ctx context.Context, id string, req request_model.UpdateRoleAppliedRequest) response.Base
+	Create(ctx context.Context, req request_model.CreateJobRoleRequest) response.Base
+	Update(ctx context.Context, id string, req request_model.UpdateJobRoleRequest) response.Base
 	Delete(ctx context.Context, id string) response.Base
 }
 

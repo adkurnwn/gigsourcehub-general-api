@@ -134,7 +134,7 @@ func (h *routeHandler) CreateUserBySuperadmin(c *gin.Context) {
 
 // EditUserBySuperadmin
 // @Summary Edit User By Superadmin
-// @Description Edit an existing user (Name, RoleAppliedId, AccountStatus) by superadmin
+// @Description Edit an existing user (Name, AssignedRoleId, AccountStatus) by superadmin
 // @Tags Users
 // @Accept json
 // @Produce json

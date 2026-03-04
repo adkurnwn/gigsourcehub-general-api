@@ -742,7 +742,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get All Role Applied",
+                "description": "Get All Job Roles",
                 "consumes": [
                     "application/json"
                 ],
@@ -750,9 +750,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role Applied"
+                    "Job Role"
                 ],
-                "summary": "Get All Role Applied",
+                "summary": "Get All Job Roles",
                 "parameters": [
                     {
                         "type": "string",
@@ -795,9 +795,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role Applied"
+                    "Job Role"
                 ],
-                "summary": "Create Role Applied",
+                "summary": "Create Job Role",
                 "parameters": [
                     {
                         "description": "Create Request",
@@ -805,7 +805,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request_model.CreateRoleAppliedRequest"
+                            "$ref": "#/definitions/request_model.CreateJobRoleRequest"
                         }
                     }
                 ],
@@ -838,7 +838,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get Role Applied By ID",
+                "description": "Get Job Role By ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -846,9 +846,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role Applied"
+                    "Job Role"
                 ],
-                "summary": "Get Role Applied By ID",
+                "summary": "Get Job Role By ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -892,9 +892,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role Applied"
+                    "Job Role"
                 ],
-                "summary": "Update Role Applied",
+                "summary": "Update Job Role",
                 "parameters": [
                     {
                         "type": "string",
@@ -909,7 +909,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request_model.UpdateRoleAppliedRequest"
+                            "$ref": "#/definitions/request_model.UpdateJobRoleRequest"
                         }
                     }
                 ],
@@ -950,9 +950,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role Applied"
+                    "Job Role"
                 ],
-                "summary": "Delete Role Applied",
+                "summary": "Delete Job Role",
                 "parameters": [
                     {
                         "type": "string",
@@ -1523,7 +1523,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Edit an existing user (Name, RoleAppliedId, AccountStatus) by superadmin",
+                "description": "Edit an existing user (Name, AssignedRoleId, AccountStatus) by superadmin",
                 "consumes": [
                     "application/json"
                 ],
@@ -1821,6 +1821,9 @@ const docTemplate = `{
                 "account_status": {
                     "type": "string"
                 },
+                "assigned_role_id": {
+                    "type": "string"
+                },
                 "birthdate": {
                     "type": "string"
                 },
@@ -1860,9 +1863,6 @@ const docTemplate = `{
                 "recruitment_status_id": {
                     "type": "string"
                 },
-                "role_applied_id": {
-                    "type": "string"
-                },
                 "role_system_name": {
                     "type": "string"
                 },
@@ -1892,18 +1892,7 @@ const docTemplate = `{
                 }
             }
         },
-        "request_model.CreateRecruitmentStatusRequest": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "request_model.CreateRoleAppliedRequest": {
+        "request_model.CreateJobRoleRequest": {
             "type": "object",
             "required": [
                 "name",
@@ -1914,6 +1903,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sector_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request_model.CreateRecruitmentStatusRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
                     "type": "string"
                 }
             }
@@ -1935,6 +1935,9 @@ const docTemplate = `{
                 "account_status": {
                     "type": "string"
                 },
+                "assigned_role_id": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -1942,9 +1945,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
-                    "type": "string"
-                },
-                "role_applied_id": {
                     "type": "string"
                 },
                 "role_system_id": {
@@ -1958,10 +1958,10 @@ const docTemplate = `{
                 "account_status": {
                     "type": "string"
                 },
-                "name": {
+                "assigned_role_id": {
                     "type": "string"
                 },
-                "role_applied_id": {
+                "name": {
                     "type": "string"
                 }
             }
@@ -2002,18 +2002,7 @@ const docTemplate = `{
                 }
             }
         },
-        "request_model.UpdateRecruitmentStatusRequest": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "request_model.UpdateRoleAppliedRequest": {
+        "request_model.UpdateJobRoleRequest": {
             "type": "object",
             "required": [
                 "name",
@@ -2024,6 +2013,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sector_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request_model.UpdateRecruitmentStatusRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
                     "type": "string"
                 }
             }

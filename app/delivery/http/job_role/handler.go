@@ -1,4 +1,4 @@
-package http_role_applied
+package http_job_role
 
 import (
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
@@ -11,12 +11,12 @@ import (
 )
 
 type routeHandler struct {
-	Usecase    domain.RoleAppliedAppUsecase
+	Usecase    domain.JobRoleAppUsecase
 	Route      *gin.RouterGroup
 	Middleware middleware.Middleware
 }
 
-func NewRoleAppliedHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.RoleAppliedAppUsecase) {
+func NewJobRoleHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.JobRoleAppUsecase) {
 	handler := &routeHandler{
 		Usecase:    uc,
 		Route:      r,
@@ -33,19 +33,19 @@ func NewRoleAppliedHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc dom
 	api.DELETE("/:id", mdl.AuthRole("Superadmin"), handler.Delete)
 }
 
-// Create Role Applied
+// Create Job Role
 // @Security BearerAuth
-// @Summary Create Role Applied
-// @Tags Role Applied
+// @Summary Create Job Role
+// @Tags Job Role
 // @Accept json
 // @Produce json
-// @Param request body request_model.CreateRoleAppliedRequest true "Create Request"
+// @Param request body request_model.CreateJobRoleRequest true "Create Request"
 // @Success 200 {object} response.Base
 // @Failure 400 {object} response.Base
 // @Failure 500 {object} response.Base
 // @Router /roles [post]
 func (h *routeHandler) Create(c *gin.Context) {
-	var req request_model.CreateRoleAppliedRequest
+	var req request_model.CreateJobRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, response.Error(400, "invalid payload"))
 		return
@@ -55,14 +55,14 @@ func (h *routeHandler) Create(c *gin.Context) {
 	c.JSON(res.Status, res)
 }
 
-// Update Role Applied
+// Update Job Role
 // @Security BearerAuth
-// @Summary Update Role Applied
-// @Tags Role Applied
+// @Summary Update Job Role
+// @Tags Job Role
 // @Accept json
 // @Produce json
 // @Param id path string true "Role ID"
-// @Param request body request_model.UpdateRoleAppliedRequest true "Update Request"
+// @Param request body request_model.UpdateJobRoleRequest true "Update Request"
 // @Success 200 {object} response.Base
 // @Failure 400 {object} response.Base
 // @Failure 404 {object} response.Base
@@ -71,7 +71,7 @@ func (h *routeHandler) Create(c *gin.Context) {
 func (h *routeHandler) Update(c *gin.Context) {
 	id := c.Param("id")
 
-	var req request_model.UpdateRoleAppliedRequest
+	var req request_model.UpdateJobRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, response.Error(400, "invalid payload"))
 		return
@@ -81,10 +81,10 @@ func (h *routeHandler) Update(c *gin.Context) {
 	c.JSON(res.Status, res)
 }
 
-// Delete Role Applied
+// Delete Job Role
 // @Security BearerAuth
-// @Summary Delete Role Applied
-// @Tags Role Applied
+// @Summary Delete Job Role
+// @Tags Job Role
 // @Produce json
 // @Param id path string true "Role ID"
 // @Success 200 {object} response.Base
@@ -96,11 +96,11 @@ func (h *routeHandler) Delete(c *gin.Context) {
 	c.JSON(res.Status, res)
 }
 
-// Get All Role Applied
+// Get All Job Roles
 // @Security BearerAuth
-// @Summary Get All Role Applied
-// @Description Get All Role Applied
-// @Tags Role Applied
+// @Summary Get All Job Roles
+// @Description Get All Job Roles
+// @Tags Job Role
 // @Accept json
 // @Produce json
 // @Param sector_id query string false "Sector ID"
@@ -110,7 +110,7 @@ func (h *routeHandler) Delete(c *gin.Context) {
 // @Router /roles [get]
 func (h *routeHandler) FetchAll(c *gin.Context) {
 	pagination := helpers.GetPagination(c)
-	filter := gorm_model.RoleAppliedFilter{}
+	filter := gorm_model.JobRoleFilter{}
 
 	sectorID := c.Query("sector_id")
 	if sectorID != "" {
@@ -121,11 +121,11 @@ func (h *routeHandler) FetchAll(c *gin.Context) {
 	c.JSON(res.Status, res)
 }
 
-// Get Role Applied By ID
+// Get Job Role By ID
 // @Security BearerAuth
-// @Summary Get Role Applied By ID
-// @Description Get Role Applied By ID
-// @Tags Role Applied
+// @Summary Get Job Role By ID
+// @Description Get Job Role By ID
+// @Tags Job Role
 // @Accept json
 // @Produce json
 // @Param id path string true "Role ID"

@@ -18,6 +18,6 @@ INSERT INTO role_systems (id, name, created_at, updated_at) VALUES
 ('eac7b8e1-e123-4567-bd04-ae6305aabfa4', 'Superadmin', NOW(), NOW()),
 ('5a72fd34-4b95-46c9-ae5f-b51f8a842880', 'Employee', NOW(), NOW());
 
--- Seeder for ROLE_APPLIEDS (Linking to SECTOR 'Information Technology')
-INSERT INTO role_applieds (id, name, sector_id, created_at, updated_at) VALUES
+-- Seeder for JOB_ROLES (Linking to SECTOR 'Information Technology')
+INSERT INTO job_roles (id, name, sector_id, created_at, updated_at) VALUES
 ('d1a93ca3-c283-4a87-a8ac-fbee426685f0', 'Frontend Developer', 'ff744111-e2e7-49bc-9528-ebbbfa43d607', NOW(), NOW());

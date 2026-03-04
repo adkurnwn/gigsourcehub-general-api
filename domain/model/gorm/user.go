@@ -26,7 +26,8 @@ type User struct {
 	UnavailableUntil    *time.Time     `gorm:"column:unavailable_until;type:date"`
 	RoleSystemId        *string        `gorm:"column:role_system_id;type:uuid"`
 	RoleSystem          *RoleSystem    `gorm:"foreignKey:RoleSystemId"`
-	RoleAppliedId       *string        `gorm:"column:role_applied_id;type:uuid"`
+	AssignedRoleId      *string        `gorm:"column:assigned_role_id;type:uuid"`
+	JobRoles            []JobRole      `gorm:"many2many:user_has_job_roles;"`
 	AccountStatus       *string        `gorm:"column:account_status;type:user_account_status"`
 	Jabatan             *string        `gorm:"column:jabatan;type:varchar(100)"`
 	CreatedAt           time.Time      `gorm:"column:created_at;autoCreateTime"`
@@ -73,7 +74,7 @@ type UserResp struct {
 	RecruitmentStatusId *string    `json:"recruitment_status_id"`
 	UnavailableUntil    *time.Time `json:"unavailable_until"`
 	RoleSystemName      *string    `json:"role_system_name"`
-	RoleAppliedId       *string    `json:"role_applied_id"`
+	AssignedRoleId      *string    `json:"assigned_role_id"`
 	AccountStatus       *string    `json:"account_status"`
 	Jabatan             *string    `json:"jabatan,omitempty"`
 }
@@ -118,7 +119,7 @@ func (row *User) ToUserResp() UserResp {
 		RecruitmentStatusId: row.RecruitmentStatusId,
 		UnavailableUntil:    row.UnavailableUntil,
 		RoleSystemName:      roleName,
-		RoleAppliedId:       row.RoleAppliedId,
+		AssignedRoleId:      row.AssignedRoleId,
 		AccountStatus:       row.AccountStatus,
 		Jabatan:             jabatan,
 	}
