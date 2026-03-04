@@ -223,6 +223,13 @@ func (u *appUsecase) BlockUserBySuperadmin(ctx context.Context, id string) respo
 	if user == nil {
 		return response.Error(http.StatusNotFound, "User not found")
 	}
+	if *user.AccountStatus == "Blocked" {
+		return response.Error(http.StatusBadRequest, "User already blocked")
+	}
+
+	if user.RoleSystem.Name == "Admin" || user.RoleSystem.Name == "Employee" || user.RoleSystem.Name == "Superadmin" {
+		return response.Error(http.StatusBadRequest, "Admin, Employee, and Superadmin users cannot be blocked")
+	}
 
 	blockedStatus := "Blocked"
 	user.AccountStatus = &blockedStatus
@@ -231,7 +238,7 @@ func (u *appUsecase) BlockUserBySuperadmin(ctx context.Context, id string) respo
 		return response.Error(http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(user.ToUserResp())
+	return response.SuccessAction("User", user.Email, "blocked")
 }
 
 func (u *appUsecase) DisableUserBySuperadmin(ctx context.Context, id string) response.Base {
@@ -247,6 +254,13 @@ func (u *appUsecase) DisableUserBySuperadmin(ctx context.Context, id string) res
 	if user == nil {
 		return response.Error(http.StatusNotFound, "User not found")
 	}
+	if *user.AccountStatus == "Inactive" {
+		return response.Error(http.StatusBadRequest, "User already inactive")
+	}
+
+	if user.RoleSystem.Name == "Candidate" {
+		return response.Error(http.StatusBadRequest, "Candidate user cannot be disabled")
+	}
 
 	inactiveStatus := "Inactive"
 	user.AccountStatus = &inactiveStatus
@@ -255,7 +269,7 @@ func (u *appUsecase) DisableUserBySuperadmin(ctx context.Context, id string) res
 		return response.Error(http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(user.ToUserResp())
+	return response.SuccessAction("User", user.Email, "disabled")
 }
 
 func (u *appUsecase) ActivateUserBySuperadmin(ctx context.Context, id string) response.Base {
@@ -272,6 +286,7 @@ func (u *appUsecase) ActivateUserBySuperadmin(ctx context.Context, id string) re
 		return response.Error(http.StatusNotFound, "User not found")
 	}
 
+	oldStatus := user.AccountStatus
 	activeStatus := "Active"
 	user.AccountStatus = &activeStatus
 
@@ -279,5 +294,9 @@ func (u *appUsecase) ActivateUserBySuperadmin(ctx context.Context, id string) re
 		return response.Error(http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(user.ToUserResp())
+	if *oldStatus == "Blocked" {
+		return response.SuccessAction("User", user.Email, "ublocked")
+	}
+
+	return response.SuccessAction("User", user.Email, "activated")
 }
