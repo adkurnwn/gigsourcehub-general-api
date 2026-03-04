@@ -26,6 +26,53 @@ func (_m *MemberAppUsecase) EXPECT() *MemberAppUsecase_Expecter {
 	return &MemberAppUsecase_Expecter{mock: &_m.Mock}
 }
 
+// ActivateUserBySuperadmin provides a mock function with given fields: ctx, id
+func (_m *MemberAppUsecase) ActivateUserBySuperadmin(ctx context.Context, id string) response.Base {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ActivateUserBySuperadmin")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string) response.Base); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_ActivateUserBySuperadmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ActivateUserBySuperadmin'
+type MemberAppUsecase_ActivateUserBySuperadmin_Call struct {
+	*mock.Call
+}
+
+// ActivateUserBySuperadmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *MemberAppUsecase_Expecter) ActivateUserBySuperadmin(ctx interface{}, id interface{}) *MemberAppUsecase_ActivateUserBySuperadmin_Call {
+	return &MemberAppUsecase_ActivateUserBySuperadmin_Call{Call: _e.mock.On("ActivateUserBySuperadmin", ctx, id)}
+}
+
+func (_c *MemberAppUsecase_ActivateUserBySuperadmin_Call) Run(run func(ctx context.Context, id string)) *MemberAppUsecase_ActivateUserBySuperadmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_ActivateUserBySuperadmin_Call) Return(_a0 response.Base) *MemberAppUsecase_ActivateUserBySuperadmin_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_ActivateUserBySuperadmin_Call) RunAndReturn(run func(context.Context, string) response.Base) *MemberAppUsecase_ActivateUserBySuperadmin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // BlockUserBySuperadmin provides a mock function with given fields: ctx, id
 func (_m *MemberAppUsecase) BlockUserBySuperadmin(ctx context.Context, id string) response.Base {
 	ret := _m.Called(ctx, id)
@@ -116,6 +163,53 @@ func (_c *MemberAppUsecase_CreateBySuperadmin_Call) Return(_a0 response.Base) *M
 }
 
 func (_c *MemberAppUsecase_CreateBySuperadmin_Call) RunAndReturn(run func(context.Context, request_model.CreateUserBySuperadminRequest) response.Base) *MemberAppUsecase_CreateBySuperadmin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DisableUserBySuperadmin provides a mock function with given fields: ctx, id
+func (_m *MemberAppUsecase) DisableUserBySuperadmin(ctx context.Context, id string) response.Base {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DisableUserBySuperadmin")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string) response.Base); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_DisableUserBySuperadmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisableUserBySuperadmin'
+type MemberAppUsecase_DisableUserBySuperadmin_Call struct {
+	*mock.Call
+}
+
+// DisableUserBySuperadmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *MemberAppUsecase_Expecter) DisableUserBySuperadmin(ctx interface{}, id interface{}) *MemberAppUsecase_DisableUserBySuperadmin_Call {
+	return &MemberAppUsecase_DisableUserBySuperadmin_Call{Call: _e.mock.On("DisableUserBySuperadmin", ctx, id)}
+}
+
+func (_c *MemberAppUsecase_DisableUserBySuperadmin_Call) Run(run func(ctx context.Context, id string)) *MemberAppUsecase_DisableUserBySuperadmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_DisableUserBySuperadmin_Call) Return(_a0 response.Base) *MemberAppUsecase_DisableUserBySuperadmin_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_DisableUserBySuperadmin_Call) RunAndReturn(run func(context.Context, string) response.Base) *MemberAppUsecase_DisableUserBySuperadmin_Call {
 	_c.Call.Return(run)
 	return _c
 }

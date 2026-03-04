@@ -4,6 +4,7 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/app/consumer"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
 	http_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_role"
+	http_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_title"
 	http_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/kabupaten_kota"
 	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
@@ -17,6 +18,7 @@ import (
 	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
 	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
+	usecase_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_title"
 	usecase_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/kabupaten_kota"
 	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
 	usecase_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/provinsi"
@@ -156,6 +158,11 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init job title usecase
+	ucJobTitle := usecase_job_title.NewAppUsecase(usecase_job_title.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// init sector usecase
 	ucSector := usecase_sector.NewAppUsecase(usecase_sector.RepoInjection{
 		GormDbRepo: repo,
@@ -234,6 +241,7 @@ func main() {
 	http_member.NewRouteHandler(apiGroup, mdl, ucMember)
 	http_cv.NewCVHandler(apiGroup, mdl, ucCV)
 	http_job_role.NewJobRoleHandler(apiGroup, mdl, ucJobRole)
+	http_job_title.NewJobTitleHandler(apiGroup, mdl, ucJobTitle)
 	http_sector.NewSectorHandler(apiGroup, mdl, ucSector)
 	http_kabupaten_kota.NewKabupatenKotaHandler(apiGroup, ucKabupatenKota)
 	http_provinsi.NewProvinsiHandler(apiGroup, ucProvinsi)

@@ -31,6 +31,14 @@ type JobRoleAppUsecase interface {
 	Delete(ctx context.Context, id string) response.Base
 }
 
+type JobTitleAppUsecase interface {
+	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.JobTitleFilter) response.Base
+	FetchData(ctx context.Context, id string) response.Base
+	Create(ctx context.Context, req request_model.CreateJobTitleRequest) response.Base
+	Update(ctx context.Context, id string, req request_model.UpdateJobTitleRequest) response.Base
+	Delete(ctx context.Context, id string) response.Base
+}
+
 type SectorAppUsecase interface {
 	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.SectorFilter) response.Base
 	FetchData(ctx context.Context, id string) response.Base

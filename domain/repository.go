@@ -35,6 +35,11 @@ type GormRepo interface {
 	UpdateJobRole(ctx context.Context, model *gorm_model.JobRole) error
 	DeleteJobRole(ctx context.Context, id string) error
 
+	FetchJobTitle(ctx context.Context, options gorm_model.JobTitleFilter) (*sql.Rows, error)
+	CreateJobTitle(ctx context.Context, model *gorm_model.JobTitle) error
+	UpdateJobTitle(ctx context.Context, model *gorm_model.JobTitle) error
+	DeleteJobTitle(ctx context.Context, id string) error
+
 	FetchSector(ctx context.Context, options gorm_model.SectorFilter) (*sql.Rows, error)
 	CreateSector(ctx context.Context, model *gorm_model.Sector) error
 	UpdateSector(ctx context.Context, model *gorm_model.Sector) error

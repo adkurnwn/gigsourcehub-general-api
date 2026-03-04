@@ -28,7 +28,7 @@ definitions:
         type: number
       id:
         type: string
-      jabatan:
+      job_title_id:
         type: string
       kabupaten_kota_id:
         type: string
@@ -64,6 +64,16 @@ definitions:
     - edited_data
     type: object
   request_model.CreateJobRoleRequest:
+    properties:
+      name:
+        type: string
+      sector_id:
+        type: string
+    required:
+    - name
+    - sector_id
+    type: object
+  request_model.CreateJobTitleRequest:
     properties:
       name:
         type: string
@@ -135,6 +145,16 @@ definitions:
     - query
     type: object
   request_model.UpdateJobRoleRequest:
+    properties:
+      name:
+        type: string
+      sector_id:
+        type: string
+    required:
+    - name
+    - sector_id
+    type: object
+  request_model.UpdateJobTitleRequest:
     properties:
       name:
         type: string
@@ -385,6 +405,159 @@ paths:
       summary: Upload CV
       tags:
       - CV
+  /job-titles:
+    get:
+      consumes:
+      - application/json
+      description: Get All Job Titles
+      parameters:
+      - description: Sector ID
+        in: query
+        name: sector_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Job Titles
+      tags:
+      - Job Title
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateJobTitleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Job Title
+      tags:
+      - Job Title
+  /job-titles/{id}:
+    delete:
+      parameters:
+      - description: Title ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Job Title
+      tags:
+      - Job Title
+    get:
+      consumes:
+      - application/json
+      description: Get Job Title By ID
+      parameters:
+      - description: Title ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Job Title By ID
+      tags:
+      - Job Title
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Title ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateJobTitleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Job Title
+      tags:
+      - Job Title
   /kabupaten:
     get:
       consumes:
