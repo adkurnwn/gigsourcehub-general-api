@@ -121,6 +121,194 @@ func (_c *GormRepo_CreateCV_Call) RunAndReturn(run func(context.Context, *gorm_m
 	return _c
 }
 
+// CreateJobRole provides a mock function with given fields: ctx, model
+func (_m *GormRepo) CreateJobRole(ctx context.Context, model *gorm_model.JobRole) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateJobRole")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.JobRole) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_CreateJobRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateJobRole'
+type GormRepo_CreateJobRole_Call struct {
+	*mock.Call
+}
+
+// CreateJobRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.JobRole
+func (_e *GormRepo_Expecter) CreateJobRole(ctx interface{}, model interface{}) *GormRepo_CreateJobRole_Call {
+	return &GormRepo_CreateJobRole_Call{Call: _e.mock.On("CreateJobRole", ctx, model)}
+}
+
+func (_c *GormRepo_CreateJobRole_Call) Run(run func(ctx context.Context, model *gorm_model.JobRole)) *GormRepo_CreateJobRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.JobRole))
+	})
+	return _c
+}
+
+func (_c *GormRepo_CreateJobRole_Call) Return(_a0 error) *GormRepo_CreateJobRole_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_CreateJobRole_Call) RunAndReturn(run func(context.Context, *gorm_model.JobRole) error) *GormRepo_CreateJobRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateJobTitle provides a mock function with given fields: ctx, model
+func (_m *GormRepo) CreateJobTitle(ctx context.Context, model *gorm_model.JobTitle) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateJobTitle")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.JobTitle) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_CreateJobTitle_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateJobTitle'
+type GormRepo_CreateJobTitle_Call struct {
+	*mock.Call
+}
+
+// CreateJobTitle is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.JobTitle
+func (_e *GormRepo_Expecter) CreateJobTitle(ctx interface{}, model interface{}) *GormRepo_CreateJobTitle_Call {
+	return &GormRepo_CreateJobTitle_Call{Call: _e.mock.On("CreateJobTitle", ctx, model)}
+}
+
+func (_c *GormRepo_CreateJobTitle_Call) Run(run func(ctx context.Context, model *gorm_model.JobTitle)) *GormRepo_CreateJobTitle_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.JobTitle))
+	})
+	return _c
+}
+
+func (_c *GormRepo_CreateJobTitle_Call) Return(_a0 error) *GormRepo_CreateJobTitle_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_CreateJobTitle_Call) RunAndReturn(run func(context.Context, *gorm_model.JobTitle) error) *GormRepo_CreateJobTitle_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateRecruitmentStatus provides a mock function with given fields: ctx, model
+func (_m *GormRepo) CreateRecruitmentStatus(ctx context.Context, model *gorm_model.RecruitmentStatus) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateRecruitmentStatus")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.RecruitmentStatus) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_CreateRecruitmentStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateRecruitmentStatus'
+type GormRepo_CreateRecruitmentStatus_Call struct {
+	*mock.Call
+}
+
+// CreateRecruitmentStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.RecruitmentStatus
+func (_e *GormRepo_Expecter) CreateRecruitmentStatus(ctx interface{}, model interface{}) *GormRepo_CreateRecruitmentStatus_Call {
+	return &GormRepo_CreateRecruitmentStatus_Call{Call: _e.mock.On("CreateRecruitmentStatus", ctx, model)}
+}
+
+func (_c *GormRepo_CreateRecruitmentStatus_Call) Run(run func(ctx context.Context, model *gorm_model.RecruitmentStatus)) *GormRepo_CreateRecruitmentStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.RecruitmentStatus))
+	})
+	return _c
+}
+
+func (_c *GormRepo_CreateRecruitmentStatus_Call) Return(_a0 error) *GormRepo_CreateRecruitmentStatus_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_CreateRecruitmentStatus_Call) RunAndReturn(run func(context.Context, *gorm_model.RecruitmentStatus) error) *GormRepo_CreateRecruitmentStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateSector provides a mock function with given fields: ctx, model
+func (_m *GormRepo) CreateSector(ctx context.Context, model *gorm_model.Sector) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateSector")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.Sector) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_CreateSector_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateSector'
+type GormRepo_CreateSector_Call struct {
+	*mock.Call
+}
+
+// CreateSector is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.Sector
+func (_e *GormRepo_Expecter) CreateSector(ctx interface{}, model interface{}) *GormRepo_CreateSector_Call {
+	return &GormRepo_CreateSector_Call{Call: _e.mock.On("CreateSector", ctx, model)}
+}
+
+func (_c *GormRepo_CreateSector_Call) Run(run func(ctx context.Context, model *gorm_model.Sector)) *GormRepo_CreateSector_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.Sector))
+	})
+	return _c
+}
+
+func (_c *GormRepo_CreateSector_Call) Return(_a0 error) *GormRepo_CreateSector_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_CreateSector_Call) RunAndReturn(run func(context.Context, *gorm_model.Sector) error) *GormRepo_CreateSector_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateUser provides a mock function with given fields: ctx, model
 func (_m *GormRepo) CreateUser(ctx context.Context, model *gorm_model.User) error {
 	ret := _m.Called(ctx, model)
@@ -168,29 +356,264 @@ func (_c *GormRepo_CreateUser_Call) RunAndReturn(run func(context.Context, *gorm
 	return _c
 }
 
-// GetCVByUserID provides a mock function with given fields: ctx, userID
-func (_m *GormRepo) GetCVByUserID(ctx context.Context, userID string) (*gorm_model.CV, error) {
-	ret := _m.Called(ctx, userID)
+// CreateUserBySuperadmin provides a mock function with given fields: ctx, model
+func (_m *GormRepo) CreateUserBySuperadmin(ctx context.Context, model *gorm_model.User) error {
+	ret := _m.Called(ctx, model)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetCVByUserID")
+		panic("no return value specified for CreateUserBySuperadmin")
 	}
 
-	var r0 *gorm_model.CV
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*gorm_model.CV, error)); ok {
-		return rf(ctx, userID)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.User) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *gorm_model.CV); ok {
-		r0 = rf(ctx, userID)
+
+	return r0
+}
+
+// GormRepo_CreateUserBySuperadmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateUserBySuperadmin'
+type GormRepo_CreateUserBySuperadmin_Call struct {
+	*mock.Call
+}
+
+// CreateUserBySuperadmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.User
+func (_e *GormRepo_Expecter) CreateUserBySuperadmin(ctx interface{}, model interface{}) *GormRepo_CreateUserBySuperadmin_Call {
+	return &GormRepo_CreateUserBySuperadmin_Call{Call: _e.mock.On("CreateUserBySuperadmin", ctx, model)}
+}
+
+func (_c *GormRepo_CreateUserBySuperadmin_Call) Run(run func(ctx context.Context, model *gorm_model.User)) *GormRepo_CreateUserBySuperadmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.User))
+	})
+	return _c
+}
+
+func (_c *GormRepo_CreateUserBySuperadmin_Call) Return(err error) *GormRepo_CreateUserBySuperadmin_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *GormRepo_CreateUserBySuperadmin_Call) RunAndReturn(run func(context.Context, *gorm_model.User) error) *GormRepo_CreateUserBySuperadmin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteJobRole provides a mock function with given fields: ctx, id
+func (_m *GormRepo) DeleteJobRole(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteJobRole")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_DeleteJobRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteJobRole'
+type GormRepo_DeleteJobRole_Call struct {
+	*mock.Call
+}
+
+// DeleteJobRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *GormRepo_Expecter) DeleteJobRole(ctx interface{}, id interface{}) *GormRepo_DeleteJobRole_Call {
+	return &GormRepo_DeleteJobRole_Call{Call: _e.mock.On("DeleteJobRole", ctx, id)}
+}
+
+func (_c *GormRepo_DeleteJobRole_Call) Run(run func(ctx context.Context, id string)) *GormRepo_DeleteJobRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_DeleteJobRole_Call) Return(_a0 error) *GormRepo_DeleteJobRole_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_DeleteJobRole_Call) RunAndReturn(run func(context.Context, string) error) *GormRepo_DeleteJobRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteJobTitle provides a mock function with given fields: ctx, id
+func (_m *GormRepo) DeleteJobTitle(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteJobTitle")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_DeleteJobTitle_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteJobTitle'
+type GormRepo_DeleteJobTitle_Call struct {
+	*mock.Call
+}
+
+// DeleteJobTitle is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *GormRepo_Expecter) DeleteJobTitle(ctx interface{}, id interface{}) *GormRepo_DeleteJobTitle_Call {
+	return &GormRepo_DeleteJobTitle_Call{Call: _e.mock.On("DeleteJobTitle", ctx, id)}
+}
+
+func (_c *GormRepo_DeleteJobTitle_Call) Run(run func(ctx context.Context, id string)) *GormRepo_DeleteJobTitle_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_DeleteJobTitle_Call) Return(_a0 error) *GormRepo_DeleteJobTitle_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_DeleteJobTitle_Call) RunAndReturn(run func(context.Context, string) error) *GormRepo_DeleteJobTitle_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteRecruitmentStatus provides a mock function with given fields: ctx, id
+func (_m *GormRepo) DeleteRecruitmentStatus(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteRecruitmentStatus")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_DeleteRecruitmentStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteRecruitmentStatus'
+type GormRepo_DeleteRecruitmentStatus_Call struct {
+	*mock.Call
+}
+
+// DeleteRecruitmentStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *GormRepo_Expecter) DeleteRecruitmentStatus(ctx interface{}, id interface{}) *GormRepo_DeleteRecruitmentStatus_Call {
+	return &GormRepo_DeleteRecruitmentStatus_Call{Call: _e.mock.On("DeleteRecruitmentStatus", ctx, id)}
+}
+
+func (_c *GormRepo_DeleteRecruitmentStatus_Call) Run(run func(ctx context.Context, id string)) *GormRepo_DeleteRecruitmentStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_DeleteRecruitmentStatus_Call) Return(_a0 error) *GormRepo_DeleteRecruitmentStatus_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_DeleteRecruitmentStatus_Call) RunAndReturn(run func(context.Context, string) error) *GormRepo_DeleteRecruitmentStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteSector provides a mock function with given fields: ctx, id
+func (_m *GormRepo) DeleteSector(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteSector")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_DeleteSector_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSector'
+type GormRepo_DeleteSector_Call struct {
+	*mock.Call
+}
+
+// DeleteSector is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *GormRepo_Expecter) DeleteSector(ctx interface{}, id interface{}) *GormRepo_DeleteSector_Call {
+	return &GormRepo_DeleteSector_Call{Call: _e.mock.On("DeleteSector", ctx, id)}
+}
+
+func (_c *GormRepo_DeleteSector_Call) Run(run func(ctx context.Context, id string)) *GormRepo_DeleteSector_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_DeleteSector_Call) Return(_a0 error) *GormRepo_DeleteSector_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_DeleteSector_Call) RunAndReturn(run func(context.Context, string) error) *GormRepo_DeleteSector_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FetchJobRole provides a mock function with given fields: ctx, options
+func (_m *GormRepo) FetchJobRole(ctx context.Context, options gorm_model.JobRoleFilter) (*sql.Rows, error) {
+	ret := _m.Called(ctx, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchJobRole")
+	}
+
+	var r0 *sql.Rows
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.JobRoleFilter) (*sql.Rows, error)); ok {
+		return rf(ctx, options)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.JobRoleFilter) *sql.Rows); ok {
+		r0 = rf(ctx, options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*gorm_model.CV)
+			r0 = ret.Get(0).(*sql.Rows)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, userID)
+	if rf, ok := ret.Get(1).(func(context.Context, gorm_model.JobRoleFilter) error); ok {
+		r1 = rf(ctx, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -198,31 +621,149 @@ func (_m *GormRepo) GetCVByUserID(ctx context.Context, userID string) (*gorm_mod
 	return r0, r1
 }
 
-// GormRepo_GetCVByUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCVByUserID'
-type GormRepo_GetCVByUserID_Call struct {
+// GormRepo_FetchJobRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchJobRole'
+type GormRepo_FetchJobRole_Call struct {
 	*mock.Call
 }
 
-// GetCVByUserID is a helper method to define mock.On call
+// FetchJobRole is a helper method to define mock.On call
 //   - ctx context.Context
-//   - userID string
-func (_e *GormRepo_Expecter) GetCVByUserID(ctx interface{}, userID interface{}) *GormRepo_GetCVByUserID_Call {
-	return &GormRepo_GetCVByUserID_Call{Call: _e.mock.On("GetCVByUserID", ctx, userID)}
+//   - options gorm_model.JobRoleFilter
+func (_e *GormRepo_Expecter) FetchJobRole(ctx interface{}, options interface{}) *GormRepo_FetchJobRole_Call {
+	return &GormRepo_FetchJobRole_Call{Call: _e.mock.On("FetchJobRole", ctx, options)}
 }
 
-func (_c *GormRepo_GetCVByUserID_Call) Run(run func(ctx context.Context, userID string)) *GormRepo_GetCVByUserID_Call {
+func (_c *GormRepo_FetchJobRole_Call) Run(run func(ctx context.Context, options gorm_model.JobRoleFilter)) *GormRepo_FetchJobRole_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		run(args[0].(context.Context), args[1].(gorm_model.JobRoleFilter))
 	})
 	return _c
 }
 
-func (_c *GormRepo_GetCVByUserID_Call) Return(_a0 *gorm_model.CV, _a1 error) *GormRepo_GetCVByUserID_Call {
+func (_c *GormRepo_FetchJobRole_Call) Return(_a0 *sql.Rows, _a1 error) *GormRepo_FetchJobRole_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *GormRepo_GetCVByUserID_Call) RunAndReturn(run func(context.Context, string) (*gorm_model.CV, error)) *GormRepo_GetCVByUserID_Call {
+func (_c *GormRepo_FetchJobRole_Call) RunAndReturn(run func(context.Context, gorm_model.JobRoleFilter) (*sql.Rows, error)) *GormRepo_FetchJobRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FetchJobTitle provides a mock function with given fields: ctx, options
+func (_m *GormRepo) FetchJobTitle(ctx context.Context, options gorm_model.JobTitleFilter) (*sql.Rows, error) {
+	ret := _m.Called(ctx, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchJobTitle")
+	}
+
+	var r0 *sql.Rows
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.JobTitleFilter) (*sql.Rows, error)); ok {
+		return rf(ctx, options)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.JobTitleFilter) *sql.Rows); ok {
+		r0 = rf(ctx, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sql.Rows)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, gorm_model.JobTitleFilter) error); ok {
+		r1 = rf(ctx, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_FetchJobTitle_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchJobTitle'
+type GormRepo_FetchJobTitle_Call struct {
+	*mock.Call
+}
+
+// FetchJobTitle is a helper method to define mock.On call
+//   - ctx context.Context
+//   - options gorm_model.JobTitleFilter
+func (_e *GormRepo_Expecter) FetchJobTitle(ctx interface{}, options interface{}) *GormRepo_FetchJobTitle_Call {
+	return &GormRepo_FetchJobTitle_Call{Call: _e.mock.On("FetchJobTitle", ctx, options)}
+}
+
+func (_c *GormRepo_FetchJobTitle_Call) Run(run func(ctx context.Context, options gorm_model.JobTitleFilter)) *GormRepo_FetchJobTitle_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(gorm_model.JobTitleFilter))
+	})
+	return _c
+}
+
+func (_c *GormRepo_FetchJobTitle_Call) Return(_a0 *sql.Rows, _a1 error) *GormRepo_FetchJobTitle_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_FetchJobTitle_Call) RunAndReturn(run func(context.Context, gorm_model.JobTitleFilter) (*sql.Rows, error)) *GormRepo_FetchJobTitle_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FetchKabupatenKota provides a mock function with given fields: ctx, options
+func (_m *GormRepo) FetchKabupatenKota(ctx context.Context, options gorm_model.KabupatenKotaFilter) (*sql.Rows, error) {
+	ret := _m.Called(ctx, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchKabupatenKota")
+	}
+
+	var r0 *sql.Rows
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.KabupatenKotaFilter) (*sql.Rows, error)); ok {
+		return rf(ctx, options)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.KabupatenKotaFilter) *sql.Rows); ok {
+		r0 = rf(ctx, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sql.Rows)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, gorm_model.KabupatenKotaFilter) error); ok {
+		r1 = rf(ctx, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_FetchKabupatenKota_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchKabupatenKota'
+type GormRepo_FetchKabupatenKota_Call struct {
+	*mock.Call
+}
+
+// FetchKabupatenKota is a helper method to define mock.On call
+//   - ctx context.Context
+//   - options gorm_model.KabupatenKotaFilter
+func (_e *GormRepo_Expecter) FetchKabupatenKota(ctx interface{}, options interface{}) *GormRepo_FetchKabupatenKota_Call {
+	return &GormRepo_FetchKabupatenKota_Call{Call: _e.mock.On("FetchKabupatenKota", ctx, options)}
+}
+
+func (_c *GormRepo_FetchKabupatenKota_Call) Run(run func(ctx context.Context, options gorm_model.KabupatenKotaFilter)) *GormRepo_FetchKabupatenKota_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(gorm_model.KabupatenKotaFilter))
+	})
+	return _c
+}
+
+func (_c *GormRepo_FetchKabupatenKota_Call) Return(_a0 *sql.Rows, _a1 error) *GormRepo_FetchKabupatenKota_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_FetchKabupatenKota_Call) RunAndReturn(run func(context.Context, gorm_model.KabupatenKotaFilter) (*sql.Rows, error)) *GormRepo_FetchKabupatenKota_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -282,6 +823,183 @@ func (_c *GormRepo_FetchOneUser_Call) Return(_a0 *gorm_model.User, _a1 error) *G
 }
 
 func (_c *GormRepo_FetchOneUser_Call) RunAndReturn(run func(context.Context, gorm_model.UserFilter) (*gorm_model.User, error)) *GormRepo_FetchOneUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FetchProvinsi provides a mock function with given fields: ctx, options
+func (_m *GormRepo) FetchProvinsi(ctx context.Context, options gorm_model.ProvinsiFilter) (*sql.Rows, error) {
+	ret := _m.Called(ctx, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchProvinsi")
+	}
+
+	var r0 *sql.Rows
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.ProvinsiFilter) (*sql.Rows, error)); ok {
+		return rf(ctx, options)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.ProvinsiFilter) *sql.Rows); ok {
+		r0 = rf(ctx, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sql.Rows)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, gorm_model.ProvinsiFilter) error); ok {
+		r1 = rf(ctx, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_FetchProvinsi_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchProvinsi'
+type GormRepo_FetchProvinsi_Call struct {
+	*mock.Call
+}
+
+// FetchProvinsi is a helper method to define mock.On call
+//   - ctx context.Context
+//   - options gorm_model.ProvinsiFilter
+func (_e *GormRepo_Expecter) FetchProvinsi(ctx interface{}, options interface{}) *GormRepo_FetchProvinsi_Call {
+	return &GormRepo_FetchProvinsi_Call{Call: _e.mock.On("FetchProvinsi", ctx, options)}
+}
+
+func (_c *GormRepo_FetchProvinsi_Call) Run(run func(ctx context.Context, options gorm_model.ProvinsiFilter)) *GormRepo_FetchProvinsi_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(gorm_model.ProvinsiFilter))
+	})
+	return _c
+}
+
+func (_c *GormRepo_FetchProvinsi_Call) Return(_a0 *sql.Rows, _a1 error) *GormRepo_FetchProvinsi_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_FetchProvinsi_Call) RunAndReturn(run func(context.Context, gorm_model.ProvinsiFilter) (*sql.Rows, error)) *GormRepo_FetchProvinsi_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FetchRecruitmentStatus provides a mock function with given fields: ctx, options
+func (_m *GormRepo) FetchRecruitmentStatus(ctx context.Context, options gorm_model.RecruitmentStatusFilter) (*sql.Rows, error) {
+	ret := _m.Called(ctx, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchRecruitmentStatus")
+	}
+
+	var r0 *sql.Rows
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.RecruitmentStatusFilter) (*sql.Rows, error)); ok {
+		return rf(ctx, options)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.RecruitmentStatusFilter) *sql.Rows); ok {
+		r0 = rf(ctx, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sql.Rows)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, gorm_model.RecruitmentStatusFilter) error); ok {
+		r1 = rf(ctx, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_FetchRecruitmentStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchRecruitmentStatus'
+type GormRepo_FetchRecruitmentStatus_Call struct {
+	*mock.Call
+}
+
+// FetchRecruitmentStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - options gorm_model.RecruitmentStatusFilter
+func (_e *GormRepo_Expecter) FetchRecruitmentStatus(ctx interface{}, options interface{}) *GormRepo_FetchRecruitmentStatus_Call {
+	return &GormRepo_FetchRecruitmentStatus_Call{Call: _e.mock.On("FetchRecruitmentStatus", ctx, options)}
+}
+
+func (_c *GormRepo_FetchRecruitmentStatus_Call) Run(run func(ctx context.Context, options gorm_model.RecruitmentStatusFilter)) *GormRepo_FetchRecruitmentStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(gorm_model.RecruitmentStatusFilter))
+	})
+	return _c
+}
+
+func (_c *GormRepo_FetchRecruitmentStatus_Call) Return(_a0 *sql.Rows, _a1 error) *GormRepo_FetchRecruitmentStatus_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_FetchRecruitmentStatus_Call) RunAndReturn(run func(context.Context, gorm_model.RecruitmentStatusFilter) (*sql.Rows, error)) *GormRepo_FetchRecruitmentStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FetchSector provides a mock function with given fields: ctx, options
+func (_m *GormRepo) FetchSector(ctx context.Context, options gorm_model.SectorFilter) (*sql.Rows, error) {
+	ret := _m.Called(ctx, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchSector")
+	}
+
+	var r0 *sql.Rows
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.SectorFilter) (*sql.Rows, error)); ok {
+		return rf(ctx, options)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, gorm_model.SectorFilter) *sql.Rows); ok {
+		r0 = rf(ctx, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sql.Rows)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, gorm_model.SectorFilter) error); ok {
+		r1 = rf(ctx, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_FetchSector_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchSector'
+type GormRepo_FetchSector_Call struct {
+	*mock.Call
+}
+
+// FetchSector is a helper method to define mock.On call
+//   - ctx context.Context
+//   - options gorm_model.SectorFilter
+func (_e *GormRepo_Expecter) FetchSector(ctx interface{}, options interface{}) *GormRepo_FetchSector_Call {
+	return &GormRepo_FetchSector_Call{Call: _e.mock.On("FetchSector", ctx, options)}
+}
+
+func (_c *GormRepo_FetchSector_Call) Run(run func(ctx context.Context, options gorm_model.SectorFilter)) *GormRepo_FetchSector_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(gorm_model.SectorFilter))
+	})
+	return _c
+}
+
+func (_c *GormRepo_FetchSector_Call) Return(_a0 *sql.Rows, _a1 error) *GormRepo_FetchSector_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_FetchSector_Call) RunAndReturn(run func(context.Context, gorm_model.SectorFilter) (*sql.Rows, error)) *GormRepo_FetchSector_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -404,6 +1122,65 @@ func (_c *GormRepo_GetCVByID_Call) RunAndReturn(run func(context.Context, string
 	return _c
 }
 
+// GetCVByUserID provides a mock function with given fields: ctx, userID
+func (_m *GormRepo) GetCVByUserID(ctx context.Context, userID string) (*gorm_model.CV, error) {
+	ret := _m.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCVByUserID")
+	}
+
+	var r0 *gorm_model.CV
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*gorm_model.CV, error)); ok {
+		return rf(ctx, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *gorm_model.CV); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*gorm_model.CV)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_GetCVByUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCVByUserID'
+type GormRepo_GetCVByUserID_Call struct {
+	*mock.Call
+}
+
+// GetCVByUserID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+func (_e *GormRepo_Expecter) GetCVByUserID(ctx interface{}, userID interface{}) *GormRepo_GetCVByUserID_Call {
+	return &GormRepo_GetCVByUserID_Call{Call: _e.mock.On("GetCVByUserID", ctx, userID)}
+}
+
+func (_c *GormRepo_GetCVByUserID_Call) Run(run func(ctx context.Context, userID string)) *GormRepo_GetCVByUserID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_GetCVByUserID_Call) Return(_a0 *gorm_model.CV, _a1 error) *GormRepo_GetCVByUserID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_GetCVByUserID_Call) RunAndReturn(run func(context.Context, string) (*gorm_model.CV, error)) *GormRepo_GetCVByUserID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetDB provides a mock function with no fields
 func (_m *GormRepo) GetDB() *gorm.DB {
 	ret := _m.Called()
@@ -451,143 +1228,59 @@ func (_c *GormRepo_GetDB_Call) RunAndReturn(run func() *gorm.DB) *GormRepo_GetDB
 	return _c
 }
 
-// StructScan provides a mock function with given fields: rows, dest
-func (_m *GormRepo) StructScan(rows *sql.Rows, dest any) error {
-	ret := _m.Called(rows, dest)
+// GetKabupatenName provides a mock function with given fields: ctx, id
+func (_m *GormRepo) GetKabupatenName(ctx context.Context, id string) (string, error) {
+	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
-		panic("no return value specified for StructScan")
+		panic("no return value specified for GetKabupatenName")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*sql.Rows, any) error); ok {
-		r0 = rf(rows, dest)
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, id)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(string)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
-// GormRepo_StructScan_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StructScan'
-type GormRepo_StructScan_Call struct {
+// GormRepo_GetKabupatenName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetKabupatenName'
+type GormRepo_GetKabupatenName_Call struct {
 	*mock.Call
 }
 
-// StructScan is a helper method to define mock.On call
-//   - rows *sql.Rows
-//   - dest any
-func (_e *GormRepo_Expecter) StructScan(rows interface{}, dest interface{}) *GormRepo_StructScan_Call {
-	return &GormRepo_StructScan_Call{Call: _e.mock.On("StructScan", rows, dest)}
-}
-
-func (_c *GormRepo_StructScan_Call) Run(run func(rows *sql.Rows, dest any)) *GormRepo_StructScan_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*sql.Rows), args[1].(any))
-	})
-	return _c
-}
-
-func (_c *GormRepo_StructScan_Call) Return(_a0 error) *GormRepo_StructScan_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GormRepo_StructScan_Call) RunAndReturn(run func(*sql.Rows, any) error) *GormRepo_StructScan_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// UpdateUser provides a mock function with given fields: ctx, model
-func (_m *GormRepo) UpdateUser(ctx context.Context, model *gorm_model.User) error {
-	ret := _m.Called(ctx, model)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateUser")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.User) error); ok {
-		r0 = rf(ctx, model)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// GormRepo_UpdateUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateUser'
-type GormRepo_UpdateUser_Call struct {
-	*mock.Call
-}
-
-// UpdateUser is a helper method to define mock.On call
+// GetKabupatenName is a helper method to define mock.On call
 //   - ctx context.Context
-//   - model *gorm_model.User
-func (_e *GormRepo_Expecter) UpdateUser(ctx interface{}, model interface{}) *GormRepo_UpdateUser_Call {
-	return &GormRepo_UpdateUser_Call{Call: _e.mock.On("UpdateUser", ctx, model)}
+//   - id string
+func (_e *GormRepo_Expecter) GetKabupatenName(ctx interface{}, id interface{}) *GormRepo_GetKabupatenName_Call {
+	return &GormRepo_GetKabupatenName_Call{Call: _e.mock.On("GetKabupatenName", ctx, id)}
 }
 
-func (_c *GormRepo_UpdateUser_Call) Run(run func(ctx context.Context, model *gorm_model.User)) *GormRepo_UpdateUser_Call {
+func (_c *GormRepo_GetKabupatenName_Call) Run(run func(ctx context.Context, id string)) *GormRepo_GetKabupatenName_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gorm_model.User))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
 
-func (_c *GormRepo_UpdateUser_Call) Return(_a0 error) *GormRepo_UpdateUser_Call {
-	_c.Call.Return(_a0)
+func (_c *GormRepo_GetKabupatenName_Call) Return(_a0 string, _a1 error) *GormRepo_GetKabupatenName_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *GormRepo_UpdateUser_Call) RunAndReturn(run func(context.Context, *gorm_model.User) error) *GormRepo_UpdateUser_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// UpdateCV provides a mock function with given fields: ctx, cv
-func (_m *GormRepo) UpdateCV(ctx context.Context, cv *gorm_model.CV) error {
-	ret := _m.Called(ctx, cv)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateCV")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.CV) error); ok {
-		r0 = rf(ctx, cv)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// GormRepo_UpdateCV_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateCV'
-type GormRepo_UpdateCV_Call struct {
-	*mock.Call
-}
-
-// UpdateCV is a helper method to define mock.On call
-//   - ctx context.Context
-//   - cv *gorm_model.CV
-func (_e *GormRepo_Expecter) UpdateCV(ctx interface{}, cv interface{}) *GormRepo_UpdateCV_Call {
-	return &GormRepo_UpdateCV_Call{Call: _e.mock.On("UpdateCV", ctx, cv)}
-}
-
-func (_c *GormRepo_UpdateCV_Call) Run(run func(ctx context.Context, cv *gorm_model.CV)) *GormRepo_UpdateCV_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gorm_model.CV))
-	})
-	return _c
-}
-
-func (_c *GormRepo_UpdateCV_Call) Return(_a0 error) *GormRepo_UpdateCV_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GormRepo_UpdateCV_Call) RunAndReturn(run func(context.Context, *gorm_model.CV) error) *GormRepo_UpdateCV_Call {
+func (_c *GormRepo_GetKabupatenName_Call) RunAndReturn(run func(context.Context, string) (string, error)) *GormRepo_GetKabupatenName_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -649,27 +1342,27 @@ func (_c *GormRepo_GetProvinsiName_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
-// GetKabupatenName provides a mock function with given fields: ctx, id
-func (_m *GormRepo) GetKabupatenName(ctx context.Context, id string) (string, error) {
-	ret := _m.Called(ctx, id)
+// GetRoleNameByUserID provides a mock function with given fields: ctx, userID
+func (_m *GormRepo) GetRoleNameByUserID(ctx context.Context, userID string) (string, error) {
+	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetKabupatenName")
+		panic("no return value specified for GetRoleNameByUserID")
 	}
 
 	var r0 string
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
-		return rf(ctx, id)
+		return rf(ctx, userID)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
-		r0 = rf(ctx, id)
+		r0 = rf(ctx, userID)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -677,31 +1370,360 @@ func (_m *GormRepo) GetKabupatenName(ctx context.Context, id string) (string, er
 	return r0, r1
 }
 
-// GormRepo_GetKabupatenName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetKabupatenName'
-type GormRepo_GetKabupatenName_Call struct {
+// GormRepo_GetRoleNameByUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRoleNameByUserID'
+type GormRepo_GetRoleNameByUserID_Call struct {
 	*mock.Call
 }
 
-// GetKabupatenName is a helper method to define mock.On call
+// GetRoleNameByUserID is a helper method to define mock.On call
 //   - ctx context.Context
-//   - id string
-func (_e *GormRepo_Expecter) GetKabupatenName(ctx interface{}, id interface{}) *GormRepo_GetKabupatenName_Call {
-	return &GormRepo_GetKabupatenName_Call{Call: _e.mock.On("GetKabupatenName", ctx, id)}
+//   - userID string
+func (_e *GormRepo_Expecter) GetRoleNameByUserID(ctx interface{}, userID interface{}) *GormRepo_GetRoleNameByUserID_Call {
+	return &GormRepo_GetRoleNameByUserID_Call{Call: _e.mock.On("GetRoleNameByUserID", ctx, userID)}
 }
 
-func (_c *GormRepo_GetKabupatenName_Call) Run(run func(ctx context.Context, id string)) *GormRepo_GetKabupatenName_Call {
+func (_c *GormRepo_GetRoleNameByUserID_Call) Run(run func(ctx context.Context, userID string)) *GormRepo_GetRoleNameByUserID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
 
-func (_c *GormRepo_GetKabupatenName_Call) Return(_a0 string, _a1 error) *GormRepo_GetKabupatenName_Call {
+func (_c *GormRepo_GetRoleNameByUserID_Call) Return(_a0 string, _a1 error) *GormRepo_GetRoleNameByUserID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *GormRepo_GetKabupatenName_Call) RunAndReturn(run func(context.Context, string) (string, error)) *GormRepo_GetKabupatenName_Call {
+func (_c *GormRepo_GetRoleNameByUserID_Call) RunAndReturn(run func(context.Context, string) (string, error)) *GormRepo_GetRoleNameByUserID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// StructScan provides a mock function with given fields: rows, dest
+func (_m *GormRepo) StructScan(rows *sql.Rows, dest any) error {
+	ret := _m.Called(rows, dest)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StructScan")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*sql.Rows, any) error); ok {
+		r0 = rf(rows, dest)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_StructScan_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StructScan'
+type GormRepo_StructScan_Call struct {
+	*mock.Call
+}
+
+// StructScan is a helper method to define mock.On call
+//   - rows *sql.Rows
+//   - dest any
+func (_e *GormRepo_Expecter) StructScan(rows interface{}, dest interface{}) *GormRepo_StructScan_Call {
+	return &GormRepo_StructScan_Call{Call: _e.mock.On("StructScan", rows, dest)}
+}
+
+func (_c *GormRepo_StructScan_Call) Run(run func(rows *sql.Rows, dest any)) *GormRepo_StructScan_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*sql.Rows), args[1].(any))
+	})
+	return _c
+}
+
+func (_c *GormRepo_StructScan_Call) Return(_a0 error) *GormRepo_StructScan_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_StructScan_Call) RunAndReturn(run func(*sql.Rows, any) error) *GormRepo_StructScan_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateCV provides a mock function with given fields: ctx, cv
+func (_m *GormRepo) UpdateCV(ctx context.Context, cv *gorm_model.CV) error {
+	ret := _m.Called(ctx, cv)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateCV")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.CV) error); ok {
+		r0 = rf(ctx, cv)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_UpdateCV_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateCV'
+type GormRepo_UpdateCV_Call struct {
+	*mock.Call
+}
+
+// UpdateCV is a helper method to define mock.On call
+//   - ctx context.Context
+//   - cv *gorm_model.CV
+func (_e *GormRepo_Expecter) UpdateCV(ctx interface{}, cv interface{}) *GormRepo_UpdateCV_Call {
+	return &GormRepo_UpdateCV_Call{Call: _e.mock.On("UpdateCV", ctx, cv)}
+}
+
+func (_c *GormRepo_UpdateCV_Call) Run(run func(ctx context.Context, cv *gorm_model.CV)) *GormRepo_UpdateCV_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.CV))
+	})
+	return _c
+}
+
+func (_c *GormRepo_UpdateCV_Call) Return(_a0 error) *GormRepo_UpdateCV_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_UpdateCV_Call) RunAndReturn(run func(context.Context, *gorm_model.CV) error) *GormRepo_UpdateCV_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateJobRole provides a mock function with given fields: ctx, model
+func (_m *GormRepo) UpdateJobRole(ctx context.Context, model *gorm_model.JobRole) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateJobRole")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.JobRole) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_UpdateJobRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateJobRole'
+type GormRepo_UpdateJobRole_Call struct {
+	*mock.Call
+}
+
+// UpdateJobRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.JobRole
+func (_e *GormRepo_Expecter) UpdateJobRole(ctx interface{}, model interface{}) *GormRepo_UpdateJobRole_Call {
+	return &GormRepo_UpdateJobRole_Call{Call: _e.mock.On("UpdateJobRole", ctx, model)}
+}
+
+func (_c *GormRepo_UpdateJobRole_Call) Run(run func(ctx context.Context, model *gorm_model.JobRole)) *GormRepo_UpdateJobRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.JobRole))
+	})
+	return _c
+}
+
+func (_c *GormRepo_UpdateJobRole_Call) Return(_a0 error) *GormRepo_UpdateJobRole_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_UpdateJobRole_Call) RunAndReturn(run func(context.Context, *gorm_model.JobRole) error) *GormRepo_UpdateJobRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateJobTitle provides a mock function with given fields: ctx, model
+func (_m *GormRepo) UpdateJobTitle(ctx context.Context, model *gorm_model.JobTitle) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateJobTitle")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.JobTitle) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_UpdateJobTitle_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateJobTitle'
+type GormRepo_UpdateJobTitle_Call struct {
+	*mock.Call
+}
+
+// UpdateJobTitle is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.JobTitle
+func (_e *GormRepo_Expecter) UpdateJobTitle(ctx interface{}, model interface{}) *GormRepo_UpdateJobTitle_Call {
+	return &GormRepo_UpdateJobTitle_Call{Call: _e.mock.On("UpdateJobTitle", ctx, model)}
+}
+
+func (_c *GormRepo_UpdateJobTitle_Call) Run(run func(ctx context.Context, model *gorm_model.JobTitle)) *GormRepo_UpdateJobTitle_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.JobTitle))
+	})
+	return _c
+}
+
+func (_c *GormRepo_UpdateJobTitle_Call) Return(_a0 error) *GormRepo_UpdateJobTitle_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_UpdateJobTitle_Call) RunAndReturn(run func(context.Context, *gorm_model.JobTitle) error) *GormRepo_UpdateJobTitle_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateRecruitmentStatus provides a mock function with given fields: ctx, model
+func (_m *GormRepo) UpdateRecruitmentStatus(ctx context.Context, model *gorm_model.RecruitmentStatus) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateRecruitmentStatus")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.RecruitmentStatus) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_UpdateRecruitmentStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateRecruitmentStatus'
+type GormRepo_UpdateRecruitmentStatus_Call struct {
+	*mock.Call
+}
+
+// UpdateRecruitmentStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.RecruitmentStatus
+func (_e *GormRepo_Expecter) UpdateRecruitmentStatus(ctx interface{}, model interface{}) *GormRepo_UpdateRecruitmentStatus_Call {
+	return &GormRepo_UpdateRecruitmentStatus_Call{Call: _e.mock.On("UpdateRecruitmentStatus", ctx, model)}
+}
+
+func (_c *GormRepo_UpdateRecruitmentStatus_Call) Run(run func(ctx context.Context, model *gorm_model.RecruitmentStatus)) *GormRepo_UpdateRecruitmentStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.RecruitmentStatus))
+	})
+	return _c
+}
+
+func (_c *GormRepo_UpdateRecruitmentStatus_Call) Return(_a0 error) *GormRepo_UpdateRecruitmentStatus_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_UpdateRecruitmentStatus_Call) RunAndReturn(run func(context.Context, *gorm_model.RecruitmentStatus) error) *GormRepo_UpdateRecruitmentStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateSector provides a mock function with given fields: ctx, model
+func (_m *GormRepo) UpdateSector(ctx context.Context, model *gorm_model.Sector) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateSector")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.Sector) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_UpdateSector_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateSector'
+type GormRepo_UpdateSector_Call struct {
+	*mock.Call
+}
+
+// UpdateSector is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.Sector
+func (_e *GormRepo_Expecter) UpdateSector(ctx interface{}, model interface{}) *GormRepo_UpdateSector_Call {
+	return &GormRepo_UpdateSector_Call{Call: _e.mock.On("UpdateSector", ctx, model)}
+}
+
+func (_c *GormRepo_UpdateSector_Call) Run(run func(ctx context.Context, model *gorm_model.Sector)) *GormRepo_UpdateSector_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.Sector))
+	})
+	return _c
+}
+
+func (_c *GormRepo_UpdateSector_Call) Return(_a0 error) *GormRepo_UpdateSector_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_UpdateSector_Call) RunAndReturn(run func(context.Context, *gorm_model.Sector) error) *GormRepo_UpdateSector_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateUser provides a mock function with given fields: ctx, model
+func (_m *GormRepo) UpdateUser(ctx context.Context, model *gorm_model.User) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.User) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_UpdateUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateUser'
+type GormRepo_UpdateUser_Call struct {
+	*mock.Call
+}
+
+// UpdateUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.User
+func (_e *GormRepo_Expecter) UpdateUser(ctx interface{}, model interface{}) *GormRepo_UpdateUser_Call {
+	return &GormRepo_UpdateUser_Call{Call: _e.mock.On("UpdateUser", ctx, model)}
+}
+
+func (_c *GormRepo_UpdateUser_Call) Run(run func(ctx context.Context, model *gorm_model.User)) *GormRepo_UpdateUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.User))
+	})
+	return _c
+}
+
+func (_c *GormRepo_UpdateUser_Call) Return(err error) *GormRepo_UpdateUser_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *GormRepo_UpdateUser_Call) RunAndReturn(run func(context.Context, *gorm_model.User) error) *GormRepo_UpdateUser_Call {
 	_c.Call.Return(run)
 	return _c
 }

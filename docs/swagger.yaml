@@ -1,24 +1,125 @@
 definitions:
-  gorm_model.UserResp:
+  gorm_model.AuthMeResp:
     properties:
-      created_at:
-        type: string
       email:
         type: string
       id:
         type: string
       name:
         type: string
-      updated_at:
+      profile_picture:
+        type: string
+      system_role_name:
         type: string
     type: object
-  http_cv.ConfirmCVRequest:
+  gorm_model.UserResp:
+    properties:
+      account_status:
+        type: string
+      assigned_role_id:
+        type: string
+      birthdate:
+        type: string
+      candidate_level:
+        type: string
+      email:
+        type: string
+      gpa:
+        type: number
+      id:
+        type: string
+      job_title_id:
+        type: string
+      kabupaten_kota_id:
+        type: string
+      major:
+        type: string
+      name:
+        type: string
+      phone_number:
+        type: string
+      portofolio_link:
+        type: string
+      profile_picture:
+        type: string
+      recruitment_status_id:
+        type: string
+      school_university:
+        type: string
+      system_role_name:
+        type: string
+      tech_stack:
+        type: string
+      unavailable_until:
+        type: string
+      years_experience:
+        type: integer
+    type: object
+  request_model.ConfirmCVRequest:
     properties:
       edited_data:
         additionalProperties: true
         type: object
     required:
     - edited_data
+    type: object
+  request_model.CreateJobRoleRequest:
+    properties:
+      name:
+        type: string
+      sector_id:
+        type: string
+    required:
+    - name
+    - sector_id
+    type: object
+  request_model.CreateJobTitleRequest:
+    properties:
+      name:
+        type: string
+      sector_id:
+        type: string
+    required:
+    - name
+    - sector_id
+    type: object
+  request_model.CreateRecruitmentStatusRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  request_model.CreateSectorRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  request_model.CreateUserBySuperadminRequest:
+    properties:
+      account_status:
+        type: string
+      assigned_role_id:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      system_role_id:
+        type: string
+    type: object
+  request_model.EditUserBySuperadminRequest:
+    properties:
+      account_status:
+        type: string
+      assigned_role_id:
+        type: string
+      name:
+        type: string
     type: object
   request_model.LoginRequest:
     properties:
@@ -42,6 +143,40 @@ definitions:
         type: string
     required:
     - query
+    type: object
+  request_model.UpdateJobRoleRequest:
+    properties:
+      name:
+        type: string
+      sector_id:
+        type: string
+    required:
+    - name
+    - sector_id
+    type: object
+  request_model.UpdateJobTitleRequest:
+    properties:
+      name:
+        type: string
+      sector_id:
+        type: string
+    required:
+    - name
+    - sector_id
+    type: object
+  request_model.UpdateRecruitmentStatusRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  request_model.UpdateSectorRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
     type: object
   response.Base:
     properties:
@@ -95,21 +230,21 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Base'
-      summary: Login as member
+      summary: Login as user
       tags:
-      - auth
+      - Auth
   /auth/me:
     get:
       consumes:
       - application/json
-      description: Get detail current member
+      description: Get detail current user
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/gorm_model.UserResp'
+            $ref: '#/definitions/gorm_model.AuthMeResp'
         "400":
           description: Bad Request
           schema:
@@ -124,14 +259,14 @@ paths:
             $ref: '#/definitions/response.Base'
       security:
       - BearerAuth: []
-      summary: Detail member
+      summary: Detail user
       tags:
-      - auth
+      - Auth
   /auth/register:
     post:
       consumes:
       - application/json
-      description: Create a new member
+      description: Create a new user
       parameters:
       - description: Register Request
         in: body
@@ -158,26 +293,21 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Base'
-      summary: Register member
+      summary: Register user
       tags:
-      - auth
-  /cv/{id}/confirm:
+      - Auth
+  /cv/confirm:
     post:
       consumes:
       - application/json
       description: Confirm the parsed CV data after editing
       parameters:
-      - description: CV ID
-        in: path
-        name: id
-        required: true
-        type: string
       - description: Edited CV data
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/http_cv.ConfirmCVRequest'
+          $ref: '#/definitions/request_model.ConfirmCVRequest'
       produces:
       - application/json
       responses:
@@ -202,15 +332,32 @@ paths:
       summary: Confirm parsed CV data
       tags:
       - CV
-  /cv/{id}/parsed:
+  /cv/generate:
+    get:
+      description: Get presigned CV download link for current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Generate CV Link
+      tags:
+      - CV
+  /cv/parsed:
     get:
       description: Fetch the parsed CV data by CV ID
-      parameters:
-      - description: CV ID
-        in: path
-        name: id
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -258,6 +405,560 @@ paths:
       summary: Upload CV
       tags:
       - CV
+  /job-titles:
+    get:
+      consumes:
+      - application/json
+      description: Get All Job Titles
+      parameters:
+      - description: Sector ID
+        in: query
+        name: sector_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Job Titles
+      tags:
+      - Job Title
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateJobTitleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Job Title
+      tags:
+      - Job Title
+  /job-titles/{id}:
+    delete:
+      parameters:
+      - description: Title ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Job Title
+      tags:
+      - Job Title
+    get:
+      consumes:
+      - application/json
+      description: Get Job Title By ID
+      parameters:
+      - description: Title ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Job Title By ID
+      tags:
+      - Job Title
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Title ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateJobTitleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Job Title
+      tags:
+      - Job Title
+  /kabupaten:
+    get:
+      consumes:
+      - application/json
+      description: Get All Kabupaten Kota by Province ID
+      parameters:
+      - description: Provinsi ID
+        in: query
+        name: provinsi_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Get All Kabupaten Kota by Province ID
+      tags:
+      - Domisili
+  /profile:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed profile of current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gorm_model.UserResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Profile
+      tags:
+      - Profile
+  /provinsi:
+    get:
+      consumes:
+      - application/json
+      description: Get All Provinsi
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Get All Provinsi
+      tags:
+      - Domisili
+  /recruitment-statuses:
+    get:
+      consumes:
+      - application/json
+      description: Get All Recruitment Status
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      - description: Recruitment Status ID
+        in: query
+        name: recruitment_status_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Recruitment Status
+      tags:
+      - Recruitment Status
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateRecruitmentStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Recruitment Status
+      tags:
+      - Recruitment Status
+  /recruitment-statuses/{id}:
+    delete:
+      parameters:
+      - description: Recruitment Status ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Recruitment Status
+      tags:
+      - Recruitment Status
+    get:
+      consumes:
+      - application/json
+      description: Get Recruitment Status By ID
+      parameters:
+      - description: Recruitment Status ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Recruitment Status By ID
+      tags:
+      - Recruitment Status
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Recruitment Status ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateRecruitmentStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Recruitment Status
+      tags:
+      - Recruitment Status
+  /roles:
+    get:
+      consumes:
+      - application/json
+      description: Get All Job Roles
+      parameters:
+      - description: Sector ID
+        in: query
+        name: sector_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Job Roles
+      tags:
+      - Job Role
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateJobRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Job Role
+      tags:
+      - Job Role
+  /roles/{id}:
+    delete:
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Job Role
+      tags:
+      - Job Role
+    get:
+      consumes:
+      - application/json
+      description: Get Job Role By ID
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Job Role By ID
+      tags:
+      - Job Role
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateJobRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Job Role
+      tags:
+      - Job Role
   /search:
     post:
       consumes:
@@ -289,7 +990,496 @@ paths:
       - BearerAuth: []
       summary: Search
       tags:
-      - Search
+      - AI Search
+  /sectors:
+    get:
+      consumes:
+      - application/json
+      description: Get All Sector
+      parameters:
+      - description: Sector ID
+        in: query
+        name: sector_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Sector
+      tags:
+      - Sector (Bidang)
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateSectorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Sector
+      tags:
+      - Sector (Bidang)
+  /sectors/{id}:
+    delete:
+      parameters:
+      - description: Sector ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Sector
+      tags:
+      - Sector (Bidang)
+    get:
+      consumes:
+      - application/json
+      description: Get Sector By ID
+      parameters:
+      - description: Sector ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Sector By ID
+      tags:
+      - Sector (Bidang)
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Sector ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateSectorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Sector
+      tags:
+      - Sector (Bidang)
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Fetch a paginated list of all users
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch All Users
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user by superadmin
+      parameters:
+      - description: User object
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateUserBySuperadminRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create User By Superadmin
+      tags:
+      - Users
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Fetch detail of a specific user including their CV URL
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch User Detail
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Edit an existing user (Name, AssignedRoleId, AccountStatus) by
+        superadmin
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User edit object
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.EditUserBySuperadminRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Edit User By Superadmin
+      tags:
+      - Users
+  /users/{id}/activate:
+    patch:
+      consumes:
+      - application/json
+      description: Instantly activate a user by setting AccountStatus to "Inactive"
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Activate User By Superadmin
+      tags:
+      - Users
+  /users/{id}/block:
+    patch:
+      consumes:
+      - application/json
+      description: Instantly block a user by setting AccountStatus to "Blocked"
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Block User By Superadmin
+      tags:
+      - Users
+  /users/{id}/disable:
+    patch:
+      consumes:
+      - application/json
+      description: Instantly disable a user by setting AccountStatus to "Inactive"
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Disable User By Superadmin
+      tags:
+      - Users
+  /users/candidates:
+    get:
+      consumes:
+      - application/json
+      description: Fetch a paginated list of Candidate users
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch Candidates
+      tags:
+      - Users
 securityDefinitions:
   BearerAuth:
     description: 'Insert JWT Token with format: **Bearer {your token}**'

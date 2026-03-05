@@ -8,6 +8,7 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	jwt_helper "github.com/adkurnwn/gigsourcehub-general-api/helpers/jsonwebtoken"
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
@@ -63,6 +64,14 @@ func (u *appUsecase) Login(ctx context.Context, payload request_model.LoginReque
 		return response.Error(http.StatusBadRequest, err.Error())
 	}
 
+	// Manually ensure the Role Name is fetched so ToUserResp can properly suppress Candidate fields
+	roleName, errRole := u.gormDbRepo.GetRoleNameByUserID(ctx, user.ID)
+	if errRole == nil && roleName != "" {
+		user.SystemRole = &gorm_model.SystemRole{
+			Name: roleName,
+		}
+	}
+
 	return response.Success(map[string]interface{}{
 		"user":  user.ToUserResp(),
 		"token": tokenString,
@@ -81,6 +90,8 @@ func (u *appUsecase) Register(ctx context.Context, payload request_model.Registe
 
 	if payload.Email == "" {
 		errValidation["email"] = "email field is required"
+	} else if !helpers.IsValidEmail(payload.Email) {
+		errValidation["email"] = "invalid email format"
 	}
 
 	if payload.Password == "" {
@@ -104,13 +115,24 @@ func (u *appUsecase) Register(ctx context.Context, payload request_model.Registe
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(payload.Password), bcrypt.DefaultCost)
 
+	// Fetch default role "Candidate"
+	var candidateRole gorm_model.SystemRole
+	var systemRoleID *string
+	if err := u.gormDbRepo.GetDB().Where("name = ?", "Candidate").First(&candidateRole).Error; err == nil {
+		systemRoleID = &candidateRole.ID
+	}
+
+	activeStatus := "Active"
+
 	newUser := gorm_model.User{
-		ID:        uuid.New().String(),
-		Name:      payload.Name,
-		Email:     payload.Email,
-		Password:  string(hashedPassword),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		ID:            uuid.New().String(),
+		Name:          payload.Name,
+		Email:         payload.Email,
+		Password:      string(hashedPassword),
+		SystemRoleId:  systemRoleID,
+		AccountStatus: &activeStatus,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	}
 
 	err = u.gormDbRepo.CreateUser(ctx, &newUser)
@@ -118,7 +140,22 @@ func (u *appUsecase) Register(ctx context.Context, payload request_model.Registe
 		return response.Error(http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(newUser.ToUserResp())
+	// generate token
+	tokenString, err := jwt_helper.GenerateJWTToken(
+		jwt_helper.GetJwtCredential().Member,
+		domain.JWTClaimUser{
+			UserID: newUser.ID,
+		},
+	)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "failed to generate token")
+	}
+
+	return response.Success(map[string]interface{}{
+		"name":  newUser.Name,
+		"email": newUser.Email,
+		"token": tokenString,
+	})
 }
 
 func (u *appUsecase) GetMe(ctx context.Context, claim domain.JWTClaimUser) response.Base {
@@ -141,5 +178,13 @@ func (u *appUsecase) GetMe(ctx context.Context, claim domain.JWTClaimUser) respo
 		return response.Error(http.StatusBadRequest, "user not found")
 	}
 
-	return response.Success(user.ToUserResp())
+	// Manually ensure the Role Name is fetched so ToUserResp can properly suppress Candidate fields
+	roleName, err := u.gormDbRepo.GetRoleNameByUserID(ctx, userID)
+	if err == nil && roleName != "" {
+		user.SystemRole = &gorm_model.SystemRole{
+			Name: roleName,
+		}
+	}
+
+	return response.Success(user.ToAuthMeResp())
 }

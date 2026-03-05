@@ -1,6 +1,11 @@
 schema "public" {
 }
 
+enum "user_account_status" {
+  schema = schema.public
+  values = ["Active", "Inactive", "Blocked"]
+}
+
 table "users" {
   schema = schema.public
 
@@ -19,6 +24,75 @@ table "users" {
     type = varchar(255)
     null = false
   }
+  column "birthdate" {
+    type = date
+    null = true
+  }
+  column "school_university" {
+    type = varchar(255)
+    null = true
+  }
+  column "major" {
+    type = varchar(255)
+    null = true
+  }
+  column "gpa" {
+    type = decimal(3,2)
+    null = true
+  }
+
+  column "phone_number" {
+    type = varchar(20)
+    null = true
+  }
+  column "portofolio_link" {
+    type = text
+    null = true
+  }
+  column "kabupaten_kota_id" {
+    type = varchar(5)
+    null = true
+  }
+  column "years_experience" {
+    type = int
+    null = true
+  }
+  column "tech_stack" {
+    type = jsonb
+    null = true
+  }
+  column "profile_picture" {
+    type = varchar(255)
+    null = true
+  }
+  column "candidate_level" {
+    type = varchar(50)
+    null = true
+  }
+  column "recruitment_status_id" {
+    type = uuid
+    null = true
+  }
+  column "unavailable_until" {
+    type = date
+    null = true
+  }
+  column "system_role_id" {
+    type = uuid
+    null = true
+  }
+  column "assigned_role_id" {
+    type = uuid
+    null = true
+  }
+  column "account_status" {
+    type = enum.user_account_status
+    null = true
+  }
+  column "job_title_id" {
+    type = uuid
+    null = true
+  }
   column "created_at" {
     type = timestamptz
     null = false
@@ -32,49 +106,41 @@ table "users" {
     null = true
   }
 
-  column "pendidikan_terakhir" {
-    type = varchar(255)
-    null = true
+
+
+  foreign_key "user_system_role_fk" {
+    columns     = [column.system_role_id]
+    ref_columns = [table.system_roles.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
   }
-  column "instansi_pendidikan" {
-    type = varchar(255)
-    null = true
+
+  foreign_key "user_kabupaten_kota_fk" {
+    columns     = [column.kabupaten_kota_id]
+    ref_columns = [table.kabupaten_kota.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
   }
-  column "jurusan" {
-    type = varchar(255)
-    null = true
+
+  foreign_key "user_recruitment_status_fk" {
+    columns     = [column.recruitment_status_id]
+    ref_columns = [table.recruitment_statuses.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
   }
-  column "ipk" {
-    type = varchar(50)
-    null = true
+
+  foreign_key "user_assigned_role_fk" {
+    columns     = [column.assigned_role_id]
+    ref_columns = [table.job_roles.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
   }
-  column "kabupaten_id" {
-    type = varchar(5)
-    null = true
-  }
-  column "provinsi_id" {
-    type = varchar(2)
-    null = true
-  }
-  column "lama_pengalaman_kerja" {
-    type = varchar(255)
-    null = true
-  }
-  column "bidang_minat" {
-    type = varchar(255)
-    null = true
-  }
-  column "applied_role" {
-    type = varchar(255)
-    null = true
-  }
-  column "skills" {
-    type = jsonb
-    null = true
-  }
-  column "link_portofolio" {
-    type = varchar(255)
-    null = true
+
+  foreign_key "user_job_title_fk" {
+    columns     = [column.job_title_id]
+    ref_columns = [table.job_titles.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
   }
 
   primary_key {
@@ -85,12 +151,17 @@ table "users" {
     columns = [column.deleted_at]
   }
 
-  index "idx_users_provinsi_id" {
-    columns = [column.provinsi_id]
+  index "idx_users_kabupaten_kota_id" {
+    columns = [column.kabupaten_kota_id]
+  }
+  
+  index "idx_users_assigned_role_id" {
+    columns = [column.assigned_role_id]
   }
 
-  index "idx_users_kabupaten_id" {
-    columns = [column.kabupaten_id]
+  index "idx_users_email" {
+    columns = [column.email]
+    unique  = true
   }
 }
 
@@ -100,7 +171,7 @@ table "cvs" {
   column "id" {
     type = uuid
   }
-  column "name" {
+  column "filename" {
     type = varchar(255)
     null = false
   }
@@ -147,6 +218,13 @@ table "cvs" {
     columns = [column.user_id]
     unique  = true
   }
+
+  foreign_key "cv_user_fk" {
+    columns     = [column.user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
 }
 
 table "sectors" {
@@ -156,8 +234,17 @@ table "sectors" {
     type = uuid
   }
   column "name" {
-    type = varchar(255)
+    type = varchar(150)
     null = false
+  }
+  column "is_active" {
+    type    = boolean
+    default = true
+    null    = false
+  }
+  column "hex_code" {
+    type = varchar(10)
+    null = true
   }
   column "created_at" {
     type = timestamptz
@@ -181,14 +268,14 @@ table "sectors" {
   }
 }
 
-table "roles" {
+table "system_roles" {
   schema = schema.public
 
   column "id" {
     type = uuid
   }
   column "name" {
-    type = varchar(255)
+    type = varchar(150)
     null = false
   }
   column "created_at" {
@@ -204,21 +291,178 @@ table "roles" {
     null = true
   }
 
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_system_roles_deleted_at" {
+    columns = [column.deleted_at]
+  }
+}
+
+table "job_roles" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "name" {
+    type = varchar(150)
+    null = false
+  }
   column "sector_id" {
     type = uuid
     null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
   }
 
   primary_key {
     columns = [column.id]
   }
 
-  index "idx_roles_deleted_at" {
+  index "idx_job_roles_deleted_at" {
     columns = [column.deleted_at]
   }
 
-  index "idx_roles_sector_id" {
+  index "idx_job_roles_sector_id" {
     columns = [column.sector_id]
+  }
+
+  foreign_key "job_roles_sector_fk" {
+    columns     = [column.sector_id]
+    ref_columns = [table.sectors.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "job_titles" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "name" {
+    type = varchar(150)
+    null = false
+  }
+  column "sector_id" {
+    type = uuid
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_job_titles_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_job_titles_sector_id" {
+    columns = [column.sector_id]
+  }
+
+  foreign_key "job_titles_sector_fk" {
+    columns     = [column.sector_id]
+    ref_columns = [table.sectors.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "recruitment_statuses" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "name" {
+    type = varchar(150)
+    null = false
+  }
+  column "hex_code" {
+    type = varchar(10)
+    null = true
+  }
+  column "is_active" {
+    type    = boolean
+    default = true
+    null    = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_recruitment_statuses_deleted_at" {
+    columns = [column.deleted_at]
+  }
+}
+
+table "user_has_job_roles" {
+  schema = schema.public
+
+  column "user_id" {
+    type = uuid
+    null = false
+  }
+  column "job_role_id" {
+    type = uuid
+    null = false
+  }
+
+  primary_key {
+    columns = [column.user_id, column.job_role_id]
+  }
+
+  foreign_key "user_has_job_roles_user_fk" {
+    columns     = [column.user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "user_has_job_roles_job_role_fk" {
+    columns     = [column.job_role_id]
+    ref_columns = [table.job_roles.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
   }
 }
 
@@ -295,5 +539,51 @@ table "kabupaten_kota" {
 
   index "idx_kabupaten_kota_provinsi_id" {
     columns = [column.provinsi_id]
+  }
+
+  foreign_key "kabupaten_kota_provinsi_id_fk" {
+    columns     = [column.provinsi_id]
+    ref_columns = [table.provinsi.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "bookmarks" {
+  schema = schema.public
+
+  column "admin_id" {
+    type = uuid
+    null = false
+  }
+  column "candidate_id" {
+    type = uuid
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+
+  primary_key {
+    columns = [column.admin_id, column.candidate_id]
+  }
+
+  foreign_key "bookmarks_admin_fk" {
+    columns     = [column.admin_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "bookmarks_candidate_fk" {
+    columns     = [column.candidate_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
   }
 }

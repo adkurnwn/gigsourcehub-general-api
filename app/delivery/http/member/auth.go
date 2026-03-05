@@ -19,11 +19,11 @@ func (h *routeHandler) handleAuthRoute(prefixPath string) {
 	api.GET("/me", h.Middleware.Auth(), h.GetMe)
 }
 
-// Login Member
+// Login User
 //
-//	@Summary		Login as member
+//	@Summary		Login as user
 //	@Description	Login use email and password
-//	@Tags			auth
+//	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		request_model.LoginRequest	true	"Login Request"
@@ -46,11 +46,11 @@ func (r *routeHandler) Login(c *gin.Context) {
 	c.JSON(response.Status, response)
 }
 
-// Register Member
+// Register User
 //
-//	@Summary		Register member
-//	@Description	Create a new member
-//	@Tags			auth
+//	@Summary		Register user
+//	@Description	Create a new user
+//	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		request_model.RegisterRequest	true	"Register Request"
@@ -73,14 +73,14 @@ func (r *routeHandler) Register(c *gin.Context) {
 	c.JSON(response.Status, response)
 }
 
-// Detail Member
+// Detail User
 //
-//	@Summary		Detail member
-//	@Description	Get detail current member
-//	@Tags			auth
+//	@Summary		Detail user
+//	@Description	Get detail current user
+//	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	gorm_model.UserResp
+//	@Success		200	{object}	gorm_model.AuthMeResp
 //	@Failure		400	{object}	response.Base
 //	@Failure		404	{object}	response.Base
 //	@Failure		500	{object}	response.Base

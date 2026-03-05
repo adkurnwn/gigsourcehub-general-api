@@ -18,7 +18,9 @@ type GormRepo interface {
 	FetchOneUser(ctx context.Context, options gorm_model.UserFilter) (*gorm_model.User, error)
 	CountUser(ctx context.Context, options gorm_model.UserFilter) int64
 	CreateUser(ctx context.Context, model *gorm_model.User) (err error)
+	CreateUserBySuperadmin(ctx context.Context, model *gorm_model.User) (err error)
 	UpdateUser(ctx context.Context, model *gorm_model.User) (err error)
+	GetRoleNameByUserID(ctx context.Context, userID string) (string, error)
 
 	CreateCV(ctx context.Context, cv *gorm_model.CV) error
 	GetCVByUserID(ctx context.Context, userID string) (*gorm_model.CV, error)
@@ -27,6 +29,29 @@ type GormRepo interface {
 
 	GetProvinsiName(ctx context.Context, id string) (string, error)
 	GetKabupatenName(ctx context.Context, id string) (string, error)
+
+	FetchJobRole(ctx context.Context, options gorm_model.JobRoleFilter) (*sql.Rows, error)
+	CreateJobRole(ctx context.Context, model *gorm_model.JobRole) error
+	UpdateJobRole(ctx context.Context, model *gorm_model.JobRole) error
+	DeleteJobRole(ctx context.Context, id string) error
+
+	FetchJobTitle(ctx context.Context, options gorm_model.JobTitleFilter) (*sql.Rows, error)
+	CreateJobTitle(ctx context.Context, model *gorm_model.JobTitle) error
+	UpdateJobTitle(ctx context.Context, model *gorm_model.JobTitle) error
+	DeleteJobTitle(ctx context.Context, id string) error
+
+	FetchSector(ctx context.Context, options gorm_model.SectorFilter) (*sql.Rows, error)
+	CreateSector(ctx context.Context, model *gorm_model.Sector) error
+	UpdateSector(ctx context.Context, model *gorm_model.Sector) error
+	DeleteSector(ctx context.Context, id string) error
+
+	FetchRecruitmentStatus(ctx context.Context, options gorm_model.RecruitmentStatusFilter) (*sql.Rows, error)
+	CreateRecruitmentStatus(ctx context.Context, model *gorm_model.RecruitmentStatus) error
+	UpdateRecruitmentStatus(ctx context.Context, model *gorm_model.RecruitmentStatus) error
+	DeleteRecruitmentStatus(ctx context.Context, id string) error
+
+	FetchKabupatenKota(ctx context.Context, options gorm_model.KabupatenKotaFilter) (*sql.Rows, error)
+	FetchProvinsi(ctx context.Context, options gorm_model.ProvinsiFilter) (*sql.Rows, error)
 
 	GetDB() *gorm.DB
 }
