@@ -587,3 +587,622 @@ table "bookmarks" {
     on_delete   = CASCADE
   }
 }
+
+enum "request_urgency" {
+  schema = schema.public
+  values = ["HIGH", "MIDDLE", "LOW"]
+}
+
+enum "interview_status" {
+  schema = schema.public
+  values = ["SCHEDULED", "CANCELLED", "RESCHEDULED", "NO_SHOW"]
+}
+
+table "requests" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "project_name" {
+    type = varchar(255)
+    null = false
+  }
+  column "due_date" {
+    type = date
+    null = true
+  }
+  column "admin_user_id" {
+    type = uuid
+    null = true
+  }
+  column "employee_user_id" {
+    type = uuid
+    null = false
+  }
+  column "required_headcount" {
+    type = int
+    null = false
+  }
+  column "status" {
+    type = varchar(50)
+    null = true
+  }
+  column "urgency" {
+    type = enum.request_urgency
+    null = true
+  }
+  column "fulfillment_date" {
+    type = date
+    null = true
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_requests_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_requests_admin_user_id" {
+    columns = [column.admin_user_id]
+  }
+
+  index "idx_requests_employee_user_id" {
+    columns = [column.employee_user_id]
+  }
+
+  foreign_key "requests_admin_user_fk" {
+    columns     = [column.admin_user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "requests_employee_user_fk" {
+    columns     = [column.employee_user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "subrequests" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "request_id" {
+    type = uuid
+    null = false
+  }
+  column "min_years_experience" {
+    type = int
+    null = true
+  }
+  column "job_title_id" {
+    type = uuid
+    null = true
+  }
+  column "tech_stack" {
+    type = jsonb
+    null = true
+  }
+  column "notes" {
+    type = text
+    null = true
+  }
+  column "is_filled" {
+    type    = boolean
+    default = false
+    null    = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_subrequests_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_subrequests_request_id" {
+    columns = [column.request_id]
+  }
+
+  index "idx_subrequests_job_title_id" {
+    columns = [column.job_title_id]
+  }
+
+  foreign_key "subrequests_request_fk" {
+    columns     = [column.request_id]
+    ref_columns = [table.requests.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "subrequests_job_title_fk" {
+    columns     = [column.job_title_id]
+    ref_columns = [table.job_titles.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
+  }
+}
+
+table "interview_stages" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "name" {
+    type = varchar(255)
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_interview_stages_deleted_at" {
+    columns = [column.deleted_at]
+  }
+}
+
+table "interviews" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "candidate_user_id" {
+    type = uuid
+    null = false
+  }
+  column "subrequest_id" {
+    type = uuid
+    null = false
+  }
+  column "stage_id" {
+    type = uuid
+    null = false
+  }
+  column "scheduled_at" {
+    type = timestamptz
+    null = true
+  }
+  column "method" {
+    type = varchar(50)
+    null = true
+  }
+  column "status" {
+    type = enum.interview_status
+    null = true
+  }
+  column "meeting_link" {
+    type = varchar(255)
+    null = true
+  }
+  column "is_email_sent" {
+    type    = boolean
+    default = false
+    null    = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_interviews_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_interviews_candidate_user_id" {
+    columns = [column.candidate_user_id]
+  }
+
+  index "idx_interviews_subrequest_id" {
+    columns = [column.subrequest_id]
+  }
+
+  index "idx_interviews_stage_id" {
+    columns = [column.stage_id]
+  }
+
+  foreign_key "interviews_candidate_user_fk" {
+    columns     = [column.candidate_user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "interviews_subrequest_fk" {
+    columns     = [column.subrequest_id]
+    ref_columns = [table.subrequests.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "interviews_stage_fk" {
+    columns     = [column.stage_id]
+    ref_columns = [table.interview_stages.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
+  }
+}
+
+enum "message_attachment_type" {
+  schema = schema.public
+  values = ["INTERVIEW", "CONTRACT"]
+}
+
+table "conversations" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "admin_user_id" {
+    type = uuid
+    null = false
+  }
+  column "candidate_user_id" {
+    type = uuid
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_conversations_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_conversations_admin_user_id" {
+    columns = [column.admin_user_id]
+  }
+
+  index "idx_conversations_candidate_user_id" {
+    columns = [column.candidate_user_id]
+  }
+
+  foreign_key "conversations_admin_user_fk" {
+    columns     = [column.admin_user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "conversations_candidate_user_fk" {
+    columns     = [column.candidate_user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "messages" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "conversation_id" {
+    type = uuid
+    null = false
+  }
+  column "content" {
+    type = text
+    null = false
+  }
+  column "sender_user_id" {
+    type = uuid
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_messages_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_messages_conversation_id" {
+    columns = [column.conversation_id]
+  }
+
+  index "idx_messages_sender_user_id" {
+    columns = [column.sender_user_id]
+  }
+
+  foreign_key "messages_conversation_fk" {
+    columns     = [column.conversation_id]
+    ref_columns = [table.conversations.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "messages_sender_user_fk" {
+    columns     = [column.sender_user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "contracts" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "filename" {
+    type = varchar(255)
+    null = false
+  }
+  column "user_id_kandidat" {
+    type = uuid
+    null = false
+  }
+  column "path" {
+    type = varchar(255)
+    null = false
+  }
+  column "subrequest_id" {
+    type = uuid
+    null = false
+  }
+  column "start_date" {
+    type = date
+    null = true
+  }
+  column "end_date" {
+    type = date
+    null = true
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_contracts_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_contracts_user_id_kandidat" {
+    columns = [column.user_id_kandidat]
+  }
+
+  index "idx_contracts_subrequest_id" {
+    columns = [column.subrequest_id]
+  }
+
+  foreign_key "contracts_user_kandidat_fk" {
+    columns     = [column.user_id_kandidat]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "contracts_subrequest_fk" {
+    columns     = [column.subrequest_id]
+    ref_columns = [table.subrequests.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "message_attachments" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "message_id" {
+    type = uuid
+    null = false
+  }
+  column "attachment_type" {
+    type = enum.message_attachment_type
+    null = false
+  }
+  column "interview_id" {
+    type = uuid
+    null = true
+  }
+  column "contract_id" {
+    type = uuid
+    null = true
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_message_attachments_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_message_attachments_message_id" {
+    columns = [column.message_id]
+  }
+
+  foreign_key "message_attachments_message_fk" {
+    columns     = [column.message_id]
+    ref_columns = [table.messages.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "message_attachments_interview_fk" {
+    columns     = [column.interview_id]
+    ref_columns = [table.interviews.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
+  }
+
+  foreign_key "message_attachments_contract_fk" {
+    columns     = [column.contract_id]
+    ref_columns = [table.contracts.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
+  }
+}
+
+table "onboard_histories" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "candidate_user_id" {
+    type = uuid
+    null = false
+  }
+  column "contract_id" {
+    type = uuid
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_onboard_histories_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_onboard_histories_candidate_user_id" {
+    columns = [column.candidate_user_id]
+  }
+
+  index "idx_onboard_histories_contract_id" {
+    columns = [column.contract_id]
+  }
+
+  foreign_key "onboard_histories_candidate_user_fk" {
+    columns     = [column.candidate_user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "onboard_histories_contract_fk" {
+    columns     = [column.contract_id]
+    ref_columns = [table.contracts.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
