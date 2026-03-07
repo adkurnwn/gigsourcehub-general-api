@@ -2,6 +2,7 @@ package s3repo
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"time"
 
@@ -25,33 +26,16 @@ func (r *s3Repo) GetPresignedLink(objectKey string, expires *time.Duration) stri
 }
 
 func (r *s3Repo) GetPublicLink(objectKey string) string {
-	url := &url.URL{}
+	baseURL := &url.URL{}
 	if r.publicURL == nil {
-		// If no public URL configured, try to construct from minio client endpoint
-		// This might return the internal endpointURL which might not be reachable from public
-		// But it maintains previous behavior logic
 		u := r.client.EndpointURL()
-		url = u
+		baseURL = u
 	} else {
-		url = r.publicURL
+		baseURL = r.publicURL
 	}
 
-	// add path with object key
-	// We need to ensure we don't double encode or miss the bucket if strictly following path style
-	// Previous implementation just appended objectKey to Path.
-	// If publicURL includes bucket (e.g. cdn.example.com), this is fine.
-	// If publicURL is just host, we might need to append bucket if not virtual-host style.
-	// Given previous code: url.Path = objectKey, it assumes publicURL points to the root concept or bucket root.
-	// We'll stick to that.
-
-	newURL := *url
-	newURL.Path = objectKey
-	if r.publicURL == nil {
-		// If we are using the endpoint URL (which usually doesn't have bucket in path for minio-go unless configured),
-		// we might need to append bucket/key if it's path style.
-		// But minio-go EndpointURL() returns the base.
-		// Let's assume for now user has S3_PUBLIC_URL set correctly as per env file.
-	}
+	newURL := *baseURL
+	newURL.Path = fmt.Sprintf("/%s/%s", r.bucketName, objectKey)
 
 	return newURL.String()
 }

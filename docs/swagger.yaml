@@ -748,6 +748,41 @@ paths:
       summary: Get Profile
       tags:
       - Profile
+  /profile/picture:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a profile picture for the current user
+      parameters:
+      - description: Profile picture file (JPEG, PNG, WebP)
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Upload Profile Picture
+      tags:
+      - Profile
   /provinsi:
     get:
       consumes:

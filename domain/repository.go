@@ -74,6 +74,7 @@ type StorageRepo interface {
 	GetPublicLink(objectKey string) string
 	UploadFilePublic(objectKey string, body io.Reader, contentType string) (uploadData *storage_model.UploadResponse, err error)
 	UploadFilePrivate(objectKey string, body io.Reader, contentType string, expires *time.Duration) (uploadData *storage_model.UploadResponse, err error)
+	DeleteFile(objectKey string) error
 }
 
 type MessageBroker interface {

@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"mime/multipart"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
@@ -21,6 +22,7 @@ type MemberAppUsecase interface {
 	BlockUserBySuperadmin(ctx context.Context, id string) response.Base
 	DisableUserBySuperadmin(ctx context.Context, id string) response.Base
 	ActivateUserBySuperadmin(ctx context.Context, id string) response.Base
+	UploadProfilePicture(ctx context.Context, userID string, file *multipart.FileHeader) response.Base
 }
 
 type JobRoleAppUsecase interface {

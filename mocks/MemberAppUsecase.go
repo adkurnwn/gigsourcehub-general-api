@@ -8,6 +8,8 @@ import (
 	domain "github.com/adkurnwn/gigsourcehub-general-api/domain"
 	mock "github.com/stretchr/testify/mock"
 
+	multipart "mime/multipart"
+
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 
 	response "github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
@@ -544,6 +546,54 @@ func (_c *MemberAppUsecase_Register_Call) Return(_a0 response.Base) *MemberAppUs
 }
 
 func (_c *MemberAppUsecase_Register_Call) RunAndReturn(run func(context.Context, request_model.RegisterRequest) response.Base) *MemberAppUsecase_Register_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UploadProfilePicture provides a mock function with given fields: ctx, userID, file
+func (_m *MemberAppUsecase) UploadProfilePicture(ctx context.Context, userID string, file *multipart.FileHeader) response.Base {
+	ret := _m.Called(ctx, userID, file)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UploadProfilePicture")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string, *multipart.FileHeader) response.Base); ok {
+		r0 = rf(ctx, userID, file)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_UploadProfilePicture_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UploadProfilePicture'
+type MemberAppUsecase_UploadProfilePicture_Call struct {
+	*mock.Call
+}
+
+// UploadProfilePicture is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - file *multipart.FileHeader
+func (_e *MemberAppUsecase_Expecter) UploadProfilePicture(ctx interface{}, userID interface{}, file interface{}) *MemberAppUsecase_UploadProfilePicture_Call {
+	return &MemberAppUsecase_UploadProfilePicture_Call{Call: _e.mock.On("UploadProfilePicture", ctx, userID, file)}
+}
+
+func (_c *MemberAppUsecase_UploadProfilePicture_Call) Run(run func(ctx context.Context, userID string, file *multipart.FileHeader)) *MemberAppUsecase_UploadProfilePicture_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(*multipart.FileHeader))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_UploadProfilePicture_Call) Return(_a0 response.Base) *MemberAppUsecase_UploadProfilePicture_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_UploadProfilePicture_Call) RunAndReturn(run func(context.Context, string, *multipart.FileHeader) response.Base) *MemberAppUsecase_UploadProfilePicture_Call {
 	_c.Call.Return(run)
 	return _c
 }
