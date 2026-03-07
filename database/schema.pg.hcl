@@ -593,6 +593,11 @@ enum "request_urgency" {
   values = ["HIGH", "MIDDLE", "LOW"]
 }
 
+enum "request_status" {
+  schema = schema.public
+  values = ["PENDING", "ACCEPTED", "PROCESSING", "REJECTED", "DONE"]
+}
+
 enum "interview_status" {
   schema = schema.public
   values = ["SCHEDULED", "CANCELLED", "RESCHEDULED", "NO_SHOW"]
@@ -625,8 +630,9 @@ table "requests" {
     null = false
   }
   column "status" {
-    type = varchar(50)
-    null = true
+    type    = enum.request_status
+    default = "'PENDING'"
+    null    = false
   }
   column "urgency" {
     type = enum.request_urgency
