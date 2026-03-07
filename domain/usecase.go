@@ -72,3 +72,7 @@ type BookmarkAppUsecase interface {
 	Delete(ctx context.Context, adminID string, candidateID string) response.Base
 	FetchByAdmin(ctx context.Context, adminID string, page, limit int64) response.Base
 }
+
+type RequestAppUsecase interface {
+	CreateByEmployee(ctx context.Context, employeeID string, req request_model.CreateRequestRequest) response.Base
+}

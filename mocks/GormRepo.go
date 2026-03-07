@@ -366,6 +366,53 @@ func (_c *GormRepo_CreateRecruitmentStatus_Call) RunAndReturn(run func(context.C
 	return _c
 }
 
+// CreateRequest provides a mock function with given fields: ctx, model
+func (_m *GormRepo) CreateRequest(ctx context.Context, model *gorm_model.Request) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateRequest")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.Request) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_CreateRequest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateRequest'
+type GormRepo_CreateRequest_Call struct {
+	*mock.Call
+}
+
+// CreateRequest is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.Request
+func (_e *GormRepo_Expecter) CreateRequest(ctx interface{}, model interface{}) *GormRepo_CreateRequest_Call {
+	return &GormRepo_CreateRequest_Call{Call: _e.mock.On("CreateRequest", ctx, model)}
+}
+
+func (_c *GormRepo_CreateRequest_Call) Run(run func(ctx context.Context, model *gorm_model.Request)) *GormRepo_CreateRequest_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.Request))
+	})
+	return _c
+}
+
+func (_c *GormRepo_CreateRequest_Call) Return(_a0 error) *GormRepo_CreateRequest_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_CreateRequest_Call) RunAndReturn(run func(context.Context, *gorm_model.Request) error) *GormRepo_CreateRequest_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateSector provides a mock function with given fields: ctx, model
 func (_m *GormRepo) CreateSector(ctx context.Context, model *gorm_model.Sector) error {
 	ret := _m.Called(ctx, model)

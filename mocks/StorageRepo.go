@@ -23,6 +23,52 @@ func (_m *StorageRepo) EXPECT() *StorageRepo_Expecter {
 	return &StorageRepo_Expecter{mock: &_m.Mock}
 }
 
+// DeleteFile provides a mock function with given fields: objectKey
+func (_m *StorageRepo) DeleteFile(objectKey string) error {
+	ret := _m.Called(objectKey)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteFile")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(objectKey)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// StorageRepo_DeleteFile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteFile'
+type StorageRepo_DeleteFile_Call struct {
+	*mock.Call
+}
+
+// DeleteFile is a helper method to define mock.On call
+//   - objectKey string
+func (_e *StorageRepo_Expecter) DeleteFile(objectKey interface{}) *StorageRepo_DeleteFile_Call {
+	return &StorageRepo_DeleteFile_Call{Call: _e.mock.On("DeleteFile", objectKey)}
+}
+
+func (_c *StorageRepo_DeleteFile_Call) Run(run func(objectKey string)) *StorageRepo_DeleteFile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *StorageRepo_DeleteFile_Call) Return(_a0 error) *StorageRepo_DeleteFile_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *StorageRepo_DeleteFile_Call) RunAndReturn(run func(string) error) *StorageRepo_DeleteFile_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetPresignedLink provides a mock function with given fields: objectKey, expires
 func (_m *StorageRepo) GetPresignedLink(objectKey string, expires *time.Duration) string {
 	ret := _m.Called(objectKey, expires)

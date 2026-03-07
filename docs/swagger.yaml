@@ -99,12 +99,50 @@ definitions:
     required:
     - name
     type: object
+  request_model.CreateRequestRequest:
+    properties:
+      due_date:
+        type: string
+      project_name:
+        type: string
+      subrequests:
+        items:
+          $ref: '#/definitions/request_model.CreateSubrequestRequest'
+        minItems: 1
+        type: array
+      urgency:
+        enum:
+        - Low
+        - Medium
+        - High
+        type: string
+    required:
+    - project_name
+    - subrequests
+    - urgency
+    type: object
   request_model.CreateSectorRequest:
     properties:
       name:
         type: string
     required:
     - name
+    type: object
+  request_model.CreateSubrequestRequest:
+    properties:
+      job_title_id:
+        type: string
+      min_years_experience:
+        minimum: 0
+        type: integer
+      notes:
+        type: string
+      tech_stack:
+        items:
+          type: string
+        type: array
+    required:
+    - min_years_experience
     type: object
   request_model.CreateUserBySuperadminRequest:
     properties:
@@ -969,6 +1007,36 @@ paths:
       summary: Update Recruitment Status
       tags:
       - Recruitment Status
+  /requests:
+    post:
+      consumes:
+      - application/json
+      description: Allows an Employee to submit a new Request containing multiple
+        distinct Subrequest configurations
+      parameters:
+      - description: Request Data
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create a Request and multiple Subrequests
+      tags:
+      - Employee Request
   /roles:
     get:
       consumes:

@@ -59,6 +59,8 @@ type GormRepo interface {
 	FetchBookmarksByAdmin(ctx context.Context, adminID string, limit, offset int64) (*sql.Rows, error)
 	CountBookmarksByAdmin(ctx context.Context, adminID string) (int64, error)
 
+	CreateRequest(ctx context.Context, model *gorm_model.Request) error
+
 	GetDB() *gorm.DB
 }
 
