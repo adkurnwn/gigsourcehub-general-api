@@ -31,3 +31,53 @@ func (m *Request) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	return
 }
+
+type RequestResp struct {
+	ID                string           `json:"id"`
+	ProjectName       string           `json:"project_name"`
+	DueDate           *string          `json:"due_date"`
+	AdminUserID       *string          `json:"admin_user_id"`
+	EmployeeUserID    string           `json:"employee_user_id"`
+	RequiredHeadcount int              `json:"required_headcount"`
+	Status            string           `json:"status"`
+	Urgency           string           `json:"urgency"`
+	FulfillmentDate   *string          `json:"fulfillment_date"`
+	Subrequests       []SubrequestResp `json:"subrequests,omitempty"`
+	CreatedAt         time.Time        `json:"created_at"`
+	UpdatedAt         time.Time        `json:"updated_at"`
+}
+
+func (row *Request) ToRequestResp() RequestResp {
+	var dueDateStr *string
+	if row.DueDate != nil {
+		str := row.DueDate.Format(time.RFC3339)
+		dueDateStr = &str
+	}
+	var fulfillmentStr *string
+	if row.FulfillmentDate != nil {
+		str := row.FulfillmentDate.Format(time.RFC3339)
+		fulfillmentStr = &str
+	}
+
+	var subResponses []SubrequestResp
+	if row.Subrequests != nil {
+		for _, sub := range row.Subrequests {
+			subResponses = append(subResponses, sub.ToSubrequestResp())
+		}
+	}
+
+	return RequestResp{
+		ID:                row.ID,
+		ProjectName:       row.ProjectName,
+		DueDate:           dueDateStr,
+		AdminUserID:       row.AdminUserID,
+		EmployeeUserID:    row.EmployeeUserID,
+		RequiredHeadcount: row.RequiredHeadcount,
+		Status:            row.Status,
+		Urgency:           row.Urgency,
+		FulfillmentDate:   fulfillmentStr,
+		Subrequests:       subResponses,
+		CreatedAt:         row.CreatedAt,
+		UpdatedAt:         row.UpdatedAt,
+	}
+}

@@ -2,6 +2,7 @@ package gormrepo
 
 import (
 	"context"
+	"database/sql"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	"github.com/sirupsen/logrus"
@@ -13,4 +14,45 @@ func (r *gormRepo) CreateRequest(ctx context.Context, model *gorm_model.Request)
 		return err
 	}
 	return nil
+}
+
+func (r *gormRepo) FetchRequestsByEmployee(ctx context.Context, employeeID string, limit, offset int64) (*sql.Rows, error) {
+	q := r.db.WithContext(ctx).Model(&gorm_model.Request{}).
+		Preload("Subrequests").
+		Preload("Subrequests.JobTitle").
+		Where("employee_user_id = ?", employeeID).
+		Order("created_at DESC").
+		Limit(int(limit)).Offset(int(offset))
+
+	rows, err := q.Rows()
+	if err != nil {
+		logrus.Errorf("FetchRequestsByEmployee DB Error: %v\n", err)
+		return nil, err
+	}
+	return rows, nil
+}
+
+func (r *gormRepo) CountRequestsByEmployee(ctx context.Context, employeeID string) (int64, error) {
+	var total int64
+	err := r.db.WithContext(ctx).Model(&gorm_model.Request{}).
+		Where("employee_user_id = ?", employeeID).Count(&total).Error
+	if err != nil {
+		logrus.Errorf("CountRequestsByEmployee DB Error: %v\n", err)
+		return 0, err
+	}
+	return total, nil
+}
+
+func (r *gormRepo) GetRequestByID(ctx context.Context, id string) (*gorm_model.Request, error) {
+	var request gorm_model.Request
+	err := r.db.WithContext(ctx).
+		Preload("Subrequests").
+		Preload("Subrequests.JobTitle").
+		Where("id = ?", id).
+		First(&request).Error
+	if err != nil {
+		logrus.Errorf("GetRequestByID DB Error: %v\n", err)
+		return nil, err
+	}
+	return &request, nil
 }
