@@ -53,6 +53,12 @@ type GormRepo interface {
 	FetchKabupatenKota(ctx context.Context, options gorm_model.KabupatenKotaFilter) (*sql.Rows, error)
 	FetchProvinsi(ctx context.Context, options gorm_model.ProvinsiFilter) (*sql.Rows, error)
 
+	CreateBookmark(ctx context.Context, model *gorm_model.Bookmark) error
+	GetBookmark(ctx context.Context, adminID, candidateID string) (*gorm_model.Bookmark, error)
+	DeleteBookmark(ctx context.Context, adminID, candidateID string) (int64, error)
+	FetchBookmarksByAdmin(ctx context.Context, adminID string, limit, offset int64) (*sql.Rows, error)
+	CountBookmarksByAdmin(ctx context.Context, adminID string) (int64, error)
+
 	GetDB() *gorm.DB
 }
 

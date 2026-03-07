@@ -64,3 +64,9 @@ type ProvinsiAppUsecase interface {
 	FetchAll(ctx context.Context, filter gorm_model.ProvinsiFilter) response.Base
 	FetchData(ctx context.Context, id string) response.Base
 }
+
+type BookmarkAppUsecase interface {
+	Create(ctx context.Context, adminID string, req request_model.CreateBookmarkRequest) response.Base
+	Delete(ctx context.Context, adminID string, candidateID string) response.Base
+	FetchByAdmin(ctx context.Context, adminID string, page, limit int64) response.Base
+}
