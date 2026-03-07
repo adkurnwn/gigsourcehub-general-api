@@ -12,8 +12,8 @@ type Subrequest struct {
 	RequestID          string         `gorm:"column:request_id;type:uuid;not null"`
 	Request            *Request       `gorm:"foreignKey:RequestID"`
 	MinYearsExperience int            `gorm:"column:min_years_experience;type:int"`
-	JobTitleID         *string        `gorm:"column:job_title_id;type:uuid"`
-	JobTitle           *JobTitle      `gorm:"foreignKey:JobTitleID"`
+	JobRoleID          *string        `gorm:"column:job_role_id;type:uuid"`
+	JobRole            *JobRole       `gorm:"foreignKey:JobRoleID"`
 	TechStack          *string        `gorm:"column:tech_stack;type:jsonb"`
 	Notes              *string        `gorm:"column:notes;type:text"`
 	IsFilled           bool           `gorm:"column:is_filled;type:boolean;default:false"`
@@ -33,23 +33,23 @@ type SubrequestResp struct {
 	ID                 string  `json:"id"`
 	RequestID          string  `json:"request_id"`
 	MinYearsExperience int     `json:"min_years_experience"`
-	JobTitle           *string `json:"job_title"`
+	JobRole            *string `json:"job_role"`
 	TechStack          *string `json:"tech_stack"`
 	Notes              *string `json:"notes"`
 	IsFilled           bool    `json:"is_filled"`
 }
 
 func (row *Subrequest) ToSubrequestResp() SubrequestResp {
-	var jobTitleName *string
-	if row.JobTitle != nil {
-		jobTitleName = &row.JobTitle.Name
+	var jobRoleName *string
+	if row.JobRole != nil {
+		jobRoleName = &row.JobRole.Name
 	}
 
 	return SubrequestResp{
 		ID:                 row.ID,
 		RequestID:          row.RequestID,
 		MinYearsExperience: row.MinYearsExperience,
-		JobTitle:           jobTitleName,
+		JobRole:            jobRoleName,
 		TechStack:          row.TechStack,
 		Notes:              row.Notes,
 		IsFilled:           row.IsFilled,

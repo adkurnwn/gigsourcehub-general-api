@@ -130,7 +130,7 @@ definitions:
     type: object
   request_model.CreateSubrequestRequest:
     properties:
-      job_title_id:
+      job_role_id:
         type: string
       min_years_experience:
         minimum: 0
@@ -600,7 +600,7 @@ paths:
       - BearerAuth: []
       summary: Get All Job Titles
       tags:
-      - Job Title
+      - Job Title (Jabatan)
     post:
       consumes:
       - application/json
@@ -630,7 +630,7 @@ paths:
       - BearerAuth: []
       summary: Create Job Title
       tags:
-      - Job Title
+      - Job Title (Jabatan)
   /job-titles/{id}:
     delete:
       parameters:
@@ -654,7 +654,7 @@ paths:
       - BearerAuth: []
       summary: Delete Job Title
       tags:
-      - Job Title
+      - Job Title (Jabatan)
     get:
       consumes:
       - application/json
@@ -684,7 +684,7 @@ paths:
       - BearerAuth: []
       summary: Get Job Title By ID
       tags:
-      - Job Title
+      - Job Title (Jabatan)
     put:
       consumes:
       - application/json
@@ -723,7 +723,7 @@ paths:
       - BearerAuth: []
       summary: Update Job Title
       tags:
-      - Job Title
+      - Job Title (Jabatan)
   /kabupaten:
     get:
       consumes:

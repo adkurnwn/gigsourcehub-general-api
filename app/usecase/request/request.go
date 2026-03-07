@@ -60,7 +60,7 @@ func (u *appUsecase) CreateByEmployee(ctx context.Context, employeeID string, re
 
 		subReq := gorm_model.Subrequest{
 			MinYearsExperience: sub.MinYearsExperience,
-			JobTitleID:         sub.JobTitleID,
+			JobRoleID:          sub.JobRoleID,
 			TechStack:          techStackJSON,
 			Notes:              sub.Notes,
 			IsFilled:           false, // Default value

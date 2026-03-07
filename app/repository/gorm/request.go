@@ -19,7 +19,7 @@ func (r *gormRepo) CreateRequest(ctx context.Context, model *gorm_model.Request)
 func (r *gormRepo) FetchRequestsByEmployee(ctx context.Context, employeeID string, limit, offset int64) (*sql.Rows, error) {
 	q := r.db.WithContext(ctx).Model(&gorm_model.Request{}).
 		Preload("Subrequests").
-		Preload("Subrequests.JobTitle").
+		Preload("Subrequests.JobRole").
 		Where("employee_user_id = ?", employeeID).
 		Order("created_at DESC").
 		Limit(int(limit)).Offset(int(offset))
@@ -47,7 +47,7 @@ func (r *gormRepo) GetRequestByID(ctx context.Context, id string) (*gorm_model.R
 	var request gorm_model.Request
 	err := r.db.WithContext(ctx).
 		Preload("Subrequests").
-		Preload("Subrequests.JobTitle").
+		Preload("Subrequests.JobRole").
 		Where("id = ?", id).
 		First(&request).Error
 	if err != nil {

@@ -1,7 +1,7 @@
 package request_model
 
 type CreateSubrequestRequest struct {
-	JobTitleID         *string  `json:"job_title_id"`
+	JobRoleID          *string  `json:"job_role_id"`
 	MinYearsExperience int      `json:"min_years_experience" validate:"required,min=0"`
 	TechStack          []string `json:"tech_stack"`
 	Notes              *string  `json:"notes"`

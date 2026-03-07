@@ -15,11 +15,11 @@ CREATE INDEX "idx_requests_deleted_at" ON "public"."requests" ("deleted_at");
 -- Create index "idx_requests_employee_user_id" to table: "requests"
 CREATE INDEX "idx_requests_employee_user_id" ON "public"."requests" ("employee_user_id");
 -- Create "subrequests" table
-CREATE TABLE "public"."subrequests" ("id" uuid NOT NULL, "request_id" uuid NOT NULL, "min_years_experience" integer NULL, "job_title_id" uuid NULL, "tech_stack" jsonb NULL, "notes" text NULL, "is_filled" boolean NOT NULL DEFAULT false, "created_at" timestamptz NOT NULL, "updated_at" timestamptz NOT NULL, "deleted_at" timestamptz NULL, PRIMARY KEY ("id"), CONSTRAINT "subrequests_job_title_fk" FOREIGN KEY ("job_title_id") REFERENCES "public"."job_titles" ("id") ON UPDATE NO ACTION ON DELETE SET NULL, CONSTRAINT "subrequests_request_fk" FOREIGN KEY ("request_id") REFERENCES "public"."requests" ("id") ON UPDATE NO ACTION ON DELETE CASCADE);
+CREATE TABLE "public"."subrequests" ("id" uuid NOT NULL, "request_id" uuid NOT NULL, "min_years_experience" integer NULL, "job_role_id" uuid NULL, "tech_stack" jsonb NULL, "notes" text NULL, "is_filled" boolean NOT NULL DEFAULT false, "created_at" timestamptz NOT NULL, "updated_at" timestamptz NOT NULL, "deleted_at" timestamptz NULL, PRIMARY KEY ("id"), CONSTRAINT "subrequests_job_role_fk" FOREIGN KEY ("job_role_id") REFERENCES "public"."job_roles" ("id") ON UPDATE NO ACTION ON DELETE SET NULL, CONSTRAINT "subrequests_request_fk" FOREIGN KEY ("request_id") REFERENCES "public"."requests" ("id") ON UPDATE NO ACTION ON DELETE CASCADE);
 -- Create index "idx_subrequests_deleted_at" to table: "subrequests"
 CREATE INDEX "idx_subrequests_deleted_at" ON "public"."subrequests" ("deleted_at");
--- Create index "idx_subrequests_job_title_id" to table: "subrequests"
-CREATE INDEX "idx_subrequests_job_title_id" ON "public"."subrequests" ("job_title_id");
+-- Create index "idx_subrequests_job_role_id" to table: "subrequests"
+CREATE INDEX "idx_subrequests_job_role_id" ON "public"."subrequests" ("job_role_id");
 -- Create index "idx_subrequests_request_id" to table: "subrequests"
 CREATE INDEX "idx_subrequests_request_id" ON "public"."subrequests" ("request_id");
 -- Create "interviews" table

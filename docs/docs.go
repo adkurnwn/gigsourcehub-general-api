@@ -546,7 +546,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Job Title"
+                    "Job Title (Jabatan)"
                 ],
                 "summary": "Get All Job Titles",
                 "parameters": [
@@ -591,7 +591,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Job Title"
+                    "Job Title (Jabatan)"
                 ],
                 "summary": "Create Job Title",
                 "parameters": [
@@ -642,7 +642,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Job Title"
+                    "Job Title (Jabatan)"
                 ],
                 "summary": "Get Job Title By ID",
                 "parameters": [
@@ -688,7 +688,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Job Title"
+                    "Job Title (Jabatan)"
                 ],
                 "summary": "Update Job Title",
                 "parameters": [
@@ -746,7 +746,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Job Title"
+                    "Job Title (Jabatan)"
                 ],
                 "summary": "Delete Job Title",
                 "parameters": [
@@ -2637,7 +2637,7 @@ const docTemplate = `{
                 "min_years_experience"
             ],
             "properties": {
-                "job_title_id": {
+                "job_role_id": {
                     "type": "string"
                 },
                 "min_years_experience": {
