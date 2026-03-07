@@ -28,3 +28,30 @@ func (m *Subrequest) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	return
 }
+
+type SubrequestResp struct {
+	ID                 string  `json:"id"`
+	RequestID          string  `json:"request_id"`
+	MinYearsExperience int     `json:"min_years_experience"`
+	JobTitle           *string `json:"job_title"`
+	TechStack          *string `json:"tech_stack"`
+	Notes              *string `json:"notes"`
+	IsFilled           bool    `json:"is_filled"`
+}
+
+func (row *Subrequest) ToSubrequestResp() SubrequestResp {
+	var jobTitleName *string
+	if row.JobTitle != nil {
+		jobTitleName = &row.JobTitle.Name
+	}
+
+	return SubrequestResp{
+		ID:                 row.ID,
+		RequestID:          row.RequestID,
+		MinYearsExperience: row.MinYearsExperience,
+		JobTitle:           jobTitleName,
+		TechStack:          row.TechStack,
+		Notes:              row.Notes,
+		IsFilled:           row.IsFilled,
+	}
+}

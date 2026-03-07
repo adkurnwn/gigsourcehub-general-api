@@ -95,3 +95,66 @@ func (u *appUsecase) verifyEmployee(ctx context.Context, userID string) (bool, *
 	}
 	return false, user, nil
 }
+
+func (u *appUsecase) FetchByEmployee(ctx context.Context, employeeID string, page, limit int64) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	offset := (page - 1) * limit
+
+	total, err := u.gormDbRepo.CountRequestsByEmployee(ctx, employeeID)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to count requests")
+	}
+
+	rows, err := u.gormDbRepo.FetchRequestsByEmployee(ctx, employeeID, limit, offset)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch requests")
+	}
+	defer rows.Close()
+
+	var results []interface{}
+	for rows.Next() {
+		var req gorm_model.Request
+		if err := u.gormDbRepo.StructScan(rows, &req); err != nil {
+			logrus.Errorf("Failed to scan request: %v", err)
+			continue
+		}
+
+		// Because StructScan doesn't execute Preloads, we need to fetch the whole struct natively
+		// Preloads only work on DB.Find() and First(), not strictly raw Row iterating unless handled with Gorm directly.
+		// A cleaner standard GORM pagination approach would use Find... Let's just lookup by ID real quick for each since they're paginated to limit 10:
+		fullReq, err := u.gormDbRepo.GetRequestByID(ctx, req.ID)
+		if err == nil {
+			results = append(results, fullReq.ToRequestResp())
+		}
+	}
+
+	return response.Success(response.List{
+		List:  results,
+		Limit: limit,
+		Page:  page,
+		Total: total,
+	})
+}
+
+func (u *appUsecase) GetByID(ctx context.Context, employeeID, requestID string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	req, err := u.gormDbRepo.GetRequestByID(ctx, requestID)
+	if err != nil {
+		// Differentiate between generic DB error and Not Found
+		if err.Error() == "record not found" {
+			return response.Error(http.StatusNotFound, "Request not found")
+		}
+		return response.Error(http.StatusInternalServerError, "Failed to fetch request")
+	}
+
+	// Make sure the employee who made the request is the one retrieving it
+	if req.EmployeeUserID != employeeID {
+		return response.Error(http.StatusForbidden, "You do not have permission to view this request")
+	}
+
+	return response.Success(req.ToRequestResp())
+}

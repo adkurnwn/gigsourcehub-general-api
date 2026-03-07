@@ -75,4 +75,6 @@ type BookmarkAppUsecase interface {
 
 type RequestAppUsecase interface {
 	CreateByEmployee(ctx context.Context, employeeID string, req request_model.CreateRequestRequest) response.Base
+	FetchByEmployee(ctx context.Context, employeeID string, page, limit int64) response.Base
+	GetByID(ctx context.Context, employeeID, requestID string) response.Base
 }
