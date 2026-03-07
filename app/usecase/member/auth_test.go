@@ -49,6 +49,7 @@ func (suite *UnitTestSuite) SetupTest() {
 	gormDbRepo.On("GetDB").Return(nil)
 	gormDbRepo.On("GetCVByID", mock.Anything, mock.Anything).Return(&gorm_model.CV{}, nil)
 	gormDbRepo.On("UpdateCV", mock.Anything, mock.Anything).Return(nil)
+	gormDbRepo.On("CreateRequest", mock.Anything, mock.Anything).Return(nil)
 
 	suite.usecase = usecase_member.NewAppUsecase(usecase_member.RepoInjection{GormDbRepo: gormDbRepo}, time.Minute)
 }

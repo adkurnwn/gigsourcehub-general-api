@@ -1,6 +1,8 @@
 package gorm_model
 
 import (
+	"fmt"
+	"os"
 	"time"
 
 	"gorm.io/gorm"
@@ -76,6 +78,7 @@ type UserResp struct {
 	SystemRoleName      *string    `json:"system_role_name"`
 	AssignedRoleId      *string    `json:"assigned_role_id"`
 	AccountStatus       *string    `json:"account_status"`
+	IsBookmark          *bool      `json:"is_bookmark,omitempty"`
 	JobTitleId          *string    `json:"job_title_id,omitempty"`
 }
 
@@ -99,6 +102,16 @@ func (row *User) ToUserResp() UserResp {
 		candidateLevel = nil
 	}
 
+	// Construct full public URL for profile picture
+	var profilePicture *string
+	if row.ProfilePicture != nil && *row.ProfilePicture != "" {
+		pp := *row.ProfilePicture
+		if len(pp) > 0 && pp[0] != 'h' {
+			pp = fmt.Sprintf("%s/%s", os.Getenv("S3_PUBLIC_URL"), pp)
+		}
+		profilePicture = &pp
+	}
+
 	return UserResp{
 		ID:                  row.ID,
 		Name:                row.Name,
@@ -112,7 +125,7 @@ func (row *User) ToUserResp() UserResp {
 		KabupatenKotaId:     row.KabupatenKotaId,
 		YearsExperience:     row.YearsExperience,
 		TechStack:           row.TechStack,
-		ProfilePicture:      row.ProfilePicture,
+		ProfilePicture:      profilePicture,
 		CandidateLevel:      candidateLevel,
 		RecruitmentStatusId: row.RecruitmentStatusId,
 		UnavailableUntil:    row.UnavailableUntil,

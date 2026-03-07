@@ -53,6 +53,14 @@ type GormRepo interface {
 	FetchKabupatenKota(ctx context.Context, options gorm_model.KabupatenKotaFilter) (*sql.Rows, error)
 	FetchProvinsi(ctx context.Context, options gorm_model.ProvinsiFilter) (*sql.Rows, error)
 
+	CreateBookmark(ctx context.Context, model *gorm_model.Bookmark) error
+	GetBookmark(ctx context.Context, adminID, candidateID string) (*gorm_model.Bookmark, error)
+	DeleteBookmark(ctx context.Context, adminID, candidateID string) (int64, error)
+	FetchBookmarksByAdmin(ctx context.Context, adminID string, limit, offset int64) (*sql.Rows, error)
+	CountBookmarksByAdmin(ctx context.Context, adminID string) (int64, error)
+
+	CreateRequest(ctx context.Context, model *gorm_model.Request) error
+
 	GetDB() *gorm.DB
 }
 
@@ -68,6 +76,7 @@ type StorageRepo interface {
 	GetPublicLink(objectKey string) string
 	UploadFilePublic(objectKey string, body io.Reader, contentType string) (uploadData *storage_model.UploadResponse, err error)
 	UploadFilePrivate(objectKey string, body io.Reader, contentType string, expires *time.Duration) (uploadData *storage_model.UploadResponse, err error)
+	DeleteFile(objectKey string) error
 }
 
 type MessageBroker interface {

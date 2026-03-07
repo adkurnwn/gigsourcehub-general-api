@@ -16,7 +16,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor string, roleName *string) response.Base {
+func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor string, roleName *string, adminID *string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -41,9 +41,27 @@ func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor s
 		return response.Error(http.StatusInternalServerError, "Failed to fetch users")
 	}
 
+	// Build bookmark lookup set if adminID is provided
+	bookmarkSet := make(map[string]bool)
+	if adminID != nil {
+		var bookmarkedIDs []string
+		u.gormDbRepo.GetDB().WithContext(ctx).
+			Model(&gorm_model.Bookmark{}).
+			Where("admin_id = ?", *adminID).
+			Pluck("candidate_id", &bookmarkedIDs)
+		for _, id := range bookmarkedIDs {
+			bookmarkSet[id] = true
+		}
+	}
+
 	var results []interface{}
 	for _, user := range users {
-		results = append(results, user.ToUserResp())
+		resp := user.ToUserResp()
+		if adminID != nil {
+			isBookmarked := bookmarkSet[user.ID]
+			resp.IsBookmark = &isBookmarked
+		}
+		results = append(results, resp)
 	}
 
 	var nextCursor *string

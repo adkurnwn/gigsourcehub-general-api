@@ -28,6 +28,8 @@ definitions:
         type: number
       id:
         type: string
+      is_bookmark:
+        type: boolean
       job_title_id:
         type: string
       kabupaten_kota_id:
@@ -63,6 +65,13 @@ definitions:
     required:
     - edited_data
     type: object
+  request_model.CreateBookmarkRequest:
+    properties:
+      candidate_id:
+        type: string
+    required:
+    - candidate_id
+    type: object
   request_model.CreateJobRoleRequest:
     properties:
       name:
@@ -90,12 +99,50 @@ definitions:
     required:
     - name
     type: object
+  request_model.CreateRequestRequest:
+    properties:
+      due_date:
+        type: string
+      project_name:
+        type: string
+      subrequests:
+        items:
+          $ref: '#/definitions/request_model.CreateSubrequestRequest'
+        minItems: 1
+        type: array
+      urgency:
+        enum:
+        - Low
+        - Medium
+        - High
+        type: string
+    required:
+    - project_name
+    - subrequests
+    - urgency
+    type: object
   request_model.CreateSectorRequest:
     properties:
       name:
         type: string
     required:
     - name
+    type: object
+  request_model.CreateSubrequestRequest:
+    properties:
+      job_title_id:
+        type: string
+      min_years_experience:
+        minimum: 0
+        type: integer
+      notes:
+        type: string
+      tech_stack:
+        items:
+          type: string
+        type: array
+    required:
+    - min_years_experience
     type: object
   request_model.CreateUserBySuperadminRequest:
     properties:
@@ -296,6 +343,125 @@ paths:
       summary: Register user
       tags:
       - Auth
+  /bookmarks:
+    get:
+      description: Get paginated list of bookmarks for the authenticated admin
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: 'Fetch Admin Bookmarks (note: endpoint /users/candidates bisa digunakan
+        juga, hasil nempel ditiap kandidat)'
+      tags:
+      - Bookmarks
+    post:
+      consumes:
+      - application/json
+      description: Admin bookmarks a candidate user
+      parameters:
+      - description: Create Bookmark Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateBookmarkRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Bookmark
+      tags:
+      - Bookmarks
+  /bookmarks/{candidate_id}:
+    delete:
+      description: Admin removes a bookmarked candidate
+      parameters:
+      - description: Candidate User ID
+        in: path
+        name: candidate_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Bookmark
+      tags:
+      - Bookmarks
   /cv/confirm:
     post:
       consumes:
@@ -620,6 +786,41 @@ paths:
       summary: Get Profile
       tags:
       - Profile
+  /profile/picture:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a profile picture for the current user
+      parameters:
+      - description: Profile picture file (JPEG, PNG, WebP)
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Upload Profile Picture
+      tags:
+      - Profile
   /provinsi:
     get:
       consumes:
@@ -806,6 +1007,36 @@ paths:
       summary: Update Recruitment Status
       tags:
       - Recruitment Status
+  /requests:
+    post:
+      consumes:
+      - application/json
+      description: Allows an Employee to submit a new Request containing multiple
+        distinct Subrequest configurations
+      parameters:
+      - description: Request Data
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create a Request and multiple Subrequests
+      tags:
+      - Employee Request
   /roles:
     get:
       consumes:
