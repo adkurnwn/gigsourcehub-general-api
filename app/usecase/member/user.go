@@ -336,6 +336,16 @@ func (u *appUsecase) UploadProfilePicture(ctx context.Context, userID string, fi
 		return response.Error(http.StatusBadRequest, "Invalid file type. Only JPEG, PNG, and WebP are allowed")
 	}
 
+	// Fetch user first to get old profile picture key
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: userID},
+	})
+	if err != nil || user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+
+	oldProfilePicture := user.ProfilePicture
+
 	// Open file
 	file, err := fileHeader.Open()
 	if err != nil {
@@ -352,17 +362,17 @@ func (u *appUsecase) UploadProfilePicture(ctx context.Context, userID string, fi
 	}
 
 	// Update user record
-	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
-		DefaultFilter: gorm_model.DefaultFilter{ID: userID},
-	})
-	if err != nil || user == nil {
-		return response.Error(http.StatusNotFound, "User not found")
-	}
-
 	user.ProfilePicture = &objectKey
 	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
 		logrus.Error("UploadProfilePicture DB error: ", err)
 		return response.Error(http.StatusInternalServerError, "Failed to update profile picture")
+	}
+
+	// Delete old profile picture from S3 (if it existed and is different from new)
+	if oldProfilePicture != nil && *oldProfilePicture != "" && *oldProfilePicture != objectKey {
+		if err := u.storageRepo.DeleteFile(*oldProfilePicture); err != nil {
+			logrus.Warn("Failed to delete old profile picture from S3: ", err)
+		}
 	}
 
 	return response.Success(map[string]string{
