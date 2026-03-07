@@ -98,7 +98,7 @@ func (h *routeHandler) Delete(c *gin.Context) {
 
 // Fetch Bookmarks
 // @Security BearerAuth
-// @Summary Fetch Admin Bookmarks
+// @Summary Fetch Admin Bookmarks (note: endpoint /users/candidates bisa digunakan juga, hasil nempel ditiap kandidat)
 // @Description Get paginated list of bookmarks for the authenticated admin
 // @Tags Bookmarks
 // @Produce json

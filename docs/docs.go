@@ -187,7 +187,7 @@ const docTemplate = `{
                 "tags": [
                     "Bookmarks"
                 ],
-                "summary": "Fetch Admin Bookmarks",
+                "summary": "Fetch Admin Bookmarks (note: endpoint /users/candidates bisa digunakan juga, hasil nempel ditiap kandidat)",
                 "parameters": [
                     {
                         "type": "integer",
@@ -2265,6 +2265,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "is_bookmark": {
+                    "type": "boolean"
                 },
                 "job_title_id": {
                     "type": "string"
