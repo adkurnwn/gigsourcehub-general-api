@@ -99,12 +99,50 @@ definitions:
     required:
     - name
     type: object
+  request_model.CreateRequestRequest:
+    properties:
+      due_date:
+        type: string
+      project_name:
+        type: string
+      subrequests:
+        items:
+          $ref: '#/definitions/request_model.CreateSubrequestRequest'
+        minItems: 1
+        type: array
+      urgency:
+        enum:
+        - Low
+        - Medium
+        - High
+        type: string
+    required:
+    - project_name
+    - subrequests
+    - urgency
+    type: object
   request_model.CreateSectorRequest:
     properties:
       name:
         type: string
     required:
     - name
+    type: object
+  request_model.CreateSubrequestRequest:
+    properties:
+      job_role_id:
+        type: string
+      min_years_experience:
+        minimum: 0
+        type: integer
+      notes:
+        type: string
+      tech_stack:
+        items:
+          type: string
+        type: array
+    required:
+    - min_years_experience
     type: object
   request_model.CreateUserBySuperadminRequest:
     properties:
@@ -562,7 +600,7 @@ paths:
       - BearerAuth: []
       summary: Get All Job Titles
       tags:
-      - Job Title
+      - Job Title (Jabatan)
     post:
       consumes:
       - application/json
@@ -592,7 +630,7 @@ paths:
       - BearerAuth: []
       summary: Create Job Title
       tags:
-      - Job Title
+      - Job Title (Jabatan)
   /job-titles/{id}:
     delete:
       parameters:
@@ -616,7 +654,7 @@ paths:
       - BearerAuth: []
       summary: Delete Job Title
       tags:
-      - Job Title
+      - Job Title (Jabatan)
     get:
       consumes:
       - application/json
@@ -646,7 +684,7 @@ paths:
       - BearerAuth: []
       summary: Get Job Title By ID
       tags:
-      - Job Title
+      - Job Title (Jabatan)
     put:
       consumes:
       - application/json
@@ -685,7 +723,7 @@ paths:
       - BearerAuth: []
       summary: Update Job Title
       tags:
-      - Job Title
+      - Job Title (Jabatan)
   /kabupaten:
     get:
       consumes:
@@ -969,6 +1007,106 @@ paths:
       summary: Update Recruitment Status
       tags:
       - Recruitment Status
+  /requests:
+    get:
+      description: Get paginated list of requests owned by the authenticated employee
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch My Requests
+      tags:
+      - Employee Request
+    post:
+      consumes:
+      - application/json
+      description: Allows an Employee to submit a new Request containing multiple
+        distinct Subrequest configurations
+      parameters:
+      - description: Request Data
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create a Request and multiple Subrequests
+      tags:
+      - Employee Request
+  /requests/{id}:
+    get:
+      description: Fetch an employee's request and its associated subrequests
+      parameters:
+      - description: Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get specific Request Details
+      tags:
+      - Employee Request
   /roles:
     get:
       consumes:

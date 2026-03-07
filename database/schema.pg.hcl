@@ -593,6 +593,11 @@ enum "request_urgency" {
   values = ["HIGH", "MIDDLE", "LOW"]
 }
 
+enum "request_status" {
+  schema = schema.public
+  values = ["PENDING", "ACCEPTED", "PROCESSING", "REJECTED", "DONE"]
+}
+
 enum "interview_status" {
   schema = schema.public
   values = ["SCHEDULED", "CANCELLED", "RESCHEDULED", "NO_SHOW"]
@@ -625,8 +630,9 @@ table "requests" {
     null = false
   }
   column "status" {
-    type = varchar(50)
-    null = true
+    type    = enum.request_status
+    default = "'PENDING'"
+    null    = false
   }
   column "urgency" {
     type = enum.request_urgency
@@ -694,7 +700,7 @@ table "subrequests" {
     type = int
     null = true
   }
-  column "job_title_id" {
+  column "job_role_id" {
     type = uuid
     null = true
   }
@@ -736,8 +742,8 @@ table "subrequests" {
     columns = [column.request_id]
   }
 
-  index "idx_subrequests_job_title_id" {
-    columns = [column.job_title_id]
+  index "idx_subrequests_job_role_id" {
+    columns = [column.job_role_id]
   }
 
   foreign_key "subrequests_request_fk" {
@@ -747,9 +753,9 @@ table "subrequests" {
     on_delete   = CASCADE
   }
 
-  foreign_key "subrequests_job_title_fk" {
-    columns     = [column.job_title_id]
-    ref_columns = [table.job_titles.column.id]
+  foreign_key "subrequests_job_role_fk" {
+    columns     = [column.job_role_id]
+    ref_columns = [table.job_roles.column.id]
     on_update   = NO_ACTION
     on_delete   = SET_NULL
   }
