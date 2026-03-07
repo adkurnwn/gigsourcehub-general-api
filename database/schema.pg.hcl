@@ -1206,3 +1206,153 @@ table "onboard_histories" {
     on_delete   = CASCADE
   }
 }
+
+enum "review_final_recommendation" {
+  schema = schema.public
+  values = ["HIGHLY_RECOMMENDED", "RECOMMENDED", "CONSIDERED", "NOT_RECOMMENDED"]
+}
+
+table "reviews" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "subrequest_id" {
+    type = uuid
+    null = false
+  }
+  column "candidate_user_id" {
+    type = uuid
+    null = false
+  }
+  column "employee_user_id" {
+    type = uuid
+    null = false
+  }
+  column "onboard_history_id" {
+    type = uuid
+    null = false
+  }
+  column "work_quality" {
+    type = int
+    null = true
+  }
+  column "timeliness" {
+    type = int
+    null = true
+  }
+  column "communication_collaboration" {
+    type = int
+    null = true
+  }
+  column "problem_solving_initiative" {
+    type = int
+    null = true
+  }
+  column "final_recommendation" {
+    type = enum.review_final_recommendation
+    null = true
+  }
+  column "notes" {
+    type = text
+    null = true
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_reviews_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_reviews_subrequest_id" {
+    columns = [column.subrequest_id]
+  }
+
+  index "idx_reviews_candidate_user_id" {
+    columns = [column.candidate_user_id]
+  }
+
+  index "idx_reviews_employee_user_id" {
+    columns = [column.employee_user_id]
+  }
+
+  index "idx_reviews_onboard_history_id" {
+    columns = [column.onboard_history_id]
+  }
+
+  foreign_key "reviews_subrequest_fk" {
+    columns     = [column.subrequest_id]
+    ref_columns = [table.subrequests.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "reviews_candidate_user_fk" {
+    columns     = [column.candidate_user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "reviews_employee_user_fk" {
+    columns     = [column.employee_user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "reviews_onboard_history_fk" {
+    columns     = [column.onboard_history_id]
+    ref_columns = [table.onboard_histories.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "system_settings" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "is_ai_mode_enabled" {
+    type    = boolean
+    default = false
+    null    = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_system_settings_deleted_at" {
+    columns = [column.deleted_at]
+  }
+}
