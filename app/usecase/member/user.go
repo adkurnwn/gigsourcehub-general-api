@@ -2,6 +2,8 @@ package usecase_member
 
 import (
 	"context"
+	"fmt"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 	"time"
@@ -317,4 +319,53 @@ func (u *appUsecase) ActivateUserBySuperadmin(ctx context.Context, id string) re
 	}
 
 	return response.SuccessAction("User", user.Email, "activated")
+}
+
+func (u *appUsecase) UploadProfilePicture(ctx context.Context, userID string, fileHeader *multipart.FileHeader) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	// Validate content type
+	contentType := fileHeader.Header.Get("Content-Type")
+	allowedTypes := map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+		"image/webp": true,
+	}
+	if !allowedTypes[contentType] {
+		return response.Error(http.StatusBadRequest, "Invalid file type. Only JPEG, PNG, and WebP are allowed")
+	}
+
+	// Open file
+	file, err := fileHeader.Open()
+	if err != nil {
+		return response.Error(http.StatusBadRequest, "Failed to open file")
+	}
+	defer file.Close()
+
+	// Upload to S3
+	objectKey := fmt.Sprintf("profile-pictures/%s/%s", userID, fileHeader.Filename)
+	_, err = u.storageRepo.UploadFilePublic(objectKey, file, contentType)
+	if err != nil {
+		logrus.Error("UploadProfilePicture S3 error: ", err)
+		return response.Error(http.StatusInternalServerError, "Failed to upload profile picture")
+	}
+
+	// Update user record
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: userID},
+	})
+	if err != nil || user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+
+	user.ProfilePicture = &objectKey
+	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		logrus.Error("UploadProfilePicture DB error: ", err)
+		return response.Error(http.StatusInternalServerError, "Failed to update profile picture")
+	}
+
+	return response.Success(map[string]string{
+		"profile_picture": u.storageRepo.GetPublicLink(objectKey),
+	})
 }
