@@ -35,7 +35,7 @@ func NewJobTitleHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain
 // Create Job Title
 // @Security BearerAuth
 // @Summary Create Job Title
-// @Tags Job Title
+// @Tags Job Title (Jabatan)
 // @Accept json
 // @Produce json
 // @Param request body request_model.CreateJobTitleRequest true "Create Request"
@@ -57,7 +57,7 @@ func (h *routeHandler) Create(c *gin.Context) {
 // Update Job Title
 // @Security BearerAuth
 // @Summary Update Job Title
-// @Tags Job Title
+// @Tags Job Title (Jabatan)
 // @Accept json
 // @Produce json
 // @Param id path string true "Title ID"
@@ -83,7 +83,7 @@ func (h *routeHandler) Update(c *gin.Context) {
 // Delete Job Title
 // @Security BearerAuth
 // @Summary Delete Job Title
-// @Tags Job Title
+// @Tags Job Title (Jabatan)
 // @Produce json
 // @Param id path string true "Title ID"
 // @Success 200 {object} response.Base
@@ -99,7 +99,7 @@ func (h *routeHandler) Delete(c *gin.Context) {
 // @Security BearerAuth
 // @Summary Get All Job Titles
 // @Description Get All Job Titles
-// @Tags Job Title
+// @Tags Job Title (Jabatan)
 // @Accept json
 // @Produce json
 // @Param sector_id query string false "Sector ID"
@@ -124,7 +124,7 @@ func (h *routeHandler) FetchAll(c *gin.Context) {
 // @Security BearerAuth
 // @Summary Get Job Title By ID
 // @Description Get Job Title By ID
-// @Tags Job Title
+// @Tags Job Title (Jabatan)
 // @Accept json
 // @Produce json
 // @Param id path string true "Title ID"
