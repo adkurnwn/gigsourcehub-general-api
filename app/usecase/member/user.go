@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
@@ -353,8 +355,10 @@ func (u *appUsecase) UploadProfilePicture(ctx context.Context, userID string, fi
 	}
 	defer file.Close()
 
-	// Upload to S3
-	objectKey := fmt.Sprintf("profile-pictures/%s/%s", userID, fileHeader.Filename)
+	// Upload to S3 — use user's name as filename to avoid overly long paths
+	ext := filepath.Ext(fileHeader.Filename)
+	safeName := strings.ReplaceAll(user.Name, " ", "_")
+	objectKey := fmt.Sprintf("profile-pictures/%s/%s%s", userID, safeName, ext)
 	_, err = u.storageRepo.UploadFilePublic(objectKey, file, contentType)
 	if err != nil {
 		logrus.Error("UploadProfilePicture S3 error: ", err)
