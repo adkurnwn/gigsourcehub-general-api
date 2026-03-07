@@ -27,6 +27,63 @@ func (_m *GormRepo) EXPECT() *GormRepo_Expecter {
 	return &GormRepo_Expecter{mock: &_m.Mock}
 }
 
+// CountBookmarksByAdmin provides a mock function with given fields: ctx, adminID
+func (_m *GormRepo) CountBookmarksByAdmin(ctx context.Context, adminID string) (int64, error) {
+	ret := _m.Called(ctx, adminID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountBookmarksByAdmin")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (int64, error)); ok {
+		return rf(ctx, adminID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) int64); ok {
+		r0 = rf(ctx, adminID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, adminID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_CountBookmarksByAdmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CountBookmarksByAdmin'
+type GormRepo_CountBookmarksByAdmin_Call struct {
+	*mock.Call
+}
+
+// CountBookmarksByAdmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - adminID string
+func (_e *GormRepo_Expecter) CountBookmarksByAdmin(ctx interface{}, adminID interface{}) *GormRepo_CountBookmarksByAdmin_Call {
+	return &GormRepo_CountBookmarksByAdmin_Call{Call: _e.mock.On("CountBookmarksByAdmin", ctx, adminID)}
+}
+
+func (_c *GormRepo_CountBookmarksByAdmin_Call) Run(run func(ctx context.Context, adminID string)) *GormRepo_CountBookmarksByAdmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_CountBookmarksByAdmin_Call) Return(_a0 int64, _a1 error) *GormRepo_CountBookmarksByAdmin_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_CountBookmarksByAdmin_Call) RunAndReturn(run func(context.Context, string) (int64, error)) *GormRepo_CountBookmarksByAdmin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CountUser provides a mock function with given fields: ctx, options
 func (_m *GormRepo) CountUser(ctx context.Context, options gorm_model.UserFilter) int64 {
 	ret := _m.Called(ctx, options)
@@ -70,6 +127,53 @@ func (_c *GormRepo_CountUser_Call) Return(_a0 int64) *GormRepo_CountUser_Call {
 }
 
 func (_c *GormRepo_CountUser_Call) RunAndReturn(run func(context.Context, gorm_model.UserFilter) int64) *GormRepo_CountUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateBookmark provides a mock function with given fields: ctx, model
+func (_m *GormRepo) CreateBookmark(ctx context.Context, model *gorm_model.Bookmark) error {
+	ret := _m.Called(ctx, model)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateBookmark")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gorm_model.Bookmark) error); ok {
+		r0 = rf(ctx, model)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_CreateBookmark_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateBookmark'
+type GormRepo_CreateBookmark_Call struct {
+	*mock.Call
+}
+
+// CreateBookmark is a helper method to define mock.On call
+//   - ctx context.Context
+//   - model *gorm_model.Bookmark
+func (_e *GormRepo_Expecter) CreateBookmark(ctx interface{}, model interface{}) *GormRepo_CreateBookmark_Call {
+	return &GormRepo_CreateBookmark_Call{Call: _e.mock.On("CreateBookmark", ctx, model)}
+}
+
+func (_c *GormRepo_CreateBookmark_Call) Run(run func(ctx context.Context, model *gorm_model.Bookmark)) *GormRepo_CreateBookmark_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*gorm_model.Bookmark))
+	})
+	return _c
+}
+
+func (_c *GormRepo_CreateBookmark_Call) Return(_a0 error) *GormRepo_CreateBookmark_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_CreateBookmark_Call) RunAndReturn(run func(context.Context, *gorm_model.Bookmark) error) *GormRepo_CreateBookmark_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -403,6 +507,64 @@ func (_c *GormRepo_CreateUserBySuperadmin_Call) RunAndReturn(run func(context.Co
 	return _c
 }
 
+// DeleteBookmark provides a mock function with given fields: ctx, adminID, candidateID
+func (_m *GormRepo) DeleteBookmark(ctx context.Context, adminID string, candidateID string) (int64, error) {
+	ret := _m.Called(ctx, adminID, candidateID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteBookmark")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
+		return rf(ctx, adminID, candidateID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
+		r0 = rf(ctx, adminID, candidateID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, adminID, candidateID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_DeleteBookmark_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteBookmark'
+type GormRepo_DeleteBookmark_Call struct {
+	*mock.Call
+}
+
+// DeleteBookmark is a helper method to define mock.On call
+//   - ctx context.Context
+//   - adminID string
+//   - candidateID string
+func (_e *GormRepo_Expecter) DeleteBookmark(ctx interface{}, adminID interface{}, candidateID interface{}) *GormRepo_DeleteBookmark_Call {
+	return &GormRepo_DeleteBookmark_Call{Call: _e.mock.On("DeleteBookmark", ctx, adminID, candidateID)}
+}
+
+func (_c *GormRepo_DeleteBookmark_Call) Run(run func(ctx context.Context, adminID string, candidateID string)) *GormRepo_DeleteBookmark_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_DeleteBookmark_Call) Return(_a0 int64, _a1 error) *GormRepo_DeleteBookmark_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_DeleteBookmark_Call) RunAndReturn(run func(context.Context, string, string) (int64, error)) *GormRepo_DeleteBookmark_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteJobRole provides a mock function with given fields: ctx, id
 func (_m *GormRepo) DeleteJobRole(ctx context.Context, id string) error {
 	ret := _m.Called(ctx, id)
@@ -587,6 +749,67 @@ func (_c *GormRepo_DeleteSector_Call) Return(_a0 error) *GormRepo_DeleteSector_C
 }
 
 func (_c *GormRepo_DeleteSector_Call) RunAndReturn(run func(context.Context, string) error) *GormRepo_DeleteSector_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FetchBookmarksByAdmin provides a mock function with given fields: ctx, adminID, limit, offset
+func (_m *GormRepo) FetchBookmarksByAdmin(ctx context.Context, adminID string, limit int64, offset int64) (*sql.Rows, error) {
+	ret := _m.Called(ctx, adminID, limit, offset)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchBookmarksByAdmin")
+	}
+
+	var r0 *sql.Rows
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, int64, int64) (*sql.Rows, error)); ok {
+		return rf(ctx, adminID, limit, offset)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, int64, int64) *sql.Rows); ok {
+		r0 = rf(ctx, adminID, limit, offset)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sql.Rows)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, int64, int64) error); ok {
+		r1 = rf(ctx, adminID, limit, offset)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_FetchBookmarksByAdmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchBookmarksByAdmin'
+type GormRepo_FetchBookmarksByAdmin_Call struct {
+	*mock.Call
+}
+
+// FetchBookmarksByAdmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - adminID string
+//   - limit int64
+//   - offset int64
+func (_e *GormRepo_Expecter) FetchBookmarksByAdmin(ctx interface{}, adminID interface{}, limit interface{}, offset interface{}) *GormRepo_FetchBookmarksByAdmin_Call {
+	return &GormRepo_FetchBookmarksByAdmin_Call{Call: _e.mock.On("FetchBookmarksByAdmin", ctx, adminID, limit, offset)}
+}
+
+func (_c *GormRepo_FetchBookmarksByAdmin_Call) Run(run func(ctx context.Context, adminID string, limit int64, offset int64)) *GormRepo_FetchBookmarksByAdmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(int64), args[3].(int64))
+	})
+	return _c
+}
+
+func (_c *GormRepo_FetchBookmarksByAdmin_Call) Return(_a0 *sql.Rows, _a1 error) *GormRepo_FetchBookmarksByAdmin_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_FetchBookmarksByAdmin_Call) RunAndReturn(run func(context.Context, string, int64, int64) (*sql.Rows, error)) *GormRepo_FetchBookmarksByAdmin_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1059,6 +1282,66 @@ func (_c *GormRepo_FetchUser_Call) Return(_a0 *sql.Rows, _a1 error) *GormRepo_Fe
 }
 
 func (_c *GormRepo_FetchUser_Call) RunAndReturn(run func(context.Context, gorm_model.UserFilter) (*sql.Rows, error)) *GormRepo_FetchUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetBookmark provides a mock function with given fields: ctx, adminID, candidateID
+func (_m *GormRepo) GetBookmark(ctx context.Context, adminID string, candidateID string) (*gorm_model.Bookmark, error) {
+	ret := _m.Called(ctx, adminID, candidateID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBookmark")
+	}
+
+	var r0 *gorm_model.Bookmark
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*gorm_model.Bookmark, error)); ok {
+		return rf(ctx, adminID, candidateID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *gorm_model.Bookmark); ok {
+		r0 = rf(ctx, adminID, candidateID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*gorm_model.Bookmark)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, adminID, candidateID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_GetBookmark_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBookmark'
+type GormRepo_GetBookmark_Call struct {
+	*mock.Call
+}
+
+// GetBookmark is a helper method to define mock.On call
+//   - ctx context.Context
+//   - adminID string
+//   - candidateID string
+func (_e *GormRepo_Expecter) GetBookmark(ctx interface{}, adminID interface{}, candidateID interface{}) *GormRepo_GetBookmark_Call {
+	return &GormRepo_GetBookmark_Call{Call: _e.mock.On("GetBookmark", ctx, adminID, candidateID)}
+}
+
+func (_c *GormRepo_GetBookmark_Call) Run(run func(ctx context.Context, adminID string, candidateID string)) *GormRepo_GetBookmark_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_GetBookmark_Call) Return(_a0 *gorm_model.Bookmark, _a1 error) *GormRepo_GetBookmark_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_GetBookmark_Call) RunAndReturn(run func(context.Context, string, string) (*gorm_model.Bookmark, error)) *GormRepo_GetBookmark_Call {
 	_c.Call.Return(run)
 	return _c
 }

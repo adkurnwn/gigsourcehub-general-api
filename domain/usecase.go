@@ -14,7 +14,7 @@ type MemberAppUsecase interface {
 	Register(ctx context.Context, payload request_model.RegisterRequest) response.Base
 	GetMe(ctx context.Context, claim JWTClaimUser) response.Base
 	GetProfile(ctx context.Context, claim JWTClaimUser) response.Base
-	FetchUsers(ctx context.Context, page, limit int64, cursor string, roleName *string) response.Base
+	FetchUsers(ctx context.Context, page, limit int64, cursor string, roleName *string, adminID *string) response.Base
 	FetchUserDetail(ctx context.Context, id string) response.Base
 	CreateBySuperadmin(ctx context.Context, req request_model.CreateUserBySuperadminRequest) response.Base
 	EditUserBySuperadmin(ctx context.Context, id string, req request_model.EditUserBySuperadminRequest) response.Base
@@ -63,4 +63,10 @@ type KabupatenKotaAppUsecase interface {
 type ProvinsiAppUsecase interface {
 	FetchAll(ctx context.Context, filter gorm_model.ProvinsiFilter) response.Base
 	FetchData(ctx context.Context, id string) response.Base
+}
+
+type BookmarkAppUsecase interface {
+	Create(ctx context.Context, adminID string, req request_model.CreateBookmarkRequest) response.Base
+	Delete(ctx context.Context, adminID string, candidateID string) response.Base
+	FetchByAdmin(ctx context.Context, adminID string, page, limit int64) response.Base
 }

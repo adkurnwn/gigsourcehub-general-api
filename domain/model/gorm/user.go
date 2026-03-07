@@ -76,6 +76,7 @@ type UserResp struct {
 	SystemRoleName      *string    `json:"system_role_name"`
 	AssignedRoleId      *string    `json:"assigned_role_id"`
 	AccountStatus       *string    `json:"account_status"`
+	IsBookmark          *bool      `json:"is_bookmark,omitempty"`
 	JobTitleId          *string    `json:"job_title_id,omitempty"`
 }
 

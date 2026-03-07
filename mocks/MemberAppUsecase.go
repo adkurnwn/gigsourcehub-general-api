@@ -309,17 +309,17 @@ func (_c *MemberAppUsecase_FetchUserDetail_Call) RunAndReturn(run func(context.C
 	return _c
 }
 
-// FetchUsers provides a mock function with given fields: ctx, page, limit, cursor, roleName
-func (_m *MemberAppUsecase) FetchUsers(ctx context.Context, page int64, limit int64, cursor string, roleName *string) response.Base {
-	ret := _m.Called(ctx, page, limit, cursor, roleName)
+// FetchUsers provides a mock function with given fields: ctx, page, limit, cursor, roleName, adminID
+func (_m *MemberAppUsecase) FetchUsers(ctx context.Context, page int64, limit int64, cursor string, roleName *string, adminID *string) response.Base {
+	ret := _m.Called(ctx, page, limit, cursor, roleName, adminID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FetchUsers")
 	}
 
 	var r0 response.Base
-	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, string, *string) response.Base); ok {
-		r0 = rf(ctx, page, limit, cursor, roleName)
+	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, string, *string, *string) response.Base); ok {
+		r0 = rf(ctx, page, limit, cursor, roleName, adminID)
 	} else {
 		r0 = ret.Get(0).(response.Base)
 	}
@@ -338,13 +338,14 @@ type MemberAppUsecase_FetchUsers_Call struct {
 //   - limit int64
 //   - cursor string
 //   - roleName *string
-func (_e *MemberAppUsecase_Expecter) FetchUsers(ctx interface{}, page interface{}, limit interface{}, cursor interface{}, roleName interface{}) *MemberAppUsecase_FetchUsers_Call {
-	return &MemberAppUsecase_FetchUsers_Call{Call: _e.mock.On("FetchUsers", ctx, page, limit, cursor, roleName)}
+//   - adminID *string
+func (_e *MemberAppUsecase_Expecter) FetchUsers(ctx interface{}, page interface{}, limit interface{}, cursor interface{}, roleName interface{}, adminID interface{}) *MemberAppUsecase_FetchUsers_Call {
+	return &MemberAppUsecase_FetchUsers_Call{Call: _e.mock.On("FetchUsers", ctx, page, limit, cursor, roleName, adminID)}
 }
 
-func (_c *MemberAppUsecase_FetchUsers_Call) Run(run func(ctx context.Context, page int64, limit int64, cursor string, roleName *string)) *MemberAppUsecase_FetchUsers_Call {
+func (_c *MemberAppUsecase_FetchUsers_Call) Run(run func(ctx context.Context, page int64, limit int64, cursor string, roleName *string, adminID *string)) *MemberAppUsecase_FetchUsers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64), args[2].(int64), args[3].(string), args[4].(*string))
+		run(args[0].(context.Context), args[1].(int64), args[2].(int64), args[3].(string), args[4].(*string), args[5].(*string))
 	})
 	return _c
 }
@@ -354,7 +355,7 @@ func (_c *MemberAppUsecase_FetchUsers_Call) Return(_a0 response.Base) *MemberApp
 	return _c
 }
 
-func (_c *MemberAppUsecase_FetchUsers_Call) RunAndReturn(run func(context.Context, int64, int64, string, *string) response.Base) *MemberAppUsecase_FetchUsers_Call {
+func (_c *MemberAppUsecase_FetchUsers_Call) RunAndReturn(run func(context.Context, int64, int64, string, *string, *string) response.Base) *MemberAppUsecase_FetchUsers_Call {
 	_c.Call.Return(run)
 	return _c
 }
