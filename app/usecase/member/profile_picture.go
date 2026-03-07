@@ -14,7 +14,6 @@ import (
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 	"github.com/disintegration/imaging"
-	"github.com/gen2brain/webp"
 	"github.com/sirupsen/logrus"
 )
 
@@ -54,22 +53,22 @@ func (u *appUsecase) UploadProfilePicture(ctx context.Context, userID string, fi
 		return response.Error(http.StatusBadRequest, "Failed to read file")
 	}
 
-	// Decode and convert original to WebP
+	// Decode and re-encode as optimized JPEG
 	originalImg, err := imaging.Decode(bytes.NewReader(fileBytes))
 	if err != nil {
 		return response.Error(http.StatusBadRequest, "Failed to decode image")
 	}
 
 	var originalBuf bytes.Buffer
-	if err := webp.Encode(&originalBuf, originalImg, webp.Options{Quality: 90}); err != nil {
-		return response.Error(http.StatusInternalServerError, "Failed to convert image to WebP")
+	if err := imaging.Encode(&originalBuf, originalImg, imaging.JPEG, imaging.JPEGQuality(85)); err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to optimize image")
 	}
 
-	// Upload original (as WebP) to S3
+	// Upload original (as optimized JPEG) to S3
 	safeName := strings.ReplaceAll(user.Name, " ", "_")
 	timestamp := time.Now().Unix()
-	objectKey := fmt.Sprintf("profile-pictures/%s/%s_%d.webp", userID, safeName, timestamp)
-	_, err = u.storageRepo.UploadFilePublic(objectKey, &originalBuf, "image/webp")
+	objectKey := fmt.Sprintf("profile-pictures/%s/%s_%d.jpeg", userID, safeName, timestamp)
+	_, err = u.storageRepo.UploadFilePublic(objectKey, &originalBuf, "image/jpeg")
 	if err != nil {
 		logrus.Error("UploadProfilePicture S3 error: ", err)
 		return response.Error(http.StatusInternalServerError, "Failed to upload profile picture")
@@ -87,15 +86,14 @@ func (u *appUsecase) UploadProfilePicture(ctx context.Context, userID string, fi
 		if err := u.storageRepo.DeleteFile(*oldProfilePicture); err != nil {
 			logrus.Warn("Failed to delete old profile picture from S3: ", err)
 		}
-		// Also delete old thumbnail
-		oldThumbKey := strings.TrimSuffix(*oldProfilePicture, filepath.Ext(*oldProfilePicture)) + "_thumb.webp"
+		oldThumbKey := strings.TrimSuffix(*oldProfilePicture, filepath.Ext(*oldProfilePicture)) + "_thumb.jpeg"
 		if err := u.storageRepo.DeleteFile(oldThumbKey); err != nil {
 			logrus.Warn("Failed to delete old thumbnail from S3: ", err)
 		}
 	}
 
-	// Async: generate WebP thumbnail and upload
-	thumbKey := fmt.Sprintf("profile-pictures/%s/%s_%d_thumb.webp", userID, safeName, timestamp)
+	// Async: generate JPEG thumbnail and upload
+	thumbKey := fmt.Sprintf("profile-pictures/%s/%s_%d_thumb.jpeg", userID, safeName, timestamp)
 	go func(imgBytes []byte, thumbObjectKey string) {
 		img, err := imaging.Decode(bytes.NewReader(imgBytes))
 		if err != nil {
@@ -106,15 +104,15 @@ func (u *appUsecase) UploadProfilePicture(ctx context.Context, userID string, fi
 		// Resize to 200px width, preserve aspect ratio
 		thumb := imaging.Resize(img, 200, 0, imaging.Lanczos)
 
-		// Encode as WebP
+		// Encode as JPEG
 		var buf bytes.Buffer
-		if err := webp.Encode(&buf, thumb, webp.Options{Quality: 80}); err != nil {
-			logrus.Warn("Thumbnail WebP encode error: ", err)
+		if err := imaging.Encode(&buf, thumb, imaging.JPEG, imaging.JPEGQuality(80)); err != nil {
+			logrus.Warn("Thumbnail encode error: ", err)
 			return
 		}
 
 		// Upload thumbnail to S3
-		if _, err := u.storageRepo.UploadFilePublic(thumbObjectKey, &buf, "image/webp"); err != nil {
+		if _, err := u.storageRepo.UploadFilePublic(thumbObjectKey, &buf, "image/jpeg"); err != nil {
 			logrus.Warn("Thumbnail upload error: ", err)
 		}
 	}(fileBytes, thumbKey)
