@@ -33,6 +33,7 @@ type SubrequestResp struct {
 	ID                 string  `json:"id"`
 	RequestID          string  `json:"request_id"`
 	MinYearsExperience int     `json:"min_years_experience"`
+	JobRoleID          *string `json:"job_role_id"`
 	JobRole            *string `json:"job_role"`
 	TechStack          *string `json:"tech_stack"`
 	Notes              *string `json:"notes"`
@@ -49,6 +50,7 @@ func (row *Subrequest) ToSubrequestResp() SubrequestResp {
 		ID:                 row.ID,
 		RequestID:          row.RequestID,
 		MinYearsExperience: row.MinYearsExperience,
+		JobRoleID:          row.JobRoleID,
 		JobRole:            jobRoleName,
 		TechStack:          row.TechStack,
 		Notes:              row.Notes,
