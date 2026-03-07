@@ -42,7 +42,7 @@ func (u *appUsecase) CreateByEmployee(ctx context.Context, employeeID string, re
 		DueDate:           dueDate,
 		EmployeeUserID:    employeeID,
 		RequiredHeadcount: len(req.Subrequests),
-		Status:            "Pending", // Default status for new requests
+		Status:            "PENDING", // Default status for new requests
 		Urgency:           req.Urgency,
 	}
 

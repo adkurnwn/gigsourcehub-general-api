@@ -16,7 +16,7 @@ type Request struct {
 	EmployeeUserID    string         `gorm:"column:employee_user_id;type:uuid;not null"`
 	EmployeeUser      *User          `gorm:"foreignKey:EmployeeUserID"`
 	RequiredHeadcount int            `gorm:"column:required_headcount;type:int;not null"`
-	Status            string         `gorm:"column:status;type:varchar(50)"`
+	Status            string         `gorm:"column:status;type:request_status"`
 	Urgency           string         `gorm:"column:urgency;type:request_urgency"`
 	FulfillmentDate   *time.Time     `gorm:"column:fulfillment_date;type:date"`
 	Subrequests       []Subrequest   `gorm:"foreignKey:RequestID"`
