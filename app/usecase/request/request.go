@@ -158,3 +158,164 @@ func (u *appUsecase) GetByID(ctx context.Context, employeeID, requestID string) 
 
 	return response.Success(req.ToRequestResp())
 }
+
+func (u *appUsecase) UpdateByEmployee(ctx context.Context, employeeID string, requestID string, req request_model.UpdateRequestRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	// 1. Fetch Existing Request
+	existingReq, err := u.gormDbRepo.GetRequestByID(ctx, requestID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(http.StatusNotFound, "Request not found")
+		}
+		return response.Error(http.StatusInternalServerError, "Failed to fetch request")
+	}
+
+	// 2. Validate Ownership
+	if existingReq.EmployeeUserID != employeeID {
+		return response.Error(http.StatusForbidden, "You do not have permission to edit this request")
+	}
+
+	// 3. Validate Status
+	if existingReq.Status != "PENDING" && existingReq.Status != "WAITING" {
+		return response.Error(http.StatusConflict, "Only PENDING requests can be edited")
+	}
+
+	// 4. Map updated main fields
+	var dueDate *time.Time
+	if req.DueDate != nil && *req.DueDate != "" {
+		parsedDate, err := time.Parse("2006-01-02", *req.DueDate)
+		if err == nil {
+			dueDate = &parsedDate
+		} else {
+			return response.Error(http.StatusBadRequest, "Invalid due_date format, expected YYYY-MM-DD")
+		}
+	} else {
+		dueDate = existingReq.DueDate
+	}
+
+	existingReq.ProjectName = req.ProjectName
+	existingReq.Urgency = req.Urgency
+	existingReq.DueDate = dueDate
+
+	// Execute update
+	if err := u.gormDbRepo.UpdateRequestByEmployee(ctx, existingReq); err != nil {
+		logrus.Errorf("UpdateByEmployee DB Error: %v", err)
+		return response.Error(http.StatusInternalServerError, "Failed to update request")
+	}
+
+	return response.Success(nil)
+}
+
+func (u *appUsecase) UpdateSubrequestByEmployee(ctx context.Context, employeeID string, requestID string, subrequestID string, req request_model.UpdateSubrequestRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	// 1. Fetch Existing Request for Authorization
+	existingReq, err := u.gormDbRepo.GetRequestByID(ctx, requestID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(http.StatusNotFound, "Request not found")
+		}
+		return response.Error(http.StatusInternalServerError, "Failed to fetch parent request")
+	}
+
+	// 2. Validate Ownership of the Parent Request
+	if existingReq.EmployeeUserID != employeeID {
+		return response.Error(http.StatusForbidden, "You do not have permission to edit subrequests belonging to this request")
+	}
+
+	// 3. Validate Status
+	if existingReq.Status != "PENDING" && existingReq.Status != "WAITING" {
+		return response.Error(http.StatusConflict, "Subrequests can only be edited when the parent request is PENDING")
+	}
+
+	// 4. Fetch target Subrequest
+	existingSubReq, err := u.gormDbRepo.GetSubrequestByID(ctx, subrequestID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(http.StatusNotFound, "Subrequest not found")
+		}
+		return response.Error(http.StatusInternalServerError, "Failed to fetch subrequest")
+	}
+
+	// 5. Hard verify relation (Subrequest truly belongs to the requested Parent ID)
+	if existingSubReq.RequestID != requestID {
+		return response.Error(http.StatusBadRequest, "Subrequest does not belong to the targeted Request ID")
+	}
+
+	// 6. Map updated fields
+	var techStackJSON *string
+	if len(req.TechStack) > 0 {
+		b, err := json.Marshal(req.TechStack)
+		if err == nil {
+			jsonStr := string(b)
+			techStackJSON = &jsonStr
+		}
+	}
+
+	existingSubReq.MinYearsExperience = req.MinYearsExperience
+	existingSubReq.JobRoleID = req.JobRoleID
+	existingSubReq.TechStack = techStackJSON
+	existingSubReq.Notes = req.Notes
+
+	// Execute update specific to this Subrequest
+	if err := u.gormDbRepo.UpdateSubrequestByEmployee(ctx, existingSubReq); err != nil {
+		logrus.Errorf("UpdateSubrequestByEmployee DB Error: %v", err)
+		return response.Error(http.StatusInternalServerError, "Failed to update subrequest")
+	}
+
+	return response.Success(nil)
+}
+
+func (u *appUsecase) AddSubrequestByEmployee(ctx context.Context, employeeID string, requestID string, req request_model.CreateSubrequestRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	// 1. Fetch Existing Parent Request
+	existingReq, err := u.gormDbRepo.GetRequestByID(ctx, requestID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(http.StatusNotFound, "Request not found")
+		}
+		return response.Error(http.StatusInternalServerError, "Failed to fetch parent request")
+	}
+
+	// 2. Validate Ownership of the Parent Request
+	if existingReq.EmployeeUserID != employeeID {
+		return response.Error(http.StatusForbidden, "You do not have permission to add subrequests to this request")
+	}
+
+	// 3. Validate Status
+	if existingReq.Status != "PENDING" && existingReq.Status != "WAITING" {
+		return response.Error(http.StatusConflict, "Subrequests can only be added to PENDING requests")
+	}
+
+	// 4. Map Payload
+	var techStackJSON *string
+	if len(req.TechStack) > 0 {
+		b, err := json.Marshal(req.TechStack)
+		if err == nil {
+			jsonStr := string(b)
+			techStackJSON = &jsonStr
+		}
+	}
+
+	subReq := &gorm_model.Subrequest{
+		RequestID:          existingReq.ID,
+		MinYearsExperience: req.MinYearsExperience,
+		JobRoleID:          req.JobRoleID,
+		TechStack:          techStackJSON,
+		Notes:              req.Notes,
+		IsFilled:           false,
+	}
+
+	// 5. Execute DB Transaction (Insert subrequest + Update master headcount)
+	if err := u.gormDbRepo.CreateSubrequestByEmployee(ctx, subReq); err != nil {
+		logrus.Errorf("AddSubrequestByEmployee DB Error: %v", err)
+		return response.Error(http.StatusInternalServerError, "Failed to append subrequest")
+	}
+
+	return response.Success(nil)
+}
