@@ -32,6 +32,9 @@ func NewRequestHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.
 	reqRoute.POST("", handler.Create)
 	reqRoute.GET("", handler.Fetch)
 	reqRoute.GET("/:id", handler.GetDetails)
+	reqRoute.PUT("/:id", handler.Update)
+	reqRoute.PUT("/:id/subrequests/:sub_id", handler.UpdateSubrequest)
+	reqRoute.POST("/:id/subrequests", handler.AddSubrequest)
 }
 
 // Create Request
@@ -118,5 +121,106 @@ func (h *routeHandler) GetDetails(ctx *gin.Context) {
 	}
 
 	result := h.Usecase.GetByID(ctx.Request.Context(), userID, requestID)
+	ctx.JSON(result.Status, result)
+}
+
+// Update Request
+// @Summary Update an existing Request
+// @Description Updates a request's core fields only (`project_name`, `due_date`, `urgency`) for an Employee.
+// @Tags Employee Request
+// @Accept json
+// @Produce json
+// @Param id path string true "Request ID"
+// @Param req body request_model.UpdateRequestRequest true "Update Request Data"
+// @Success 200 {object} response.Base{data=nil}
+// @Router /requests/{id} [put]
+// @Security BearerAuth
+func (h *routeHandler) Update(ctx *gin.Context) {
+	requestID := ctx.Param("id")
+
+	var body request_model.UpdateRequestRequest
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		log.Println("BindJSON error:", err)
+		ctx.JSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "Invalid request payload"))
+		return
+	}
+
+	// Extract UserID
+	userClaim, exists := ctx.Get("token_data")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, response.Error(http.StatusUnauthorized, "User ID not found in context"))
+		return
+	}
+	userID := userClaim.(domain.JWTClaimUser).UserID
+
+	result := h.Usecase.UpdateByEmployee(ctx.Request.Context(), userID, requestID, body)
+	ctx.JSON(result.Status, result)
+}
+
+// Update Subrequest
+// @Summary Update an existing Subrequest specifically
+// @Description Updates the isolated fields of a subrequest, maintaining data relationships natively.
+// @Tags Employee Request
+// @Accept json
+// @Produce json
+// @Param id path string true "Request ID"
+// @Param sub_id path string true "Subrequest ID"
+// @Param req body request_model.UpdateSubrequestRequest true "Update Subrequest Data"
+// @Success 200 {object} response.Base{data=nil}
+// @Router /requests/{id}/subrequests/{sub_id} [put]
+// @Security BearerAuth
+func (h *routeHandler) UpdateSubrequest(ctx *gin.Context) {
+	requestID := ctx.Param("id")
+	subrequestID := ctx.Param("sub_id")
+
+	var body request_model.UpdateSubrequestRequest
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		log.Println("BindJSON error:", err)
+		ctx.JSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "Invalid subrequest payload"))
+		return
+	}
+
+	// Extract UserID
+	userClaim, exists := ctx.Get("token_data")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, response.Error(http.StatusUnauthorized, "User ID not found in context"))
+		return
+	}
+	userID := userClaim.(domain.JWTClaimUser).UserID
+
+	result := h.Usecase.UpdateSubrequestByEmployee(ctx.Request.Context(), userID, requestID, subrequestID, body)
+	ctx.JSON(result.Status, result)
+}
+
+// Add Subrequest
+// @Summary Add a new Subrequest to an existing Request
+// @Description Appends a new subrequest and automatically increments the parent request's required headcount.
+// @Tags Employee Request
+// @Accept json
+// @Produce json
+// @Param id path string true "Request ID"
+// @Param req body request_model.CreateSubrequestRequest true "New Subrequest Data"
+// @Success 200 {object} response.Base{data=nil}
+// @Router /requests/{id}/subrequests [post]
+// @Security BearerAuth
+func (h *routeHandler) AddSubrequest(ctx *gin.Context) {
+	requestID := ctx.Param("id")
+
+	var body request_model.CreateSubrequestRequest
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		log.Println("BindJSON error:", err)
+		ctx.JSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "Invalid subrequest payload"))
+		return
+	}
+
+	// Extract UserID
+	userClaim, exists := ctx.Get("token_data")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, response.Error(http.StatusUnauthorized, "User ID not found in context"))
+		return
+	}
+	userID := userClaim.(domain.JWTClaimUser).UserID
+
+	result := h.Usecase.AddSubrequestByEmployee(ctx.Request.Context(), userID, requestID, body)
 	ctx.JSON(result.Status, result)
 }

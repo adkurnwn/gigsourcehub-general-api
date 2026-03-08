@@ -218,12 +218,44 @@ definitions:
     required:
     - name
     type: object
+  request_model.UpdateRequestRequest:
+    properties:
+      due_date:
+        type: string
+      project_name:
+        type: string
+      urgency:
+        enum:
+        - Low
+        - Medium
+        - High
+        type: string
+    required:
+    - project_name
+    - urgency
+    type: object
   request_model.UpdateSectorRequest:
     properties:
       name:
         type: string
     required:
     - name
+    type: object
+  request_model.UpdateSubrequestRequest:
+    properties:
+      job_role_id:
+        type: string
+      min_years_experience:
+        minimum: 0
+        type: integer
+      notes:
+        type: string
+      tech_stack:
+        items:
+          type: string
+        type: array
+    required:
+    - min_years_experience
     type: object
   response.Base:
     properties:
@@ -1105,6 +1137,115 @@ paths:
       security:
       - BearerAuth: []
       summary: Get specific Request Details
+      tags:
+      - Employee Request
+    put:
+      consumes:
+      - application/json
+      description: Updates a request's core fields only (`project_name`, `due_date`,
+        `urgency`) for an Employee.
+      parameters:
+      - description: Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request Data
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update an existing Request
+      tags:
+      - Employee Request
+  /requests/{id}/subrequests:
+    post:
+      consumes:
+      - application/json
+      description: Appends a new subrequest and automatically increments the parent
+        request's required headcount.
+      parameters:
+      - description: Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New Subrequest Data
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateSubrequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Add a new Subrequest to an existing Request
+      tags:
+      - Employee Request
+  /requests/{id}/subrequests/{sub_id}:
+    put:
+      consumes:
+      - application/json
+      description: Updates the isolated fields of a subrequest, maintaining data relationships
+        natively.
+      parameters:
+      - description: Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Subrequest ID
+        in: path
+        name: sub_id
+        required: true
+        type: string
+      - description: Update Subrequest Data
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateSubrequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update an existing Subrequest specifically
       tags:
       - Employee Request
   /roles:

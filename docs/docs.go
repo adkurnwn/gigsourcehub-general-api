@@ -1375,6 +1375,185 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates a request's core fields only (` + "`" + `project_name` + "`" + `, ` + "`" + `due_date` + "`" + `, ` + "`" + `urgency` + "`" + `) for an Employee.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee Request"
+                ],
+                "summary": "Update an existing Request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Request Data",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.UpdateRequestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Base"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/requests/{id}/subrequests": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Appends a new subrequest and automatically increments the parent request's required headcount.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee Request"
+                ],
+                "summary": "Add a new Subrequest to an existing Request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New Subrequest Data",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.CreateSubrequestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Base"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/requests/{id}/subrequests/{sub_id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates the isolated fields of a subrequest, maintaining data relationships natively.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee Request"
+                ],
+                "summary": "Update an existing Subrequest specifically",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Subrequest ID",
+                        "name": "sub_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Subrequest Data",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.UpdateSubrequestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Base"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
             }
         },
         "/roles": {
@@ -2769,6 +2948,29 @@ const docTemplate = `{
                 }
             }
         },
+        "request_model.UpdateRequestRequest": {
+            "type": "object",
+            "required": [
+                "project_name",
+                "urgency"
+            ],
+            "properties": {
+                "due_date": {
+                    "type": "string"
+                },
+                "project_name": {
+                    "type": "string"
+                },
+                "urgency": {
+                    "type": "string",
+                    "enum": [
+                        "Low",
+                        "Medium",
+                        "High"
+                    ]
+                }
+            }
+        },
         "request_model.UpdateSectorRequest": {
             "type": "object",
             "required": [
@@ -2777,6 +2979,30 @@ const docTemplate = `{
             "properties": {
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "request_model.UpdateSubrequestRequest": {
+            "type": "object",
+            "required": [
+                "min_years_experience"
+            ],
+            "properties": {
+                "job_role_id": {
+                    "type": "string"
+                },
+                "min_years_experience": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "tech_stack": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
