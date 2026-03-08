@@ -298,6 +298,9 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID string, editedData map
 	unifiedData["id"] = cv.ID
 	unifiedData["cv_id"] = cv.ID
 	unifiedData["user_id"] = cv.UserID
+	if user != nil {
+		unifiedData["name"] = user.Name
+	}
 
 	// Provide the full payload to AI queue, but sanitize the final parsed response locally
 	if u.mqRepo != nil {
