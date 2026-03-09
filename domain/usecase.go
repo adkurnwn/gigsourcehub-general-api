@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"mime/multipart"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
@@ -14,20 +15,29 @@ type MemberAppUsecase interface {
 	Register(ctx context.Context, payload request_model.RegisterRequest) response.Base
 	GetMe(ctx context.Context, claim JWTClaimUser) response.Base
 	GetProfile(ctx context.Context, claim JWTClaimUser) response.Base
-	FetchUsers(ctx context.Context, page, limit int64, cursor string, roleName *string) response.Base
+	FetchUsers(ctx context.Context, page, limit int64, cursor string, roleName *string, adminID *string) response.Base
 	FetchUserDetail(ctx context.Context, id string) response.Base
 	CreateBySuperadmin(ctx context.Context, req request_model.CreateUserBySuperadminRequest) response.Base
 	EditUserBySuperadmin(ctx context.Context, id string, req request_model.EditUserBySuperadminRequest) response.Base
 	BlockUserBySuperadmin(ctx context.Context, id string) response.Base
 	DisableUserBySuperadmin(ctx context.Context, id string) response.Base
 	ActivateUserBySuperadmin(ctx context.Context, id string) response.Base
+	UploadProfilePicture(ctx context.Context, userID string, file *multipart.FileHeader) response.Base
 }
 
-type RoleAppliedAppUsecase interface {
-	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.RoleAppliedFilter) response.Base
+type JobRoleAppUsecase interface {
+	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.JobRoleFilter) response.Base
 	FetchData(ctx context.Context, id string) response.Base
-	Create(ctx context.Context, req request_model.CreateRoleAppliedRequest) response.Base
-	Update(ctx context.Context, id string, req request_model.UpdateRoleAppliedRequest) response.Base
+	Create(ctx context.Context, req request_model.CreateJobRoleRequest) response.Base
+	Update(ctx context.Context, id string, req request_model.UpdateJobRoleRequest) response.Base
+	Delete(ctx context.Context, id string) response.Base
+}
+
+type JobTitleAppUsecase interface {
+	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.JobTitleFilter) response.Base
+	FetchData(ctx context.Context, id string) response.Base
+	Create(ctx context.Context, req request_model.CreateJobTitleRequest) response.Base
+	Update(ctx context.Context, id string, req request_model.UpdateJobTitleRequest) response.Base
 	Delete(ctx context.Context, id string) response.Base
 }
 
@@ -55,4 +65,19 @@ type KabupatenKotaAppUsecase interface {
 type ProvinsiAppUsecase interface {
 	FetchAll(ctx context.Context, filter gorm_model.ProvinsiFilter) response.Base
 	FetchData(ctx context.Context, id string) response.Base
+}
+
+type BookmarkAppUsecase interface {
+	Create(ctx context.Context, adminID string, req request_model.CreateBookmarkRequest) response.Base
+	Delete(ctx context.Context, adminID string, candidateID string) response.Base
+	FetchByAdmin(ctx context.Context, adminID string, page, limit int64) response.Base
+}
+
+type RequestAppUsecase interface {
+	CreateByEmployee(ctx context.Context, employeeID string, req request_model.CreateRequestRequest) response.Base
+	FetchByEmployee(ctx context.Context, employeeID string, page, limit int64) response.Base
+	GetByID(ctx context.Context, employeeID, requestID string) response.Base
+	UpdateByEmployee(ctx context.Context, employeeID string, requestID string, req request_model.UpdateRequestRequest) response.Base
+	UpdateSubrequestByEmployee(ctx context.Context, employeeID string, requestID string, subrequestID string, req request_model.UpdateSubrequestRequest) response.Base
+	AddSubrequestByEmployee(ctx context.Context, employeeID string, requestID string, req request_model.CreateSubrequestRequest) response.Base
 }

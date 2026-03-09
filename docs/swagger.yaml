@@ -9,12 +9,14 @@ definitions:
         type: string
       profile_picture:
         type: string
-      role_system_name:
+      system_role_name:
         type: string
     type: object
   gorm_model.UserResp:
     properties:
       account_status:
+        type: string
+      assigned_role_id:
         type: string
       birthdate:
         type: string
@@ -26,7 +28,9 @@ definitions:
         type: number
       id:
         type: string
-      jabatan:
+      is_bookmark:
+        type: boolean
+      job_title_id:
         type: string
       kabupaten_kota_id:
         type: string
@@ -42,11 +46,9 @@ definitions:
         type: string
       recruitment_status_id:
         type: string
-      role_applied_id:
-        type: string
-      role_system_name:
-        type: string
       school_university:
+        type: string
+      system_role_name:
         type: string
       tech_stack:
         type: string
@@ -63,14 +65,14 @@ definitions:
     required:
     - edited_data
     type: object
-  request_model.CreateRecruitmentStatusRequest:
+  request_model.CreateBookmarkRequest:
     properties:
-      name:
+      candidate_id:
         type: string
     required:
-    - name
+    - candidate_id
     type: object
-  request_model.CreateRoleAppliedRequest:
+  request_model.CreateJobRoleRequest:
     properties:
       name:
         type: string
@@ -80,6 +82,45 @@ definitions:
     - name
     - sector_id
     type: object
+  request_model.CreateJobTitleRequest:
+    properties:
+      name:
+        type: string
+      sector_id:
+        type: string
+    required:
+    - name
+    - sector_id
+    type: object
+  request_model.CreateRecruitmentStatusRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  request_model.CreateRequestRequest:
+    properties:
+      due_date:
+        type: string
+      project_name:
+        type: string
+      subrequests:
+        items:
+          $ref: '#/definitions/request_model.CreateSubrequestRequest'
+        minItems: 1
+        type: array
+      urgency:
+        enum:
+        - Low
+        - Medium
+        - High
+        type: string
+    required:
+    - project_name
+    - subrequests
+    - urgency
+    type: object
   request_model.CreateSectorRequest:
     properties:
       name:
@@ -87,9 +128,27 @@ definitions:
     required:
     - name
     type: object
+  request_model.CreateSubrequestRequest:
+    properties:
+      job_role_id:
+        type: string
+      min_years_experience:
+        minimum: 0
+        type: integer
+      notes:
+        type: string
+      tech_stack:
+        items:
+          type: string
+        type: array
+    required:
+    - min_years_experience
+    type: object
   request_model.CreateUserBySuperadminRequest:
     properties:
       account_status:
+        type: string
+      assigned_role_id:
         type: string
       email:
         type: string
@@ -97,18 +156,16 @@ definitions:
         type: string
       password:
         type: string
-      role_applied_id:
-        type: string
-      role_system_id:
+      system_role_id:
         type: string
     type: object
   request_model.EditUserBySuperadminRequest:
     properties:
       account_status:
         type: string
-      name:
+      assigned_role_id:
         type: string
-      role_applied_id:
+      name:
         type: string
     type: object
   request_model.LoginRequest:
@@ -134,14 +191,7 @@ definitions:
     required:
     - query
     type: object
-  request_model.UpdateRecruitmentStatusRequest:
-    properties:
-      name:
-        type: string
-    required:
-    - name
-    type: object
-  request_model.UpdateRoleAppliedRequest:
+  request_model.UpdateJobRoleRequest:
     properties:
       name:
         type: string
@@ -151,12 +201,61 @@ definitions:
     - name
     - sector_id
     type: object
+  request_model.UpdateJobTitleRequest:
+    properties:
+      name:
+        type: string
+      sector_id:
+        type: string
+    required:
+    - name
+    - sector_id
+    type: object
+  request_model.UpdateRecruitmentStatusRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  request_model.UpdateRequestRequest:
+    properties:
+      due_date:
+        type: string
+      project_name:
+        type: string
+      urgency:
+        enum:
+        - Low
+        - Medium
+        - High
+        type: string
+    required:
+    - project_name
+    - urgency
+    type: object
   request_model.UpdateSectorRequest:
     properties:
       name:
         type: string
     required:
     - name
+    type: object
+  request_model.UpdateSubrequestRequest:
+    properties:
+      job_role_id:
+        type: string
+      min_years_experience:
+        minimum: 0
+        type: integer
+      notes:
+        type: string
+      tech_stack:
+        items:
+          type: string
+        type: array
+    required:
+    - min_years_experience
     type: object
   response.Base:
     properties:
@@ -276,6 +375,125 @@ paths:
       summary: Register user
       tags:
       - Auth
+  /bookmarks:
+    get:
+      description: Get paginated list of bookmarks for the authenticated admin
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: 'Fetch Admin Bookmarks (note: endpoint /users/candidates bisa digunakan
+        juga, hasil nempel ditiap kandidat)'
+      tags:
+      - Bookmarks
+    post:
+      consumes:
+      - application/json
+      description: Admin bookmarks a candidate user
+      parameters:
+      - description: Create Bookmark Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateBookmarkRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Bookmark
+      tags:
+      - Bookmarks
+  /bookmarks/{candidate_id}:
+    delete:
+      description: Admin removes a bookmarked candidate
+      parameters:
+      - description: Candidate User ID
+        in: path
+        name: candidate_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Bookmark
+      tags:
+      - Bookmarks
   /cv/confirm:
     post:
       consumes:
@@ -385,6 +603,159 @@ paths:
       summary: Upload CV
       tags:
       - CV
+  /job-titles:
+    get:
+      consumes:
+      - application/json
+      description: Get All Job Titles
+      parameters:
+      - description: Sector ID
+        in: query
+        name: sector_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Job Titles
+      tags:
+      - Job Title (Jabatan)
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateJobTitleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Job Title
+      tags:
+      - Job Title (Jabatan)
+  /job-titles/{id}:
+    delete:
+      parameters:
+      - description: Title ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Job Title
+      tags:
+      - Job Title (Jabatan)
+    get:
+      consumes:
+      - application/json
+      description: Get Job Title By ID
+      parameters:
+      - description: Title ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Job Title By ID
+      tags:
+      - Job Title (Jabatan)
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Title ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateJobTitleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Job Title
+      tags:
+      - Job Title (Jabatan)
   /kabupaten:
     get:
       consumes:
@@ -445,6 +816,41 @@ paths:
       security:
       - BearerAuth: []
       summary: Get Profile
+      tags:
+      - Profile
+  /profile/picture:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a profile picture for the current user
+      parameters:
+      - description: Profile picture file (JPEG, PNG, WebP)
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Upload Profile Picture
       tags:
       - Profile
   /provinsi:
@@ -633,11 +1039,220 @@ paths:
       summary: Update Recruitment Status
       tags:
       - Recruitment Status
+  /requests:
+    get:
+      description: Get paginated list of requests owned by the authenticated employee
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch My Requests
+      tags:
+      - Employee Request
+    post:
+      consumes:
+      - application/json
+      description: Allows an Employee to submit a new Request containing multiple
+        distinct Subrequest configurations
+      parameters:
+      - description: Request Data
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create a Request and multiple Subrequests
+      tags:
+      - Employee Request
+  /requests/{id}:
+    get:
+      description: Fetch an employee's request and its associated subrequests
+      parameters:
+      - description: Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get specific Request Details
+      tags:
+      - Employee Request
+    put:
+      consumes:
+      - application/json
+      description: Updates a request's core fields only (`project_name`, `due_date`,
+        `urgency`) for an Employee.
+      parameters:
+      - description: Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request Data
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update an existing Request
+      tags:
+      - Employee Request
+  /requests/{id}/subrequests:
+    post:
+      consumes:
+      - application/json
+      description: Appends a new subrequest and automatically increments the parent
+        request's required headcount.
+      parameters:
+      - description: Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New Subrequest Data
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateSubrequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Add a new Subrequest to an existing Request
+      tags:
+      - Employee Request
+  /requests/{id}/subrequests/{sub_id}:
+    put:
+      consumes:
+      - application/json
+      description: Updates the isolated fields of a subrequest, maintaining data relationships
+        natively.
+      parameters:
+      - description: Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Subrequest ID
+        in: path
+        name: sub_id
+        required: true
+        type: string
+      - description: Update Subrequest Data
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateSubrequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update an existing Subrequest specifically
+      tags:
+      - Employee Request
   /roles:
     get:
       consumes:
       - application/json
-      description: Get All Role Applied
+      description: Get All Job Roles
       parameters:
       - description: Sector ID
         in: query
@@ -660,9 +1275,9 @@ paths:
             $ref: '#/definitions/response.Base'
       security:
       - BearerAuth: []
-      summary: Get All Role Applied
+      summary: Get All Job Roles
       tags:
-      - Role Applied
+      - Job Role
     post:
       consumes:
       - application/json
@@ -672,7 +1287,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/request_model.CreateRoleAppliedRequest'
+          $ref: '#/definitions/request_model.CreateJobRoleRequest'
       produces:
       - application/json
       responses:
@@ -690,9 +1305,9 @@ paths:
             $ref: '#/definitions/response.Base'
       security:
       - BearerAuth: []
-      summary: Create Role Applied
+      summary: Create Job Role
       tags:
-      - Role Applied
+      - Job Role
   /roles/{id}:
     delete:
       parameters:
@@ -714,13 +1329,13 @@ paths:
             $ref: '#/definitions/response.Base'
       security:
       - BearerAuth: []
-      summary: Delete Role Applied
+      summary: Delete Job Role
       tags:
-      - Role Applied
+      - Job Role
     get:
       consumes:
       - application/json
-      description: Get Role Applied By ID
+      description: Get Job Role By ID
       parameters:
       - description: Role ID
         in: path
@@ -744,9 +1359,9 @@ paths:
             $ref: '#/definitions/response.Base'
       security:
       - BearerAuth: []
-      summary: Get Role Applied By ID
+      summary: Get Job Role By ID
       tags:
-      - Role Applied
+      - Job Role
     put:
       consumes:
       - application/json
@@ -761,7 +1376,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/request_model.UpdateRoleAppliedRequest'
+          $ref: '#/definitions/request_model.UpdateJobRoleRequest'
       produces:
       - application/json
       responses:
@@ -783,9 +1398,9 @@ paths:
             $ref: '#/definitions/response.Base'
       security:
       - BearerAuth: []
-      summary: Update Role Applied
+      summary: Update Job Role
       tags:
-      - Role Applied
+      - Job Role
   /search:
     post:
       consumes:
@@ -1092,7 +1707,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: Edit an existing user (Name, RoleAppliedId, AccountStatus) by superadmin
+      description: Edit an existing user (Name, AssignedRoleId, AccountStatus) by
+        superadmin
       parameters:
       - description: User ID
         in: path

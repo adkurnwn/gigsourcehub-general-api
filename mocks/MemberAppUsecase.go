@@ -8,6 +8,8 @@ import (
 	domain "github.com/adkurnwn/gigsourcehub-general-api/domain"
 	mock "github.com/stretchr/testify/mock"
 
+	multipart "mime/multipart"
+
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 
 	response "github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
@@ -24,6 +26,53 @@ type MemberAppUsecase_Expecter struct {
 
 func (_m *MemberAppUsecase) EXPECT() *MemberAppUsecase_Expecter {
 	return &MemberAppUsecase_Expecter{mock: &_m.Mock}
+}
+
+// ActivateUserBySuperadmin provides a mock function with given fields: ctx, id
+func (_m *MemberAppUsecase) ActivateUserBySuperadmin(ctx context.Context, id string) response.Base {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ActivateUserBySuperadmin")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string) response.Base); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_ActivateUserBySuperadmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ActivateUserBySuperadmin'
+type MemberAppUsecase_ActivateUserBySuperadmin_Call struct {
+	*mock.Call
+}
+
+// ActivateUserBySuperadmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *MemberAppUsecase_Expecter) ActivateUserBySuperadmin(ctx interface{}, id interface{}) *MemberAppUsecase_ActivateUserBySuperadmin_Call {
+	return &MemberAppUsecase_ActivateUserBySuperadmin_Call{Call: _e.mock.On("ActivateUserBySuperadmin", ctx, id)}
+}
+
+func (_c *MemberAppUsecase_ActivateUserBySuperadmin_Call) Run(run func(ctx context.Context, id string)) *MemberAppUsecase_ActivateUserBySuperadmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_ActivateUserBySuperadmin_Call) Return(_a0 response.Base) *MemberAppUsecase_ActivateUserBySuperadmin_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_ActivateUserBySuperadmin_Call) RunAndReturn(run func(context.Context, string) response.Base) *MemberAppUsecase_ActivateUserBySuperadmin_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // BlockUserBySuperadmin provides a mock function with given fields: ctx, id
@@ -116,6 +165,53 @@ func (_c *MemberAppUsecase_CreateBySuperadmin_Call) Return(_a0 response.Base) *M
 }
 
 func (_c *MemberAppUsecase_CreateBySuperadmin_Call) RunAndReturn(run func(context.Context, request_model.CreateUserBySuperadminRequest) response.Base) *MemberAppUsecase_CreateBySuperadmin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DisableUserBySuperadmin provides a mock function with given fields: ctx, id
+func (_m *MemberAppUsecase) DisableUserBySuperadmin(ctx context.Context, id string) response.Base {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DisableUserBySuperadmin")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string) response.Base); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_DisableUserBySuperadmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisableUserBySuperadmin'
+type MemberAppUsecase_DisableUserBySuperadmin_Call struct {
+	*mock.Call
+}
+
+// DisableUserBySuperadmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *MemberAppUsecase_Expecter) DisableUserBySuperadmin(ctx interface{}, id interface{}) *MemberAppUsecase_DisableUserBySuperadmin_Call {
+	return &MemberAppUsecase_DisableUserBySuperadmin_Call{Call: _e.mock.On("DisableUserBySuperadmin", ctx, id)}
+}
+
+func (_c *MemberAppUsecase_DisableUserBySuperadmin_Call) Run(run func(ctx context.Context, id string)) *MemberAppUsecase_DisableUserBySuperadmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_DisableUserBySuperadmin_Call) Return(_a0 response.Base) *MemberAppUsecase_DisableUserBySuperadmin_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_DisableUserBySuperadmin_Call) RunAndReturn(run func(context.Context, string) response.Base) *MemberAppUsecase_DisableUserBySuperadmin_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -215,17 +311,17 @@ func (_c *MemberAppUsecase_FetchUserDetail_Call) RunAndReturn(run func(context.C
 	return _c
 }
 
-// FetchUsers provides a mock function with given fields: ctx, page, limit, cursor, roleName
-func (_m *MemberAppUsecase) FetchUsers(ctx context.Context, page int64, limit int64, cursor string, roleName *string) response.Base {
-	ret := _m.Called(ctx, page, limit, cursor, roleName)
+// FetchUsers provides a mock function with given fields: ctx, page, limit, cursor, roleName, adminID
+func (_m *MemberAppUsecase) FetchUsers(ctx context.Context, page int64, limit int64, cursor string, roleName *string, adminID *string) response.Base {
+	ret := _m.Called(ctx, page, limit, cursor, roleName, adminID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FetchUsers")
 	}
 
 	var r0 response.Base
-	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, string, *string) response.Base); ok {
-		r0 = rf(ctx, page, limit, cursor, roleName)
+	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, string, *string, *string) response.Base); ok {
+		r0 = rf(ctx, page, limit, cursor, roleName, adminID)
 	} else {
 		r0 = ret.Get(0).(response.Base)
 	}
@@ -244,13 +340,14 @@ type MemberAppUsecase_FetchUsers_Call struct {
 //   - limit int64
 //   - cursor string
 //   - roleName *string
-func (_e *MemberAppUsecase_Expecter) FetchUsers(ctx interface{}, page interface{}, limit interface{}, cursor interface{}, roleName interface{}) *MemberAppUsecase_FetchUsers_Call {
-	return &MemberAppUsecase_FetchUsers_Call{Call: _e.mock.On("FetchUsers", ctx, page, limit, cursor, roleName)}
+//   - adminID *string
+func (_e *MemberAppUsecase_Expecter) FetchUsers(ctx interface{}, page interface{}, limit interface{}, cursor interface{}, roleName interface{}, adminID interface{}) *MemberAppUsecase_FetchUsers_Call {
+	return &MemberAppUsecase_FetchUsers_Call{Call: _e.mock.On("FetchUsers", ctx, page, limit, cursor, roleName, adminID)}
 }
 
-func (_c *MemberAppUsecase_FetchUsers_Call) Run(run func(ctx context.Context, page int64, limit int64, cursor string, roleName *string)) *MemberAppUsecase_FetchUsers_Call {
+func (_c *MemberAppUsecase_FetchUsers_Call) Run(run func(ctx context.Context, page int64, limit int64, cursor string, roleName *string, adminID *string)) *MemberAppUsecase_FetchUsers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64), args[2].(int64), args[3].(string), args[4].(*string))
+		run(args[0].(context.Context), args[1].(int64), args[2].(int64), args[3].(string), args[4].(*string), args[5].(*string))
 	})
 	return _c
 }
@@ -260,7 +357,7 @@ func (_c *MemberAppUsecase_FetchUsers_Call) Return(_a0 response.Base) *MemberApp
 	return _c
 }
 
-func (_c *MemberAppUsecase_FetchUsers_Call) RunAndReturn(run func(context.Context, int64, int64, string, *string) response.Base) *MemberAppUsecase_FetchUsers_Call {
+func (_c *MemberAppUsecase_FetchUsers_Call) RunAndReturn(run func(context.Context, int64, int64, string, *string, *string) response.Base) *MemberAppUsecase_FetchUsers_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -449,6 +546,54 @@ func (_c *MemberAppUsecase_Register_Call) Return(_a0 response.Base) *MemberAppUs
 }
 
 func (_c *MemberAppUsecase_Register_Call) RunAndReturn(run func(context.Context, request_model.RegisterRequest) response.Base) *MemberAppUsecase_Register_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UploadProfilePicture provides a mock function with given fields: ctx, userID, file
+func (_m *MemberAppUsecase) UploadProfilePicture(ctx context.Context, userID string, file *multipart.FileHeader) response.Base {
+	ret := _m.Called(ctx, userID, file)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UploadProfilePicture")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string, *multipart.FileHeader) response.Base); ok {
+		r0 = rf(ctx, userID, file)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_UploadProfilePicture_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UploadProfilePicture'
+type MemberAppUsecase_UploadProfilePicture_Call struct {
+	*mock.Call
+}
+
+// UploadProfilePicture is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - file *multipart.FileHeader
+func (_e *MemberAppUsecase_Expecter) UploadProfilePicture(ctx interface{}, userID interface{}, file interface{}) *MemberAppUsecase_UploadProfilePicture_Call {
+	return &MemberAppUsecase_UploadProfilePicture_Call{Call: _e.mock.On("UploadProfilePicture", ctx, userID, file)}
+}
+
+func (_c *MemberAppUsecase_UploadProfilePicture_Call) Run(run func(ctx context.Context, userID string, file *multipart.FileHeader)) *MemberAppUsecase_UploadProfilePicture_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(*multipart.FileHeader))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_UploadProfilePicture_Call) Return(_a0 response.Base) *MemberAppUsecase_UploadProfilePicture_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_UploadProfilePicture_Call) RunAndReturn(run func(context.Context, string, *multipart.FileHeader) response.Base) *MemberAppUsecase_UploadProfilePicture_Call {
 	_c.Call.Return(run)
 	return _c
 }

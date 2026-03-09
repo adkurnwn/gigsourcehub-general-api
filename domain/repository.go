@@ -30,10 +30,15 @@ type GormRepo interface {
 	GetProvinsiName(ctx context.Context, id string) (string, error)
 	GetKabupatenName(ctx context.Context, id string) (string, error)
 
-	FetchRoleApplied(ctx context.Context, options gorm_model.RoleAppliedFilter) (*sql.Rows, error)
-	CreateRoleApplied(ctx context.Context, model *gorm_model.RoleApplied) error
-	UpdateRoleApplied(ctx context.Context, model *gorm_model.RoleApplied) error
-	DeleteRoleApplied(ctx context.Context, id string) error
+	FetchJobRole(ctx context.Context, options gorm_model.JobRoleFilter) (*sql.Rows, error)
+	CreateJobRole(ctx context.Context, model *gorm_model.JobRole) error
+	UpdateJobRole(ctx context.Context, model *gorm_model.JobRole) error
+	DeleteJobRole(ctx context.Context, id string) error
+
+	FetchJobTitle(ctx context.Context, options gorm_model.JobTitleFilter) (*sql.Rows, error)
+	CreateJobTitle(ctx context.Context, model *gorm_model.JobTitle) error
+	UpdateJobTitle(ctx context.Context, model *gorm_model.JobTitle) error
+	DeleteJobTitle(ctx context.Context, id string) error
 
 	FetchSector(ctx context.Context, options gorm_model.SectorFilter) (*sql.Rows, error)
 	CreateSector(ctx context.Context, model *gorm_model.Sector) error
@@ -47,6 +52,21 @@ type GormRepo interface {
 
 	FetchKabupatenKota(ctx context.Context, options gorm_model.KabupatenKotaFilter) (*sql.Rows, error)
 	FetchProvinsi(ctx context.Context, options gorm_model.ProvinsiFilter) (*sql.Rows, error)
+
+	CreateBookmark(ctx context.Context, model *gorm_model.Bookmark) error
+	GetBookmark(ctx context.Context, adminID, candidateID string) (*gorm_model.Bookmark, error)
+	DeleteBookmark(ctx context.Context, adminID, candidateID string) (int64, error)
+	FetchBookmarksByAdmin(ctx context.Context, adminID string, limit, offset int64) (*sql.Rows, error)
+	CountBookmarksByAdmin(ctx context.Context, adminID string) (int64, error)
+
+	CreateRequest(ctx context.Context, model *gorm_model.Request) error
+	FetchRequestsByEmployee(ctx context.Context, employeeID string, limit, offset int64) (*sql.Rows, error)
+	CountRequestsByEmployee(ctx context.Context, employeeID string) (int64, error)
+	GetRequestByID(ctx context.Context, id string) (*gorm_model.Request, error)
+	UpdateRequestByEmployee(ctx context.Context, model *gorm_model.Request) error
+	GetSubrequestByID(ctx context.Context, id string) (*gorm_model.Subrequest, error)
+	CreateSubrequestByEmployee(ctx context.Context, model *gorm_model.Subrequest) error
+	UpdateSubrequestByEmployee(ctx context.Context, model *gorm_model.Subrequest) error
 
 	GetDB() *gorm.DB
 }
@@ -63,6 +83,7 @@ type StorageRepo interface {
 	GetPublicLink(objectKey string) string
 	UploadFilePublic(objectKey string, body io.Reader, contentType string) (uploadData *storage_model.UploadResponse, err error)
 	UploadFilePrivate(objectKey string, body io.Reader, contentType string, expires *time.Duration) (uploadData *storage_model.UploadResponse, err error)
+	DeleteFile(objectKey string) error
 }
 
 type MessageBroker interface {

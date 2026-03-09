@@ -2,25 +2,31 @@ package main
 
 import (
 	"github.com/adkurnwn/gigsourcehub-general-api/app/consumer"
+	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
+	http_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_role"
+	http_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_title"
 	http_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/kabupaten_kota"
 	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
 	http_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/provinsi"
 	http_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/recruitment_status"
-	http_role_applied "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/role_applied"
+	httpdelivery_request "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/request"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
 	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
 	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
 	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
 	rabbitmqrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/rabbitmq"
 	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
+	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
+	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
+	usecase_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_title"
 	usecase_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/kabupaten_kota"
 	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
 	usecase_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/provinsi"
 	usecase_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/recruitment_status"
-	usecase_role_applied "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/role_applied"
+	usecase_request "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/request"
 	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
 	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
@@ -151,8 +157,13 @@ func main() {
 		StorageRepo: storageRepo,
 	}, timeoutContext)
 
-	// init role applied usecase
-	ucRoleApplied := usecase_role_applied.NewAppUsecase(usecase_role_applied.RepoInjection{
+	// init job role usecase
+	ucJobRole := usecase_job_role.NewAppUsecase(usecase_job_role.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init job title usecase
+	ucJobTitle := usecase_job_title.NewAppUsecase(usecase_job_title.RepoInjection{
 		GormDbRepo: repo,
 	}, timeoutContext)
 
@@ -175,6 +186,14 @@ func main() {
 	ucProvinsi := usecase_provinsi.NewAppUsecase(usecase_provinsi.RepoInjection{
 		GormDbRepo: repo,
 	}, timeoutContext)
+
+	// init bookmark usecase
+	ucBookmark := usecase_bookmark.NewAppUsecase(usecase_bookmark.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init request usecase
+	ucRequest := usecase_request.NewRequestAppUsecase(repo, timeoutContext)
 
 	// init mq repo
 	mqRepo, err := rabbitmqrepo.NewRabbitMQRepo(os.Getenv("RABBITMQ_URL"))
@@ -233,11 +252,14 @@ func main() {
 	apiGroup := ginEngine.Group("/api")
 	http_member.NewRouteHandler(apiGroup, mdl, ucMember)
 	http_cv.NewCVHandler(apiGroup, mdl, ucCV)
-	http_role_applied.NewRoleAppliedHandler(apiGroup, mdl, ucRoleApplied)
+	http_job_role.NewJobRoleHandler(apiGroup, mdl, ucJobRole)
+	httpdelivery_request.NewRequestHandler(apiGroup, mdl, ucRequest)
+	http_job_title.NewJobTitleHandler(apiGroup, mdl, ucJobTitle)
 	http_sector.NewSectorHandler(apiGroup, mdl, ucSector)
 	http_kabupaten_kota.NewKabupatenKotaHandler(apiGroup, ucKabupatenKota)
 	http_provinsi.NewProvinsiHandler(apiGroup, ucProvinsi)
 	http_recruitment_status.NewRecruitmentStatusHandler(apiGroup, mdl, ucRecruitmentStatus)
+	http_bookmark.NewBookmarkHandler(apiGroup, mdl, ucBookmark)
 
 	// init search (AI)
 	aiRepo, err := aisearchrepo.NewAISearchRepository(os.Getenv("AI_API_URL"))

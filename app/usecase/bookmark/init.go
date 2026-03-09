@@ -1,4 +1,4 @@
-package usecase_role_applied
+package usecase_bookmark
 
 import (
 	"time"
@@ -15,7 +15,7 @@ type RepoInjection struct {
 	GormDbRepo domain.GormRepo
 }
 
-func NewAppUsecase(r RepoInjection, timeout time.Duration) domain.RoleAppliedAppUsecase {
+func NewAppUsecase(r RepoInjection, timeout time.Duration) domain.BookmarkAppUsecase {
 	return &appUsecase{
 		gormDbRepo:     r.GormDbRepo,
 		contextTimeout: timeout,

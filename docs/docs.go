@@ -173,6 +173,190 @@ const docTemplate = `{
                 }
             }
         },
+        "/bookmarks": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get paginated list of bookmarks for the authenticated admin",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookmarks"
+                ],
+                "summary": "Fetch Admin Bookmarks (note: endpoint /users/candidates bisa digunakan juga, hasil nempel ditiap kandidat)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin bookmarks a candidate user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookmarks"
+                ],
+                "summary": "Create Bookmark",
+                "parameters": [
+                    {
+                        "description": "Create Bookmark Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.CreateBookmarkRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            }
+        },
+        "/bookmarks/{candidate_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin removes a bookmarked candidate",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookmarks"
+                ],
+                "summary": "Delete Bookmark",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Candidate User ID",
+                        "name": "candidate_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            }
+        },
         "/cv/confirm": {
             "post": {
                 "security": [
@@ -347,6 +531,249 @@ const docTemplate = `{
                 }
             }
         },
+        "/job-titles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get All Job Titles",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job Title (Jabatan)"
+                ],
+                "summary": "Get All Job Titles",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sector ID",
+                        "name": "sector_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job Title (Jabatan)"
+                ],
+                "summary": "Create Job Title",
+                "parameters": [
+                    {
+                        "description": "Create Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.CreateJobTitleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            }
+        },
+        "/job-titles/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get Job Title By ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job Title (Jabatan)"
+                ],
+                "summary": "Get Job Title By ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Title ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job Title (Jabatan)"
+                ],
+                "summary": "Update Job Title",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Title ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.UpdateJobTitleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job Title (Jabatan)"
+                ],
+                "summary": "Delete Job Title",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Title ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            }
+        },
         "/kabupaten": {
             "get": {
                 "description": "Get All Kabupaten Kota by Province ID",
@@ -430,6 +857,61 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/picture": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload a profile picture for the current user",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Upload Profile Picture",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Profile picture file (JPEG, PNG, WebP)",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/response.Base"
                         }
@@ -735,14 +1217,65 @@ const docTemplate = `{
                 }
             }
         },
-        "/roles": {
+        "/requests": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get All Role Applied",
+                "description": "Get paginated list of requests owned by the authenticated employee",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee Request"
+                ],
+                "summary": "Fetch My Requests",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Allows an Employee to submit a new Request containing multiple distinct Subrequest configurations",
                 "consumes": [
                     "application/json"
                 ],
@@ -750,9 +1283,297 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role Applied"
+                    "Employee Request"
                 ],
-                "summary": "Get All Role Applied",
+                "summary": "Create a Request and multiple Subrequests",
+                "parameters": [
+                    {
+                        "description": "Request Data",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.CreateRequestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Base"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/requests/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Fetch an employee's request and its associated subrequests",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee Request"
+                ],
+                "summary": "Get specific Request Details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates a request's core fields only (` + "`" + `project_name` + "`" + `, ` + "`" + `due_date` + "`" + `, ` + "`" + `urgency` + "`" + `) for an Employee.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee Request"
+                ],
+                "summary": "Update an existing Request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Request Data",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.UpdateRequestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Base"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/requests/{id}/subrequests": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Appends a new subrequest and automatically increments the parent request's required headcount.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee Request"
+                ],
+                "summary": "Add a new Subrequest to an existing Request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New Subrequest Data",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.CreateSubrequestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Base"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/requests/{id}/subrequests/{sub_id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates the isolated fields of a subrequest, maintaining data relationships natively.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee Request"
+                ],
+                "summary": "Update an existing Subrequest specifically",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Subrequest ID",
+                        "name": "sub_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Subrequest Data",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.UpdateSubrequestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Base"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/roles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get All Job Roles",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job Role"
+                ],
+                "summary": "Get All Job Roles",
                 "parameters": [
                     {
                         "type": "string",
@@ -795,9 +1616,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role Applied"
+                    "Job Role"
                 ],
-                "summary": "Create Role Applied",
+                "summary": "Create Job Role",
                 "parameters": [
                     {
                         "description": "Create Request",
@@ -805,7 +1626,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request_model.CreateRoleAppliedRequest"
+                            "$ref": "#/definitions/request_model.CreateJobRoleRequest"
                         }
                     }
                 ],
@@ -838,7 +1659,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get Role Applied By ID",
+                "description": "Get Job Role By ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -846,9 +1667,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role Applied"
+                    "Job Role"
                 ],
-                "summary": "Get Role Applied By ID",
+                "summary": "Get Job Role By ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -892,9 +1713,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role Applied"
+                    "Job Role"
                 ],
-                "summary": "Update Role Applied",
+                "summary": "Update Job Role",
                 "parameters": [
                     {
                         "type": "string",
@@ -909,7 +1730,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request_model.UpdateRoleAppliedRequest"
+                            "$ref": "#/definitions/request_model.UpdateJobRoleRequest"
                         }
                     }
                 ],
@@ -950,9 +1771,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role Applied"
+                    "Job Role"
                 ],
-                "summary": "Delete Role Applied",
+                "summary": "Delete Job Role",
                 "parameters": [
                     {
                         "type": "string",
@@ -1523,7 +2344,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Edit an existing user (Name, RoleAppliedId, AccountStatus) by superadmin",
+                "description": "Edit an existing user (Name, AssignedRoleId, AccountStatus) by superadmin",
                 "consumes": [
                     "application/json"
                 ],
@@ -1810,7 +2631,7 @@ const docTemplate = `{
                 "profile_picture": {
                     "type": "string"
                 },
-                "role_system_name": {
+                "system_role_name": {
                     "type": "string"
                 }
             }
@@ -1819,6 +2640,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "account_status": {
+                    "type": "string"
+                },
+                "assigned_role_id": {
                     "type": "string"
                 },
                 "birthdate": {
@@ -1836,7 +2660,10 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "jabatan": {
+                "is_bookmark": {
+                    "type": "boolean"
+                },
+                "job_title_id": {
                     "type": "string"
                 },
                 "kabupaten_kota_id": {
@@ -1860,13 +2687,10 @@ const docTemplate = `{
                 "recruitment_status_id": {
                     "type": "string"
                 },
-                "role_applied_id": {
-                    "type": "string"
-                },
-                "role_system_name": {
-                    "type": "string"
-                },
                 "school_university": {
+                    "type": "string"
+                },
+                "system_role_name": {
                     "type": "string"
                 },
                 "tech_stack": {
@@ -1892,18 +2716,18 @@ const docTemplate = `{
                 }
             }
         },
-        "request_model.CreateRecruitmentStatusRequest": {
+        "request_model.CreateBookmarkRequest": {
             "type": "object",
             "required": [
-                "name"
+                "candidate_id"
             ],
             "properties": {
-                "name": {
+                "candidate_id": {
                     "type": "string"
                 }
             }
         },
-        "request_model.CreateRoleAppliedRequest": {
+        "request_model.CreateJobRoleRequest": {
             "type": "object",
             "required": [
                 "name",
@@ -1918,6 +2742,63 @@ const docTemplate = `{
                 }
             }
         },
+        "request_model.CreateJobTitleRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "sector_id"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "sector_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request_model.CreateRecruitmentStatusRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "request_model.CreateRequestRequest": {
+            "type": "object",
+            "required": [
+                "project_name",
+                "subrequests",
+                "urgency"
+            ],
+            "properties": {
+                "due_date": {
+                    "type": "string"
+                },
+                "project_name": {
+                    "type": "string"
+                },
+                "subrequests": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/request_model.CreateSubrequestRequest"
+                    }
+                },
+                "urgency": {
+                    "type": "string",
+                    "enum": [
+                        "Low",
+                        "Medium",
+                        "High"
+                    ]
+                }
+            }
+        },
         "request_model.CreateSectorRequest": {
             "type": "object",
             "required": [
@@ -1929,10 +2810,37 @@ const docTemplate = `{
                 }
             }
         },
+        "request_model.CreateSubrequestRequest": {
+            "type": "object",
+            "required": [
+                "min_years_experience"
+            ],
+            "properties": {
+                "job_role_id": {
+                    "type": "string"
+                },
+                "min_years_experience": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "tech_stack": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request_model.CreateUserBySuperadminRequest": {
             "type": "object",
             "properties": {
                 "account_status": {
+                    "type": "string"
+                },
+                "assigned_role_id": {
                     "type": "string"
                 },
                 "email": {
@@ -1944,10 +2852,7 @@ const docTemplate = `{
                 "password": {
                     "type": "string"
                 },
-                "role_applied_id": {
-                    "type": "string"
-                },
-                "role_system_id": {
+                "system_role_id": {
                     "type": "string"
                 }
             }
@@ -1958,10 +2863,10 @@ const docTemplate = `{
                 "account_status": {
                     "type": "string"
                 },
-                "name": {
+                "assigned_role_id": {
                     "type": "string"
                 },
-                "role_applied_id": {
+                "name": {
                     "type": "string"
                 }
             }
@@ -2002,18 +2907,7 @@ const docTemplate = `{
                 }
             }
         },
-        "request_model.UpdateRecruitmentStatusRequest": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "request_model.UpdateRoleAppliedRequest": {
+        "request_model.UpdateJobRoleRequest": {
             "type": "object",
             "required": [
                 "name",
@@ -2028,6 +2922,55 @@ const docTemplate = `{
                 }
             }
         },
+        "request_model.UpdateJobTitleRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "sector_id"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "sector_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request_model.UpdateRecruitmentStatusRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "request_model.UpdateRequestRequest": {
+            "type": "object",
+            "required": [
+                "project_name",
+                "urgency"
+            ],
+            "properties": {
+                "due_date": {
+                    "type": "string"
+                },
+                "project_name": {
+                    "type": "string"
+                },
+                "urgency": {
+                    "type": "string",
+                    "enum": [
+                        "Low",
+                        "Medium",
+                        "High"
+                    ]
+                }
+            }
+        },
         "request_model.UpdateSectorRequest": {
             "type": "object",
             "required": [
@@ -2036,6 +2979,30 @@ const docTemplate = `{
             "properties": {
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "request_model.UpdateSubrequestRequest": {
+            "type": "object",
+            "required": [
+                "min_years_experience"
+            ],
+            "properties": {
+                "job_role_id": {
+                    "type": "string"
+                },
+                "min_years_experience": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "tech_stack": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

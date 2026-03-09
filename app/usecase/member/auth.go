@@ -67,7 +67,7 @@ func (u *appUsecase) Login(ctx context.Context, payload request_model.LoginReque
 	// Manually ensure the Role Name is fetched so ToUserResp can properly suppress Candidate fields
 	roleName, errRole := u.gormDbRepo.GetRoleNameByUserID(ctx, user.ID)
 	if errRole == nil && roleName != "" {
-		user.RoleSystem = &gorm_model.RoleSystem{
+		user.SystemRole = &gorm_model.SystemRole{
 			Name: roleName,
 		}
 	}
@@ -116,10 +116,10 @@ func (u *appUsecase) Register(ctx context.Context, payload request_model.Registe
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(payload.Password), bcrypt.DefaultCost)
 
 	// Fetch default role "Candidate"
-	var candidateRole gorm_model.RoleSystem
-	var roleSystemID *string
+	var candidateRole gorm_model.SystemRole
+	var systemRoleID *string
 	if err := u.gormDbRepo.GetDB().Where("name = ?", "Candidate").First(&candidateRole).Error; err == nil {
-		roleSystemID = &candidateRole.ID
+		systemRoleID = &candidateRole.ID
 	}
 
 	activeStatus := "Active"
@@ -129,7 +129,7 @@ func (u *appUsecase) Register(ctx context.Context, payload request_model.Registe
 		Name:          payload.Name,
 		Email:         payload.Email,
 		Password:      string(hashedPassword),
-		RoleSystemId:  roleSystemID,
+		SystemRoleId:  systemRoleID,
 		AccountStatus: &activeStatus,
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
@@ -181,7 +181,7 @@ func (u *appUsecase) GetMe(ctx context.Context, claim domain.JWTClaimUser) respo
 	// Manually ensure the Role Name is fetched so ToUserResp can properly suppress Candidate fields
 	roleName, err := u.gormDbRepo.GetRoleNameByUserID(ctx, userID)
 	if err == nil && roleName != "" {
-		user.RoleSystem = &gorm_model.RoleSystem{
+		user.SystemRole = &gorm_model.SystemRole{
 			Name: roleName,
 		}
 	}

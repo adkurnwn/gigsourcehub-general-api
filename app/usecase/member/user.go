@@ -16,7 +16,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor string, roleName *string) response.Base {
+func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor string, roleName *string, adminID *string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -26,7 +26,7 @@ func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor s
 	db := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.User{})
 
 	if roleName != nil {
-		db = db.Joins("JOIN role_systems rs ON users.role_system_id = rs.id").Where("rs.name = ?", *roleName)
+		db = db.Joins("JOIN system_roles rs ON users.system_role_id = rs.id").Where("rs.name = ?", *roleName)
 	}
 
 	var total int64
@@ -36,14 +36,32 @@ func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor s
 
 	// Execute actual limited fetch
 	var users []gorm_model.User
-	if err := db.Preload("RoleSystem").Limit(int(limit)).Offset(int(offset)).Order("created_at DESC").Find(&users).Error; err != nil {
+	if err := db.Preload("SystemRole").Limit(int(limit)).Offset(int(offset)).Order("created_at DESC").Find(&users).Error; err != nil {
 		logrus.Error("FetchUsers error: ", err)
 		return response.Error(http.StatusInternalServerError, "Failed to fetch users")
 	}
 
+	// Build bookmark lookup set if adminID is provided
+	bookmarkSet := make(map[string]bool)
+	if adminID != nil {
+		var bookmarkedIDs []string
+		u.gormDbRepo.GetDB().WithContext(ctx).
+			Model(&gorm_model.Bookmark{}).
+			Where("admin_id = ?", *adminID).
+			Pluck("candidate_id", &bookmarkedIDs)
+		for _, id := range bookmarkedIDs {
+			bookmarkSet[id] = true
+		}
+	}
+
 	var results []interface{}
 	for _, user := range users {
-		results = append(results, user.ToUserResp())
+		resp := user.ToUserResp()
+		if adminID != nil {
+			isBookmarked := bookmarkSet[user.ID]
+			resp.IsBookmark = &isBookmarked
+		}
+		results = append(results, resp)
 	}
 
 	var nextCursor *string
@@ -81,7 +99,7 @@ func (u *appUsecase) FetchUserDetail(ctx context.Context, id string) response.Ba
 	// Pre-hydrate role system safely
 	roleName, errRole := u.gormDbRepo.GetRoleNameByUserID(ctx, user.ID)
 	if errRole == nil && roleName != "" {
-		user.RoleSystem = &gorm_model.RoleSystem{
+		user.SystemRole = &gorm_model.SystemRole{
 			Name: roleName,
 		}
 	}
@@ -125,7 +143,7 @@ func (u *appUsecase) GetProfile(ctx context.Context, claim domain.JWTClaimUser) 
 	// Pre-hydrate role system safely
 	roleName, errRole := u.gormDbRepo.GetRoleNameByUserID(ctx, user.ID)
 	if errRole == nil && roleName != "" {
-		user.RoleSystem = &gorm_model.RoleSystem{
+		user.SystemRole = &gorm_model.SystemRole{
 			Name: roleName,
 		}
 	}
@@ -158,12 +176,12 @@ func (u *appUsecase) CreateBySuperadmin(ctx context.Context, req request_model.C
 	}
 
 	user := gorm_model.User{
-		ID:            uuid.New().String(),
-		Email:         req.Email,
-		Name:          req.Name,
-		Password:      string(hashedPassword),
-		RoleAppliedId: req.RoleAppliedId,
-		RoleSystemId:  req.RoleSystemId,
+		ID:             uuid.New().String(),
+		Email:          req.Email,
+		Name:           req.Name,
+		Password:       string(hashedPassword),
+		AssignedRoleId: req.AssignedRoleId,
+		SystemRoleId:   req.SystemRoleId,
 	}
 
 	if req.AccountStatus != nil {
@@ -195,8 +213,8 @@ func (u *appUsecase) EditUserBySuperadmin(ctx context.Context, id string, req re
 		user.Name = *req.Name
 	}
 
-	if req.RoleAppliedId != nil {
-		user.RoleAppliedId = req.RoleAppliedId
+	if req.AssignedRoleId != nil {
+		user.AssignedRoleId = req.AssignedRoleId
 	}
 
 	if req.AccountStatus != nil {
@@ -227,7 +245,7 @@ func (u *appUsecase) BlockUserBySuperadmin(ctx context.Context, id string) respo
 		return response.Error(http.StatusBadRequest, "User already blocked")
 	}
 
-	if user.RoleSystem.Name == "Admin" || user.RoleSystem.Name == "Employee" || user.RoleSystem.Name == "Superadmin" {
+	if user.SystemRole.Name == "Admin" || user.SystemRole.Name == "Employee" || user.SystemRole.Name == "Superadmin" {
 		return response.Error(http.StatusBadRequest, "Admin, Employee, and Superadmin users cannot be blocked")
 	}
 
@@ -258,7 +276,7 @@ func (u *appUsecase) DisableUserBySuperadmin(ctx context.Context, id string) res
 		return response.Error(http.StatusBadRequest, "User already inactive")
 	}
 
-	if user.RoleSystem.Name == "Candidate" {
+	if user.SystemRole.Name == "Candidate" {
 		return response.Error(http.StatusBadRequest, "Candidate user cannot be disabled")
 	}
 

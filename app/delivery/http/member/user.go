@@ -3,6 +3,7 @@ package http_member
 import (
 	"net/http"
 
+	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
@@ -55,7 +56,14 @@ func (h *routeHandler) FetchCandidates(c *gin.Context) {
 	pagination := helpers.GetPagination(c)
 	roleName := "Candidate"
 
-	res := h.Usecase.FetchUsers(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, &roleName)
+	// Extract admin ID from JWT claims for bookmark lookup
+	var adminID *string
+	if claims, ok := c.Get("token_data"); ok {
+		tokenData := claims.(domain.JWTClaimUser)
+		adminID = &tokenData.UserID
+	}
+
+	res := h.Usecase.FetchUsers(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, &roleName, adminID)
 	c.JSON(res.Status, res)
 }
 
@@ -76,7 +84,7 @@ func (h *routeHandler) FetchCandidates(c *gin.Context) {
 func (h *routeHandler) FetchAllUsers(c *gin.Context) {
 	pagination := helpers.GetPagination(c)
 
-	res := h.Usecase.FetchUsers(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, nil)
+	res := h.Usecase.FetchUsers(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, nil, nil)
 	c.JSON(res.Status, res)
 }
 
@@ -134,7 +142,7 @@ func (h *routeHandler) CreateUserBySuperadmin(c *gin.Context) {
 
 // EditUserBySuperadmin
 // @Summary Edit User By Superadmin
-// @Description Edit an existing user (Name, RoleAppliedId, AccountStatus) by superadmin
+// @Description Edit an existing user (Name, AssignedRoleId, AccountStatus) by superadmin
 // @Tags Users
 // @Accept json
 // @Produce json
