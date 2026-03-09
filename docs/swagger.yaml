@@ -123,10 +123,10 @@ definitions:
     type: object
   request_model.CreateSectorRequest:
     properties:
+      hex_code:
+        type: string
       name:
         type: string
-    required:
-    - name
     type: object
   request_model.CreateSubrequestRequest:
     properties:
@@ -236,10 +236,10 @@ definitions:
     type: object
   request_model.UpdateSectorRequest:
     properties:
+      hex_code:
+        type: string
       name:
         type: string
-    required:
-    - name
     type: object
   request_model.UpdateSubrequestRequest:
     properties:

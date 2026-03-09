@@ -2801,10 +2801,10 @@ const docTemplate = `{
         },
         "request_model.CreateSectorRequest": {
             "type": "object",
-            "required": [
-                "name"
-            ],
             "properties": {
+                "hex_code": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 }
@@ -2973,10 +2973,10 @@ const docTemplate = `{
         },
         "request_model.UpdateSectorRequest": {
             "type": "object",
-            "required": [
-                "name"
-            ],
             "properties": {
+                "hex_code": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 }
