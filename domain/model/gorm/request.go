@@ -19,6 +19,7 @@ type Request struct {
 	Status            string         `gorm:"column:status;type:request_status"`
 	Urgency           string         `gorm:"column:urgency;type:request_urgency"`
 	FulfillmentDate   *time.Time     `gorm:"column:fulfillment_date;type:date"`
+	RejectedReason    *string        `gorm:"column:rejected_reason;type:text"`
 	Subrequests       []Subrequest   `gorm:"foreignKey:RequestID"`
 	CreatedAt         time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt         time.Time      `gorm:"column:updated_at;autoUpdateTime"`
@@ -42,6 +43,7 @@ type RequestResp struct {
 	Status            string           `json:"status"`
 	Urgency           string           `json:"urgency"`
 	FulfillmentDate   *string          `json:"fulfillment_date"`
+	RejectedReason    *string          `json:"rejected_reason"`
 	Subrequests       []SubrequestResp `json:"subrequests,omitempty"`
 	CreatedAt         time.Time        `json:"created_at"`
 	UpdatedAt         time.Time        `json:"updated_at"`
@@ -76,6 +78,7 @@ func (row *Request) ToRequestResp() RequestResp {
 		Status:            row.Status,
 		Urgency:           row.Urgency,
 		FulfillmentDate:   fulfillmentStr,
+		RejectedReason:    row.RejectedReason,
 		Subrequests:       subResponses,
 		CreatedAt:         row.CreatedAt,
 		UpdatedAt:         row.UpdatedAt,

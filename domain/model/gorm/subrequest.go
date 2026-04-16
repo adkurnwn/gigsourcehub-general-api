@@ -17,6 +17,7 @@ type Subrequest struct {
 	TechStack          *string        `gorm:"column:tech_stack;type:jsonb"`
 	Notes              *string        `gorm:"column:notes;type:text"`
 	IsFilled           bool           `gorm:"column:is_filled;type:boolean;default:false"`
+	Overview           *string        `gorm:"column:overview;type:text"`
 	CreatedAt          time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt          time.Time      `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt          gorm.DeletedAt `gorm:"column:deleted_at;index"`
@@ -38,6 +39,7 @@ type SubrequestResp struct {
 	TechStack          *string `json:"tech_stack"`
 	Notes              *string `json:"notes"`
 	IsFilled           bool    `json:"is_filled"`
+	Overview           *string `json:"overview"`
 }
 
 func (row *Subrequest) ToSubrequestResp() SubrequestResp {
@@ -55,5 +57,6 @@ func (row *Subrequest) ToSubrequestResp() SubrequestResp {
 		TechStack:          row.TechStack,
 		Notes:              row.Notes,
 		IsFilled:           row.IsFilled,
+		Overview:           row.Overview,
 	}
 }
