@@ -13,6 +13,7 @@ import (
 	http_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/recruitment_status"
 	httpdelivery_request "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/request"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
+	http_internal "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/internal_svc"
 	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
 	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
 	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
@@ -260,6 +261,7 @@ func main() {
 	http_provinsi.NewProvinsiHandler(apiGroup, ucProvinsi)
 	http_recruitment_status.NewRecruitmentStatusHandler(apiGroup, mdl, ucRecruitmentStatus)
 	http_bookmark.NewBookmarkHandler(apiGroup, mdl, ucBookmark)
+	http_internal.NewInternalHandler(apiGroup, repo)
 
 	// init search (AI)
 	aiRepo, err := aisearchrepo.NewAISearchRepository(os.Getenv("AI_API_URL"))
