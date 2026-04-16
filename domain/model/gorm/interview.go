@@ -18,6 +18,7 @@ type Interview struct {
 	Method          *string         `gorm:"column:method;type:varchar(50)"`
 	Status          string          `gorm:"column:status;type:interview_status"`
 	MeetingLink     *string         `gorm:"column:meeting_link;type:varchar(255)"`
+	MeetingLocation *string         `gorm:"column:meeting_location;type:text"`
 	IsEmailSent     bool            `gorm:"column:is_email_sent;type:boolean;default:false"`
 	CreatedAt       time.Time       `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt       time.Time       `gorm:"column:updated_at;autoUpdateTime"`
