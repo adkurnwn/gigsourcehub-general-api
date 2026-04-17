@@ -10,12 +10,108 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
+
+// levenshtein computes the edit distance between two strings (case-insensitive).
+func levenshtein(a, b string) int {
+	a = strings.ToLower(a)
+	b = strings.ToLower(b)
+	la, lb := len(a), len(b)
+	if la == 0 {
+		return lb
+	}
+	if lb == 0 {
+		return la
+	}
+	prev := make([]int, lb+1)
+	curr := make([]int, lb+1)
+	for j := 0; j <= lb; j++ {
+		prev[j] = j
+	}
+	for i := 1; i <= la; i++ {
+		curr[0] = i
+		for j := 1; j <= lb; j++ {
+			cost := 1
+			if a[i-1] == b[j-1] {
+				cost = 0
+			}
+			ins := curr[j-1] + 1
+			del := prev[j] + 1
+			sub := prev[j-1] + cost
+			m := ins
+			if del < m {
+				m = del
+			}
+			if sub < m {
+				m = sub
+			}
+			curr[j] = m
+		}
+		prev, curr = curr, prev
+	}
+	return prev[lb]
+}
+
+// toTitleCase converts a string to "Title Case" (first letter of each word uppercase).
+func toTitleCase(s string) string {
+	words := strings.Fields(s)
+	for i, w := range words {
+		if len(w) == 0 {
+			continue
+		}
+		runes := []rune(w)
+		runes[0] = unicode.ToUpper(runes[0])
+		for j := 1; j < len(runes); j++ {
+			runes[j] = unicode.ToLower(runes[j])
+		}
+		words[i] = string(runes)
+	}
+	return strings.Join(words, " ")
+}
+
+// fuzzyMatchJobRole finds the best matching job role using Levenshtein distance.
+// Returns the matched JobRole and true if a match within maxDistance is found.
+func fuzzyMatchJobRole(allRoles []gorm_model.JobRole, input string, maxDistance int) (*gorm_model.JobRole, bool) {
+	inputLower := strings.ToLower(strings.TrimSpace(input))
+	bestDist := maxDistance + 1
+	var bestMatch *gorm_model.JobRole
+	for i := range allRoles {
+		dist := levenshtein(inputLower, strings.ToLower(allRoles[i].Name))
+		if dist < bestDist {
+			bestDist = dist
+			bestMatch = &allRoles[i]
+		}
+	}
+	if bestMatch != nil && bestDist <= maxDistance {
+		return bestMatch, true
+	}
+	return nil, false
+}
+
+// getOrCreateUndefinedSector fetches or creates the "undefined" sector.
+func getOrCreateUndefinedSector(db *gorm.DB) (*gorm_model.Sector, error) {
+	var sector gorm_model.Sector
+	if err := db.Where("LOWER(name) = ?", "undefined").First(&sector).Error; err == nil {
+		return &sector, nil
+	}
+	sector = gorm_model.Sector{
+		ID:       uuid.New().String(),
+		Name:     "Undefined",
+		HexCode:  "#808080",
+		IsActive: true,
+	}
+	if err := db.Create(&sector).Error; err != nil {
+		return nil, err
+	}
+	return &sector, nil
+}
 
 type CVUsecase interface {
 	UploadCV(ctx context.Context, userID string, fileHeader *multipart.FileHeader) response.Base
@@ -126,21 +222,25 @@ func (u *cvUsecase) GetParsedCV(ctx context.Context, userID string) response.Bas
 	if cv.ParsedData != nil {
 		var parsedMap map[string]interface{}
 		if err := json.Unmarshal([]byte(*cv.ParsedData), &parsedMap); err == nil {
-			// Translate AI generated Job Role names to concrete UUID equivalents
+			// Translate AI generated Job Role names using fuzzy matching, return names (not IDs)
 			if roles, ok := parsedMap["applied_roles"].([]interface{}); ok {
-				var roleIDs []interface{}
+				var roleNames []interface{}
 				db := u.gormRepo.GetDB()
+
+				// Load all job roles once for fuzzy matching
+				var allRoles []gorm_model.JobRole
+				db.Find(&allRoles)
+
 				for _, r := range roles {
 					if roleName, ok := r.(string); ok && roleName != "" {
-						var jr gorm_model.JobRole
-						if err := db.Where("name ILIKE ?", "%"+roleName+"%").First(&jr).Error; err == nil {
-							roleIDs = append(roleIDs, jr.ID)
+						if match, found := fuzzyMatchJobRole(allRoles, roleName, 2); found {
+							roleNames = append(roleNames, match.Name)
 						} else {
-							roleIDs = append(roleIDs, roleName) // Keep fallback text
+							roleNames = append(roleNames, toTitleCase(roleName)) // Keep fallback text, title-cased
 						}
 					}
 				}
-				parsedMap["applied_roles"] = roleIDs
+				parsedMap["applied_roles"] = roleNames
 			}
 
 			// Translate AI generated location "Kabupaten, Provinsi" string to concrete UUID
@@ -259,20 +359,52 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID string, editedData map
 			}
 		}
 
-		// Handle JobRoles Many-to-Many logic converting the string roles to UUID models
+		// Handle JobRoles Many-to-Many logic with fuzzy matching and auto-generation
 		if roles, ok := unifiedData["applied_roles"].([]interface{}); ok {
+			// Enforce maximum of 3 job roles per user
+			const maxJobRoles = 3
+			if len(roles) > maxJobRoles {
+				roles = roles[:maxJobRoles]
+			}
+
+			db := u.gormRepo.GetDB()
+
+			// Load all job roles once for fuzzy matching
+			var allRoles []gorm_model.JobRole
+			db.Find(&allRoles)
+
 			var jobRoles []gorm_model.JobRole
 			for _, r := range roles {
 				if roleStr, ok := r.(string); ok && roleStr != "" {
 					var jr gorm_model.JobRole
-					// Check if it's already a UUID dropdown assignment, otherwise ILIKE format it
+
+					// 1. If it's already a UUID, look up by ID directly
 					if _, err := uuid.Parse(roleStr); err == nil {
-						if err := u.gormRepo.GetDB().Where("id = ?", roleStr).First(&jr).Error; err == nil {
+						if err := db.Where("id = ?", roleStr).First(&jr).Error; err == nil {
 							jobRoles = append(jobRoles, jr)
 						}
-					} else {
-						if err := u.gormRepo.GetDB().Where("name ILIKE ?", "%"+roleStr+"%").First(&jr).Error; err == nil {
-							jobRoles = append(jobRoles, jr)
+						continue
+					}
+
+					// 2. Fuzzy match against all existing roles (handles small typos like "forntend developer" → "Frontend Developer")
+					if match, found := fuzzyMatchJobRole(allRoles, roleStr, 2); found {
+						jobRoles = append(jobRoles, *match)
+						continue
+					}
+
+					// 3. Not found — auto-generate in the "undefined" sector
+					titled := toTitleCase(roleStr)
+					sector, err := getOrCreateUndefinedSector(db)
+					if err == nil {
+						newRole := gorm_model.JobRole{
+							ID:       uuid.New().String(),
+							Name:     titled,
+							SectorID: sector.ID,
+						}
+						if err := db.Create(&newRole).Error; err == nil {
+							jobRoles = append(jobRoles, newRole)
+							// Append to allRoles so duplicates in the same confirmation are deduplicated
+							allRoles = append(allRoles, newRole)
 						}
 					}
 				}
@@ -280,9 +412,9 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID string, editedData map
 			if len(jobRoles) > 0 {
 				user.JobRoles = jobRoles
 				// Replace associations in many2many table
-				u.gormRepo.GetDB().Model(user).Association("JobRoles").Replace(jobRoles)
+				db.Model(user).Association("JobRoles").Replace(jobRoles)
 
-				// Optional: Overwrite array from UUIDs/Mixed strings onto purely JobRole.Name structs for Qdrant index
+				// Overwrite applied_roles with canonical names for the Qdrant index
 				var strRoles []string
 				for _, jr := range jobRoles {
 					strRoles = append(strRoles, jr.Name)
