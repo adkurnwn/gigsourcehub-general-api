@@ -1869,8 +1869,12 @@ table "ai_chats" {
     type = uuid
   }
   column "admin_user_id" {
-    type = uuid
-    null = false
+    type    = uuid
+    null    = false
+  }
+  column "title" {
+    type = varchar(255)
+    null = true
   }
   column "created_at" {
     type = timestamptz
@@ -1911,8 +1915,12 @@ table "ai_messages" {
     type = uuid
     null = false
   }
+  column "role" {
+    type = varchar(20)
+    null = false
+  }
   column "content" {
-    type = json
+    type = text
     null = false
   }
   column "is_last_message" {

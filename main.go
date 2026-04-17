@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/adkurnwn/gigsourcehub-general-api/app/consumer"
 	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
+	http_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/ai_chat"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
 	http_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_role"
 	http_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_title"
@@ -13,12 +14,14 @@ import (
 	http_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/recruitment_status"
 	httpdelivery_request "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/request"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
+	http_internal "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/internal_svc"
 	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
 	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
 	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
 	rabbitmqrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/rabbitmq"
 	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
 	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
+	usecase_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/ai_chat"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
 	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
 	usecase_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_title"
@@ -103,6 +106,13 @@ func main() {
 	}
 	timeout, _ := strconv.Atoi(timeoutStr)
 	timeoutContext := time.Duration(timeout) * time.Second
+
+	aiSearchTimeoutStr := os.Getenv("AI_SEARCH_TIMEOUT")
+	if aiSearchTimeoutStr == "" {
+		aiSearchTimeoutStr = "120" // Default for local LLMs
+	}
+	aiSearchTimeoutVal, _ := strconv.Atoi(aiSearchTimeoutStr)
+	aiSearchTimeout := time.Duration(aiSearchTimeoutVal) * time.Second
 
 	// logger
 	writers := make([]io.Writer, 0)
@@ -192,6 +202,9 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init ai chat usecase
+	ucAIChat := usecase_aichat.NewAIChatUsecase(repo, timeoutContext)
+
 	// init request usecase
 	ucRequest := usecase_request.NewRequestAppUsecase(repo, timeoutContext)
 
@@ -260,6 +273,8 @@ func main() {
 	http_provinsi.NewProvinsiHandler(apiGroup, ucProvinsi)
 	http_recruitment_status.NewRecruitmentStatusHandler(apiGroup, mdl, ucRecruitmentStatus)
 	http_bookmark.NewBookmarkHandler(apiGroup, mdl, ucBookmark)
+	http_aichat.NewAIChatHandler(apiGroup, mdl, ucAIChat)
+	http_internal.NewInternalHandler(apiGroup, mdl, repo)
 
 	// init search (AI)
 	aiRepo, err := aisearchrepo.NewAISearchRepository(os.Getenv("AI_API_URL"))
@@ -267,7 +282,8 @@ func main() {
 		logrus.Errorf("failed to init ai search repo: %v", err)
 	} else {
 		// defer aiRepo.Close() // In a real app we might want to close on shutdown, but here we keep it open
-		ucSearch := usecase_search.NewSearchUsecase(aiRepo, timeoutContext)
+		// Use a dedicated timeout for AI Search as it involves slow LLM evaluations
+		ucSearch := usecase_search.NewSearchUsecase(aiRepo, aiSearchTimeout)
 		http_search.NewSearchHandler(apiGroup, mdl, ucSearch)
 	}
 

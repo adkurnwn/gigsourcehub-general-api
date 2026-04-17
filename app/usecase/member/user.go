@@ -2,6 +2,7 @@ package usecase_member
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -317,4 +318,55 @@ func (u *appUsecase) ActivateUserBySuperadmin(ctx context.Context, id string) re
 	}
 
 	return response.SuccessAction("User", user.Email, "activated")
+}
+
+func (u *appUsecase) FetchUserThumb(ctx context.Context, id string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+
+	if user.ProfilePicture == nil || *user.ProfilePicture == "" {
+		return response.Success(map[string]interface{}{
+			"profile_picture_url": nil,
+		})
+	}
+
+	pp := *user.ProfilePicture
+	// Construct full public URL if not already a full URL
+	if len(pp) > 0 && pp[0] != 'h' {
+		pp = u.storageRepo.GetPublicLink(pp)
+	}
+
+	// Apply _thumb suffix logic before extension
+	thumbURL := pp
+	lastDotIndex := -1
+	for i := len(pp) - 1; i >= 0; i-- {
+		if pp[i] == '.' {
+			lastDotIndex = i
+			break
+		}
+		if pp[i] == '/' {
+			break
+		}
+	}
+
+	if lastDotIndex != -1 {
+		filename := pp[:lastDotIndex]
+		extension := pp[lastDotIndex:]
+		thumbURL = fmt.Sprintf("%s_thumb%s", filename, extension)
+	}
+
+	return response.Success(map[string]interface{}{
+		"profile_picture_url": thumbURL,
+	})
 }

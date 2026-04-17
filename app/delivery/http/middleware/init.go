@@ -14,9 +14,10 @@ import (
 )
 
 type appMiddleware struct {
-	secret string
-	cache  CacheConfig
-	repo   domain.GormRepo
+	secret        string
+	internalToken string
+	cache         CacheConfig
+	repo          domain.GormRepo
 }
 
 type CacheConfig struct {
@@ -38,8 +39,9 @@ func NewMiddleware(redis *redis.Client, repo domain.GormRepo) Middleware {
 	redisKeyPrefix := os.Getenv("REDIS_KEY_PREFIX")
 
 	return &appMiddleware{
-		secret: jwt_helper.GetJwtCredential().Member.Secret,
-		repo:   repo,
+		secret:        jwt_helper.GetJwtCredential().Member.Secret,
+		internalToken: os.Getenv("INTERNAL_API_TOKEN"),
+		repo:          repo,
 		cache: CacheConfig{
 			enabled:     useRedis,
 			store:       redis,
@@ -63,6 +65,7 @@ type Middleware interface {
 	AuthSuperadmin() gin.HandlerFunc
 	AuthEmployee() gin.HandlerFunc
 	AuthCandidate() gin.HandlerFunc
+	AuthInternal() gin.HandlerFunc
 
 	Cors() gin.HandlerFunc
 	Logger(writer io.Writer) gin.HandlerFunc

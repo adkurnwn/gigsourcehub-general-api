@@ -12,6 +12,16 @@ import (
 	"gorm.io/gorm"
 )
 
+// ReviewAggregateScore holds averaged Likert-scale scores (1–5) for a candidate.
+// All fields are pointers so we can detect SQL NULL (no reviews exist).
+type ReviewAggregateScore struct {
+	UserID                      string
+	AvgWorkQuality              *float64
+	AvgTimeliness               *float64
+	AvgCommunicationCollab      *float64
+	AvgProblemSolvingInitiative *float64
+}
+
 type GormRepo interface {
 	StructScan(rows *sql.Rows, dest any) error
 	FetchUser(ctx context.Context, options gorm_model.UserFilter) (*sql.Rows, error)
@@ -69,6 +79,23 @@ type GormRepo interface {
 	UpdateSubrequestByEmployee(ctx context.Context, model *gorm_model.Subrequest) error
 
 	GetDB() *gorm.DB
+
+	// GetReviewScoresByUserIDs fetches aggregated (AVG) review scores for a list of candidate user IDs.
+	// Returns a map of userID -> ReviewAggregateScore. Users without any review are omitted from the map.
+	GetReviewScoresByUserIDs(ctx context.Context, userIDs []string) (map[string]ReviewAggregateScore, error)
+	// GetJobRolesByUserIDs fetches names of job roles for a list of user IDs.
+	// Returns a map of userID -> list of job role names.
+	GetJobRolesByUserIDs(ctx context.Context, userIDs []string) (map[string][]string, error)
+	// GetCandidateLevelsByUserIDs fetches candidate levels for a list of user IDs.
+	// Returns a map of userID -> candidate level.
+	GetCandidateLevelsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, error)
+	// AI Chat & Messages persistence
+	CreateAIChat(ctx context.Context, chat *gorm_model.AIChat) error
+	GetAIChatByID(ctx context.Context, id string) (*gorm_model.AIChat, error)
+	FetchAIChatsByAdmin(ctx context.Context, adminID string) ([]gorm_model.AIChat, error)
+	DeleteAIChat(ctx context.Context, id string) error
+	CreateAIMessage(ctx context.Context, msg *gorm_model.AIMessage) error
+	FetchAIMessagesByChat(ctx context.Context, chatID string) ([]gorm_model.AIMessage, error)
 }
 
 type CacheRepo interface {

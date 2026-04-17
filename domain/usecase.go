@@ -23,6 +23,7 @@ type MemberAppUsecase interface {
 	DisableUserBySuperadmin(ctx context.Context, id string) response.Base
 	ActivateUserBySuperadmin(ctx context.Context, id string) response.Base
 	UploadProfilePicture(ctx context.Context, userID string, file *multipart.FileHeader) response.Base
+	FetchUserThumb(ctx context.Context, id string) response.Base
 }
 
 type JobRoleAppUsecase interface {
@@ -80,4 +81,12 @@ type RequestAppUsecase interface {
 	UpdateByEmployee(ctx context.Context, employeeID string, requestID string, req request_model.UpdateRequestRequest) response.Base
 	UpdateSubrequestByEmployee(ctx context.Context, employeeID string, requestID string, subrequestID string, req request_model.UpdateSubrequestRequest) response.Base
 	AddSubrequestByEmployee(ctx context.Context, employeeID string, requestID string, req request_model.CreateSubrequestRequest) response.Base
+}
+
+type AIChatAppUsecase interface {
+	FetchMyChats(ctx context.Context, adminID string) response.Base
+	CreateChat(ctx context.Context, adminID string, firstQuery string) response.Base
+	DeleteChat(ctx context.Context, adminID string, chatID string) response.Base
+	FetchChatMessages(ctx context.Context, adminID string, chatID string) response.Base
+	StoreChatMessage(ctx context.Context, adminID string, chatID string, role string, content string, isLast bool) response.Base
 }
