@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/adkurnwn/gigsourcehub-general-api/app/consumer"
 	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
+	http_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/ai_chat"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
 	http_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_role"
 	http_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_title"
@@ -20,6 +21,7 @@ import (
 	rabbitmqrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/rabbitmq"
 	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
 	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
+	usecase_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/ai_chat"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
 	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
 	usecase_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_title"
@@ -193,6 +195,9 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init ai chat usecase
+	ucAIChat := usecase_aichat.NewAIChatUsecase(repo, timeoutContext)
+
 	// init request usecase
 	ucRequest := usecase_request.NewRequestAppUsecase(repo, timeoutContext)
 
@@ -261,6 +266,7 @@ func main() {
 	http_provinsi.NewProvinsiHandler(apiGroup, ucProvinsi)
 	http_recruitment_status.NewRecruitmentStatusHandler(apiGroup, mdl, ucRecruitmentStatus)
 	http_bookmark.NewBookmarkHandler(apiGroup, mdl, ucBookmark)
+	http_aichat.NewAIChatHandler(apiGroup, mdl, ucAIChat)
 	http_internal.NewInternalHandler(apiGroup, repo)
 
 	// init search (AI)

@@ -86,6 +86,13 @@ type GormRepo interface {
 	// GetJobRolesByUserIDs fetches names of job roles for a list of user IDs.
 	// Returns a map of userID -> list of job role names.
 	GetJobRolesByUserIDs(ctx context.Context, userIDs []string) (map[string][]string, error)
+	// AI Chat & Messages persistence
+	CreateAIChat(ctx context.Context, chat *gorm_model.AIChat) error
+	GetAIChatByID(ctx context.Context, id string) (*gorm_model.AIChat, error)
+	FetchAIChatsByAdmin(ctx context.Context, adminID string) ([]gorm_model.AIChat, error)
+	DeleteAIChat(ctx context.Context, id string) error
+	CreateAIMessage(ctx context.Context, msg *gorm_model.AIMessage) error
+	FetchAIMessagesByChat(ctx context.Context, chatID string) ([]gorm_model.AIMessage, error)
 }
 
 type CacheRepo interface {
