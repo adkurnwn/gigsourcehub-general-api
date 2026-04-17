@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 	"github.com/gin-gonic/gin"
@@ -25,11 +26,11 @@ type InternalHandler struct {
 }
 
 // NewInternalHandler registers internal routes used by other backend services (e.g. ai-api).
-// These routes are NOT authenticated — they must be protected at the network level.
-func NewInternalHandler(r *gin.RouterGroup, repo domain.GormRepo) {
+func NewInternalHandler(r *gin.RouterGroup, mdl middleware.Middleware, repo domain.GormRepo) {
 	h := &InternalHandler{gormRepo: repo}
 
 	internal := r.Group("/internal")
+	internal.Use(mdl.AuthInternal())
 	internal.GET("/reviews", h.GetReviewScores)
 }
 

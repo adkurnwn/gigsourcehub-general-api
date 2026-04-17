@@ -107,6 +107,13 @@ func main() {
 	timeout, _ := strconv.Atoi(timeoutStr)
 	timeoutContext := time.Duration(timeout) * time.Second
 
+	aiSearchTimeoutStr := os.Getenv("AI_SEARCH_TIMEOUT")
+	if aiSearchTimeoutStr == "" {
+		aiSearchTimeoutStr = "120" // Default for local LLMs
+	}
+	aiSearchTimeoutVal, _ := strconv.Atoi(aiSearchTimeoutStr)
+	aiSearchTimeout := time.Duration(aiSearchTimeoutVal) * time.Second
+
 	// logger
 	writers := make([]io.Writer, 0)
 	if logSTDOUT, _ := strconv.ParseBool(os.Getenv("LOG_TO_STDOUT")); logSTDOUT {
@@ -267,7 +274,7 @@ func main() {
 	http_recruitment_status.NewRecruitmentStatusHandler(apiGroup, mdl, ucRecruitmentStatus)
 	http_bookmark.NewBookmarkHandler(apiGroup, mdl, ucBookmark)
 	http_aichat.NewAIChatHandler(apiGroup, mdl, ucAIChat)
-	http_internal.NewInternalHandler(apiGroup, repo)
+	http_internal.NewInternalHandler(apiGroup, mdl, repo)
 
 	// init search (AI)
 	aiRepo, err := aisearchrepo.NewAISearchRepository(os.Getenv("AI_API_URL"))
@@ -275,7 +282,8 @@ func main() {
 		logrus.Errorf("failed to init ai search repo: %v", err)
 	} else {
 		// defer aiRepo.Close() // In a real app we might want to close on shutdown, but here we keep it open
-		ucSearch := usecase_search.NewSearchUsecase(aiRepo, timeoutContext)
+		// Use a dedicated timeout for AI Search as it involves slow LLM evaluations
+		ucSearch := usecase_search.NewSearchUsecase(aiRepo, aiSearchTimeout)
 		http_search.NewSearchHandler(apiGroup, mdl, ucSearch)
 	}
 
