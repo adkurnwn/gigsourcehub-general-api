@@ -121,3 +121,37 @@ func (r *gormRepo) CreateUserBySuperadmin(ctx context.Context, row *gorm_model.U
 
 	return
 }
+
+func (r *gormRepo) GetCandidateLevelsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, error) {
+	if len(userIDs) == 0 {
+		return map[string]string{}, nil
+	}
+
+	type row struct {
+		ID             string  `gorm:"column:id"`
+		CandidateLevel *string `gorm:"column:candidate_level"`
+	}
+
+	var rows []row
+	err := r.db.WithContext(ctx).
+		Table("users").
+		Select("id, candidate_level").
+		Where("id IN (?)", userIDs).
+		Scan(&rows).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]string)
+	for _, r := range rows {
+		level := ""
+		if r.CandidateLevel != nil {
+			level = *r.CandidateLevel
+		}
+		result[r.ID] = level
+	}
+
+	return result, nil
+}
+

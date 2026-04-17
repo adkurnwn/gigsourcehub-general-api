@@ -17,6 +17,7 @@ type ReviewScoreResponse struct {
 	AvgCommunicationCollab      *float64 `json:"avg_communication_collaboration"`
 	AvgProblemSolvingInitiative *float64 `json:"avg_problem_solving_initiative"`
 	JobRoles                    []string `json:"job_roles"`
+	CandidateLevel              string   `json:"candidate_level"`
 }
 
 type InternalHandler struct {
@@ -58,6 +59,12 @@ func (h *InternalHandler) GetReviewScores(c *gin.Context) {
 		return
 	}
 
+	candidateLevels, err := h.gormRepo.GetCandidateLevelsByUserIDs(c.Request.Context(), userIDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, response.Error(http.StatusInternalServerError, "failed to fetch candidate levels: "+err.Error()))
+		return
+	}
+
 	var result []ReviewScoreResponse
 	for _, id := range userIDs {
 		s, hasScore := scores[id]
@@ -65,10 +72,12 @@ func (h *InternalHandler) GetReviewScores(c *gin.Context) {
 		if !hasRoles {
 			roles = []string{}
 		}
+		level := candidateLevels[id]
 
 		item := ReviewScoreResponse{
-			UserID:   id,
-			JobRoles: roles,
+			UserID:         id,
+			JobRoles:       roles,
+			CandidateLevel: level,
 		}
 
 		if hasScore {
