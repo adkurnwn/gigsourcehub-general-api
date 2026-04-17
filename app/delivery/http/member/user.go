@@ -36,6 +36,35 @@ func (h *routeHandler) handleUserRoute(path string) {
 
 	// activate user by superadmin
 	userGroup.PATCH("/:id/activate", h.Middleware.Auth(), h.Middleware.AuthSuperadmin(), h.ActivateUserBySuperadmin)
+
+	// get profile picture by id
+	userGroup.GET("/:id/profile-picture", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin"), h.FetchUserThumb)
+}
+
+// FetchUserThumb
+// @Summary Fetch User Profile Picture
+// @Description Fetch the profile picture URL of a specific user with _thumb suffix
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /users/{id}/profile-picture [get]
+// @Security BearerAuth
+func (h *routeHandler) FetchUserThumb(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		res := response.Error(http.StatusBadRequest, "Invalid ID parameter")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	res := h.Usecase.FetchUserThumb(c.Request.Context(), id)
+	c.JSON(res.Status, res)
 }
 
 // FetchCandidates

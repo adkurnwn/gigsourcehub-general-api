@@ -2040,6 +2040,45 @@ paths:
       summary: Disable User By Superadmin
       tags:
       - Users
+  /users/{id}/profile-picture:
+    get:
+      consumes:
+      - application/json
+      description: Fetch the profile picture URL of a specific user with _thumb suffix
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch User Profile Picture
+      tags:
+      - Users
   /users/candidates:
     get:
       consumes:

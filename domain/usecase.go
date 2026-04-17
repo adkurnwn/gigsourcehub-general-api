@@ -23,6 +23,7 @@ type MemberAppUsecase interface {
 	DisableUserBySuperadmin(ctx context.Context, id string) response.Base
 	ActivateUserBySuperadmin(ctx context.Context, id string) response.Base
 	UploadProfilePicture(ctx context.Context, userID string, file *multipart.FileHeader) response.Base
+	FetchUserThumb(ctx context.Context, id string) response.Base
 }
 
 type JobRoleAppUsecase interface {
