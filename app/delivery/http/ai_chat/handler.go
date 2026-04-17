@@ -28,6 +28,16 @@ func NewAIChatHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.A
 	}
 }
 
+// @Security BearerAuth
+// @Summary Fetch My Chats
+// @Description Fetch My Chats
+// @Tags AI Chat
+// @Accept json
+// @Produce json
+// @Success 200 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /ai-chat [get]
 func (h *routeHandler) FetchMyChats(c *gin.Context) {
 	claims, ok := c.Get("token_data")
 	if !ok {
@@ -40,6 +50,17 @@ func (h *routeHandler) FetchMyChats(c *gin.Context) {
 	c.JSON(res.Status, res)
 }
 
+// @Security BearerAuth
+// @Summary Create Chat
+// @Description Create Chat
+// @Tags AI Chat
+// @Accept json
+// @Produce json
+// @Param request body object true "Create Chat Request (first_query)"
+// @Success 200 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /ai-chat [post]
 func (h *routeHandler) CreateChat(c *gin.Context) {
 	claims, ok := c.Get("token_data")
 	if !ok {
@@ -57,6 +78,17 @@ func (h *routeHandler) CreateChat(c *gin.Context) {
 	c.JSON(res.Status, res)
 }
 
+// @Security BearerAuth
+// @Summary Delete Chat
+// @Description Delete Chat
+// @Tags AI Chat
+// @Accept json
+// @Produce json
+// @Param id path string true "Chat ID"
+// @Success 200 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /ai-chat/{id} [delete]
 func (h *routeHandler) DeleteChat(c *gin.Context) {
 	claims, ok := c.Get("token_data")
 	if !ok {
@@ -70,6 +102,17 @@ func (h *routeHandler) DeleteChat(c *gin.Context) {
 	c.JSON(res.Status, res)
 }
 
+// @Security BearerAuth
+// @Summary Fetch Chat Messages
+// @Description Fetch Chat Messages
+// @Tags AI Chat
+// @Accept json
+// @Produce json
+// @Param id path string true "Chat ID"
+// @Success 200 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /ai-chat/{id}/messages [get]
 func (h *routeHandler) FetchChatMessages(c *gin.Context) {
 	claims, ok := c.Get("token_data")
 	if !ok {
@@ -83,6 +126,19 @@ func (h *routeHandler) FetchChatMessages(c *gin.Context) {
 	c.JSON(res.Status, res)
 }
 
+// @Security BearerAuth
+// @Summary Store Chat Message
+// @Description Store Chat Message
+// @Tags AI Chat
+// @Accept json
+// @Produce json
+// @Param id path string true "Chat ID"
+// @Param request body object true "Store Message Request (role, content, is_last)"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /ai-chat/{id}/messages [post]
 func (h *routeHandler) StoreChatMessage(c *gin.Context) {
 	claims, ok := c.Get("token_data")
 	if !ok {
