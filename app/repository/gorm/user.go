@@ -8,6 +8,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (r *gormRepo) FetchUser(ctx context.Context, options gorm_model.UserFilter) (cur *sql.Rows, err error) {
@@ -15,7 +16,7 @@ func (r *gormRepo) FetchUser(ctx context.Context, options gorm_model.UserFilter)
 	q := r.db.Model(&gorm_model.User{})
 	options.Query(q)
 
-	q = q.Preload("SystemRole")
+	q = q.Preload("SystemRole").Preload("JobRoles")
 
 	cur, err = q.WithContext(ctx).Rows()
 	if err != nil {
@@ -31,7 +32,7 @@ func (r *gormRepo) FetchOneUser(ctx context.Context, options gorm_model.UserFilt
 	q := r.db.Model(&gorm_model.User{})
 	options.Query(q)
 
-	q = q.Preload("SystemRole")
+	q = q.Preload("SystemRole").Preload("JobRoles")
 
 	// set row
 	row = new(gorm_model.User)
@@ -73,7 +74,7 @@ func (r *gormRepo) CreateUser(ctx context.Context, row *gorm_model.User) (err er
 }
 
 func (r *gormRepo) UpdateUser(ctx context.Context, row *gorm_model.User) (err error) {
-	err = r.db.WithContext(ctx).Save(row).Error
+	err = r.db.WithContext(ctx).Omit(clause.Associations).Save(row).Error
 	if err != nil {
 		logrus.Error("UpdateUser Exec:", err)
 		return

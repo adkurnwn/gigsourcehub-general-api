@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SearchService_Search_FullMethodName = "/search.SearchService/Search"
+	SearchService_Search_FullMethodName          = "/search.SearchService/Search"
+	SearchService_UpdateCandidate_FullMethodName = "/search.SearchService/UpdateCandidate"
 )
 
 // SearchServiceClient is the client API for SearchService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SearchServiceClient interface {
 	Search(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error)
+	UpdateCandidate(ctx context.Context, in *UpdateCandidateRequest, opts ...grpc.CallOption) (*UpdateCandidateResponse, error)
 }
 
 type searchServiceClient struct {
@@ -47,11 +49,22 @@ func (c *searchServiceClient) Search(ctx context.Context, in *SearchRequest, opt
 	return out, nil
 }
 
+func (c *searchServiceClient) UpdateCandidate(ctx context.Context, in *UpdateCandidateRequest, opts ...grpc.CallOption) (*UpdateCandidateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateCandidateResponse)
+	err := c.cc.Invoke(ctx, SearchService_UpdateCandidate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SearchServiceServer is the server API for SearchService service.
 // All implementations must embed UnimplementedSearchServiceServer
 // for forward compatibility.
 type SearchServiceServer interface {
 	Search(context.Context, *SearchRequest) (*SearchResponse, error)
+	UpdateCandidate(context.Context, *UpdateCandidateRequest) (*UpdateCandidateResponse, error)
 	mustEmbedUnimplementedSearchServiceServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedSearchServiceServer struct{}
 
 func (UnimplementedSearchServiceServer) Search(context.Context, *SearchRequest) (*SearchResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Search not implemented")
+}
+func (UnimplementedSearchServiceServer) UpdateCandidate(context.Context, *UpdateCandidateRequest) (*UpdateCandidateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateCandidate not implemented")
 }
 func (UnimplementedSearchServiceServer) mustEmbedUnimplementedSearchServiceServer() {}
 func (UnimplementedSearchServiceServer) testEmbeddedByValue()                       {}
@@ -104,6 +120,24 @@ func _SearchService_Search_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SearchService_UpdateCandidate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCandidateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SearchServiceServer).UpdateCandidate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SearchService_UpdateCandidate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SearchServiceServer).UpdateCandidate(ctx, req.(*UpdateCandidateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SearchService_ServiceDesc is the grpc.ServiceDesc for SearchService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var SearchService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Search",
 			Handler:    _SearchService_Search_Handler,
+		},
+		{
+			MethodName: "UpdateCandidate",
+			Handler:    _SearchService_UpdateCandidate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

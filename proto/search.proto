@@ -8,6 +8,7 @@ import "google/protobuf/struct.proto";
 
 service SearchService {
   rpc Search (SearchRequest) returns (SearchResponse);
+  rpc UpdateCandidate (UpdateCandidateRequest) returns (UpdateCandidateResponse);
 }
 
 service CandidateService {
@@ -45,5 +46,22 @@ message SearchResult {
 
 message SearchResponse {
   repeated SearchResult results = 1;
+  string message = 2;
+}
+
+message UpdateCandidateRequest {
+  string user_id = 1;
+  string name = 2;
+  repeated string roles = 3;
+  string summary = 4;
+  string education_major = 5;
+  double gpa = 6;
+  string location = 7;
+  repeated string tech_stack = 8;
+  int32 years_experience = 9;
+}
+
+message UpdateCandidateResponse {
+  bool success = 1;
   string message = 2;
 }

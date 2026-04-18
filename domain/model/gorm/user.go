@@ -22,6 +22,7 @@ type User struct {
 	KabupatenKotaId     *string        `gorm:"column:kabupaten_kota_id;type:varchar(5)"`
 	YearsExperience     *int           `gorm:"column:years_experience;type:int"`
 	TechStack           *string        `gorm:"column:tech_stack;type:jsonb"`
+	Summary             *string        `gorm:"column:summary;type:text"`
 	ProfilePicture      *string        `gorm:"column:profile_picture;type:varchar(255)"`
 	CandidateLevel      *string        `gorm:"column:candidate_level;type:varchar(50)"`
 	RecruitmentStatusId *string        `gorm:"column:recruitment_status_id;type:uuid"`
@@ -71,6 +72,7 @@ type UserResp struct {
 	KabupatenKotaId     *string    `json:"kabupaten_kota_id"`
 	YearsExperience     *int       `json:"years_experience"`
 	TechStack           *string    `json:"tech_stack"`
+	Summary             *string    `json:"summary"`
 	ProfilePicture      *string    `json:"profile_picture"`
 	CandidateLevel      *string    `json:"candidate_level,omitempty"`
 	RecruitmentStatusId *string    `json:"recruitment_status_id"`
@@ -78,8 +80,9 @@ type UserResp struct {
 	SystemRoleName      *string    `json:"system_role_name"`
 	AssignedRoleId      *string    `json:"assigned_role_id"`
 	AccountStatus       *string    `json:"account_status"`
-	IsBookmark          *bool      `json:"is_bookmark,omitempty"`
-	JobTitleId          *string    `json:"job_title_id,omitempty"`
+	IsBookmark          *bool         `json:"is_bookmark,omitempty"`
+	JobTitleId          *string       `json:"job_title_id,omitempty"`
+	JobRoles            []JobRoleResp `json:"job_roles"`
 }
 
 type AuthMeResp struct {
@@ -112,6 +115,11 @@ func (row *User) ToUserResp() UserResp {
 		profilePicture = &pp
 	}
 
+	roles := []JobRoleResp{}
+	for _, r := range row.JobRoles {
+		roles = append(roles, r.ToJobRoleResp())
+	}
+
 	return UserResp{
 		ID:                  row.ID,
 		Name:                row.Name,
@@ -125,6 +133,7 @@ func (row *User) ToUserResp() UserResp {
 		KabupatenKotaId:     row.KabupatenKotaId,
 		YearsExperience:     row.YearsExperience,
 		TechStack:           row.TechStack,
+		Summary:             row.Summary,
 		ProfilePicture:      profilePicture,
 		CandidateLevel:      candidateLevel,
 		RecruitmentStatusId: row.RecruitmentStatusId,
@@ -133,6 +142,7 @@ func (row *User) ToUserResp() UserResp {
 		AssignedRoleId:      row.AssignedRoleId,
 		AccountStatus:       row.AccountStatus,
 		JobTitleId:          row.JobTitleId,
+		JobRoles:            roles,
 	}
 }
 

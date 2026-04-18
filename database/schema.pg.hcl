@@ -40,6 +40,10 @@ table "users" {
     type = decimal(3,2)
     null = true
   }
+  column "summary" {
+    type = text
+    null = true
+  }
 
   column "phone_number" {
     type = varchar(20)

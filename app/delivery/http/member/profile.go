@@ -2,6 +2,7 @@ package http_member
 
 import (
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
+	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/gin-gonic/gin"
 )
 
@@ -52,5 +53,32 @@ func (r *routeHandler) UploadProfilePicture(c *gin.Context) {
 
 	userClaim := c.MustGet("token_data").(domain.JWTClaimUser)
 	resp := r.Usecase.UploadProfilePicture(c.Request.Context(), userClaim.UserID, file)
+	c.JSON(resp.Status, resp)
+}
+
+// Update Profile
+//
+//	@Summary		Update Profile
+//	@Description	Update the profile of the current user
+//	@Tags			Profile
+//	@Accept			json
+//	@Produce		json
+//	@Param			req		body		request_model.UpdateProfileRequest	true	"Profile update data"
+//	@Success		200		{object}	response.Base
+//	@Failure		400		{object}	response.Base
+//	@Failure		401		{object}	response.Base
+//	@Failure		500		{object}	response.Base
+//	@Router			/profile [put]
+//
+//	@Security		BearerAuth
+func (r *routeHandler) UpdateProfile(c *gin.Context) {
+	var req request_model.UpdateProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, map[string]any{"status": 400, "message": err.Error()})
+		return
+	}
+
+	userClaim := c.MustGet("token_data").(domain.JWTClaimUser)
+	resp := r.Usecase.UpdateProfile(c.Request.Context(), userClaim.UserID, req)
 	c.JSON(resp.Status, resp)
 }
