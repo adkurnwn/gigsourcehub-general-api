@@ -238,12 +238,48 @@ func (u *appUsecase) EditUserBySuperadmin(ctx context.Context, id string, req re
 		return response.Error(http.StatusNotFound, "User not found")
 	}
 
+	// Strict Validation for HR Restriction during Edit
+	checkRoleId := user.SystemRoleId
+	if req.SystemRoleId != nil {
+		checkRoleId = req.SystemRoleId
+	}
+	checkJobTitleId := user.JobTitleId
+	if req.JobTitleId != nil {
+		checkJobTitleId = req.JobTitleId
+	}
+
+	if checkRoleId != nil && checkJobTitleId != nil {
+		var role gorm_model.SystemRole
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&role, "id = ?", *checkRoleId).Error; err == nil {
+			var jt gorm_model.JobTitle
+			if err := u.gormDbRepo.GetDB().WithContext(ctx).Preload("Sector").First(&jt, "id = ?", *checkJobTitleId).Error; err == nil {
+				if role.Name == "Admin" {
+					if jt.Sector == nil || jt.Sector.Name != "Human Resources" {
+						return response.Error(http.StatusBadRequest, "Admin role must be in Human Resources sector")
+					}
+				} else if role.Name == "Employee" {
+					if jt.Sector != nil && jt.Sector.Name == "Human Resources" {
+						return response.Error(http.StatusBadRequest, "Employee role cannot be in Human Resources sector")
+					}
+				}
+			}
+		}
+	}
+
 	if req.Name != nil && *req.Name != "" {
 		user.Name = *req.Name
 	}
 
 	if req.AssignedRoleId != nil {
 		user.AssignedRoleId = req.AssignedRoleId
+	}
+
+	if req.SystemRoleId != nil {
+		user.SystemRoleId = req.SystemRoleId
+	}
+
+	if req.JobTitleId != nil {
+		user.JobTitleId = req.JobTitleId
 	}
 
 	if req.AccountStatus != nil {
