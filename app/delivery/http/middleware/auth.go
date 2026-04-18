@@ -139,14 +139,3 @@ func (m *appMiddleware) AuthEmployee() gin.HandlerFunc {
 func (m *appMiddleware) AuthCandidate() gin.HandlerFunc {
 	return m.AuthRole("Candidate")
 }
-
-func (m *appMiddleware) AuthInternal() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		token := c.GetHeader("X-Internal-Token")
-		if token == "" || token != m.internalToken {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, response.Error(http.StatusUnauthorized, "Unauthorized: Internal access only"))
-			return
-		}
-		c.Next()
-	}
-}

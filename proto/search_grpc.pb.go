@@ -119,3 +119,105 @@ var SearchService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "proto/search.proto",
 }
+
+const (
+	CandidateService_GetEnrichmentData_FullMethodName = "/search.CandidateService/GetEnrichmentData"
+)
+
+// CandidateServiceClient is the client API for CandidateService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type CandidateServiceClient interface {
+	GetEnrichmentData(ctx context.Context, in *EnrichmentRequest, opts ...grpc.CallOption) (*EnrichmentResponse, error)
+}
+
+type candidateServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewCandidateServiceClient(cc grpc.ClientConnInterface) CandidateServiceClient {
+	return &candidateServiceClient{cc}
+}
+
+func (c *candidateServiceClient) GetEnrichmentData(ctx context.Context, in *EnrichmentRequest, opts ...grpc.CallOption) (*EnrichmentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EnrichmentResponse)
+	err := c.cc.Invoke(ctx, CandidateService_GetEnrichmentData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CandidateServiceServer is the server API for CandidateService service.
+// All implementations must embed UnimplementedCandidateServiceServer
+// for forward compatibility.
+type CandidateServiceServer interface {
+	GetEnrichmentData(context.Context, *EnrichmentRequest) (*EnrichmentResponse, error)
+	mustEmbedUnimplementedCandidateServiceServer()
+}
+
+// UnimplementedCandidateServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedCandidateServiceServer struct{}
+
+func (UnimplementedCandidateServiceServer) GetEnrichmentData(context.Context, *EnrichmentRequest) (*EnrichmentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetEnrichmentData not implemented")
+}
+func (UnimplementedCandidateServiceServer) mustEmbedUnimplementedCandidateServiceServer() {}
+func (UnimplementedCandidateServiceServer) testEmbeddedByValue()                          {}
+
+// UnsafeCandidateServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CandidateServiceServer will
+// result in compilation errors.
+type UnsafeCandidateServiceServer interface {
+	mustEmbedUnimplementedCandidateServiceServer()
+}
+
+func RegisterCandidateServiceServer(s grpc.ServiceRegistrar, srv CandidateServiceServer) {
+	// If the following call panics, it indicates UnimplementedCandidateServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&CandidateService_ServiceDesc, srv)
+}
+
+func _CandidateService_GetEnrichmentData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnrichmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CandidateServiceServer).GetEnrichmentData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CandidateService_GetEnrichmentData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CandidateServiceServer).GetEnrichmentData(ctx, req.(*EnrichmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// CandidateService_ServiceDesc is the grpc.ServiceDesc for CandidateService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var CandidateService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "search.CandidateService",
+	HandlerType: (*CandidateServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetEnrichmentData",
+			Handler:    _CandidateService_GetEnrichmentData_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "proto/search.proto",
+}

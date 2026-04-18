@@ -14,8 +14,9 @@ import (
 	http_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/recruitment_status"
 	httpdelivery_request "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/request"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
-	http_internal "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/internal_svc"
 	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
+	delivery_grpc "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/grpc"
+	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
 	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
 	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
 	rabbitmqrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/rabbitmq"
@@ -37,11 +38,14 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
 	"time"
+
+	"google.golang.org/grpc"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -274,7 +278,6 @@ func main() {
 	http_recruitment_status.NewRecruitmentStatusHandler(apiGroup, mdl, ucRecruitmentStatus)
 	http_bookmark.NewBookmarkHandler(apiGroup, mdl, ucBookmark)
 	http_aichat.NewAIChatHandler(apiGroup, mdl, ucAIChat)
-	http_internal.NewInternalHandler(apiGroup, mdl, repo)
 
 	// init search (AI)
 	aiRepo, err := aisearchrepo.NewAISearchRepository(os.Getenv("AI_API_URL"))
@@ -285,6 +288,28 @@ func main() {
 		// Use a dedicated timeout for AI Search as it involves slow LLM evaluations
 		ucSearch := usecase_search.NewSearchUsecase(aiRepo, aiSearchTimeout)
 		http_search.NewSearchHandler(apiGroup, mdl, ucSearch)
+	}
+
+	// init grpc handler
+	candidateGrpcHandler := delivery_grpc.NewCandidateHandler(repo)
+
+	// start grpc server
+	grpcPort := os.Getenv("GRPC_PORT")
+	if grpcPort == "" {
+		grpcPort = "50052"
+	}
+	lis, err := net.Listen("tcp", ":"+grpcPort)
+	if err != nil {
+		logrus.Errorf("failed to listen for grpc: %v", err)
+	} else {
+		s := grpc.NewServer()
+		pb.RegisterCandidateServiceServer(s, candidateGrpcHandler)
+		logrus.Infof("gRPC server running on port %s", grpcPort)
+		go func() {
+			if err := s.Serve(lis); err != nil {
+				logrus.Errorf("failed to serve grpc: %v", err)
+			}
+		}()
 	}
 
 	port := os.Getenv("PORT")

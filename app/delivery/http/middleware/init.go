@@ -15,7 +15,6 @@ import (
 
 type appMiddleware struct {
 	secret        string
-	internalToken string
 	cache         CacheConfig
 	repo          domain.GormRepo
 }
@@ -40,7 +39,6 @@ func NewMiddleware(redis *redis.Client, repo domain.GormRepo) Middleware {
 
 	return &appMiddleware{
 		secret:        jwt_helper.GetJwtCredential().Member.Secret,
-		internalToken: os.Getenv("INTERNAL_API_TOKEN"),
 		repo:          repo,
 		cache: CacheConfig{
 			enabled:     useRedis,
@@ -65,7 +63,6 @@ type Middleware interface {
 	AuthSuperadmin() gin.HandlerFunc
 	AuthEmployee() gin.HandlerFunc
 	AuthCandidate() gin.HandlerFunc
-	AuthInternal() gin.HandlerFunc
 
 	Cors() gin.HandlerFunc
 	Logger(writer io.Writer) gin.HandlerFunc

@@ -22,16 +22,204 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type EnrichmentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserIds       []string               `protobuf:"bytes,1,rep,name=user_ids,json=userIds,proto3" json:"user_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EnrichmentRequest) Reset() {
+	*x = EnrichmentRequest{}
+	mi := &file_proto_search_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnrichmentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnrichmentRequest) ProtoMessage() {}
+
+func (x *EnrichmentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_search_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnrichmentRequest.ProtoReflect.Descriptor instead.
+func (*EnrichmentRequest) Descriptor() ([]byte, []int) {
+	return file_proto_search_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *EnrichmentRequest) GetUserIds() []string {
+	if x != nil {
+		return x.UserIds
+	}
+	return nil
+}
+
+type EnrichmentData struct {
+	state                         protoimpl.MessageState `protogen:"open.v1"`
+	UserId                        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	JobRoles                      []string               `protobuf:"bytes,2,rep,name=job_roles,json=jobRoles,proto3" json:"job_roles,omitempty"`
+	CandidateLevel                string                 `protobuf:"bytes,3,opt,name=candidate_level,json=candidateLevel,proto3" json:"candidate_level,omitempty"`
+	AvgWorkQuality                float64                `protobuf:"fixed64,4,opt,name=avg_work_quality,json=avgWorkQuality,proto3" json:"avg_work_quality,omitempty"`
+	AvgTimeliness                 float64                `protobuf:"fixed64,5,opt,name=avg_timeliness,json=avgTimeliness,proto3" json:"avg_timeliness,omitempty"`
+	AvgCommunicationCollaboration float64                `protobuf:"fixed64,6,opt,name=avg_communication_collaboration,json=avgCommunicationCollaboration,proto3" json:"avg_communication_collaboration,omitempty"`
+	AvgProblemSolvingInitiative   float64                `protobuf:"fixed64,7,opt,name=avg_problem_solving_initiative,json=avgProblemSolvingInitiative,proto3" json:"avg_problem_solving_initiative,omitempty"`
+	HasScore                      bool                   `protobuf:"varint,8,opt,name=has_score,json=hasScore,proto3" json:"has_score,omitempty"`
+	unknownFields                 protoimpl.UnknownFields
+	sizeCache                     protoimpl.SizeCache
+}
+
+func (x *EnrichmentData) Reset() {
+	*x = EnrichmentData{}
+	mi := &file_proto_search_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnrichmentData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnrichmentData) ProtoMessage() {}
+
+func (x *EnrichmentData) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_search_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnrichmentData.ProtoReflect.Descriptor instead.
+func (*EnrichmentData) Descriptor() ([]byte, []int) {
+	return file_proto_search_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *EnrichmentData) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *EnrichmentData) GetJobRoles() []string {
+	if x != nil {
+		return x.JobRoles
+	}
+	return nil
+}
+
+func (x *EnrichmentData) GetCandidateLevel() string {
+	if x != nil {
+		return x.CandidateLevel
+	}
+	return ""
+}
+
+func (x *EnrichmentData) GetAvgWorkQuality() float64 {
+	if x != nil {
+		return x.AvgWorkQuality
+	}
+	return 0
+}
+
+func (x *EnrichmentData) GetAvgTimeliness() float64 {
+	if x != nil {
+		return x.AvgTimeliness
+	}
+	return 0
+}
+
+func (x *EnrichmentData) GetAvgCommunicationCollaboration() float64 {
+	if x != nil {
+		return x.AvgCommunicationCollaboration
+	}
+	return 0
+}
+
+func (x *EnrichmentData) GetAvgProblemSolvingInitiative() float64 {
+	if x != nil {
+		return x.AvgProblemSolvingInitiative
+	}
+	return 0
+}
+
+func (x *EnrichmentData) GetHasScore() bool {
+	if x != nil {
+		return x.HasScore
+	}
+	return false
+}
+
+type EnrichmentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []*EnrichmentData      `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EnrichmentResponse) Reset() {
+	*x = EnrichmentResponse{}
+	mi := &file_proto_search_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnrichmentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnrichmentResponse) ProtoMessage() {}
+
+func (x *EnrichmentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_search_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnrichmentResponse.ProtoReflect.Descriptor instead.
+func (*EnrichmentResponse) Descriptor() ([]byte, []int) {
+	return file_proto_search_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *EnrichmentResponse) GetData() []*EnrichmentData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 type SearchRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Query         string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"` // Add other filters if necessary
+	Query         string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SearchRequest) Reset() {
 	*x = SearchRequest{}
-	mi := &file_proto_search_proto_msgTypes[0]
+	mi := &file_proto_search_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +231,7 @@ func (x *SearchRequest) String() string {
 func (*SearchRequest) ProtoMessage() {}
 
 func (x *SearchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_search_proto_msgTypes[0]
+	mi := &file_proto_search_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +244,7 @@ func (x *SearchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchRequest.ProtoReflect.Descriptor instead.
 func (*SearchRequest) Descriptor() ([]byte, []int) {
-	return file_proto_search_proto_rawDescGZIP(), []int{0}
+	return file_proto_search_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SearchRequest) GetQuery() string {
@@ -67,18 +255,17 @@ func (x *SearchRequest) GetQuery() string {
 }
 
 type SearchResult struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// 2. Change this line from "string content = 2;" to:
-	Content       *structpb.Struct `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
-	Score         float32          `protobuf:"fixed32,3,opt,name=score,proto3" json:"score,omitempty"` // Add metadata or other fields as needed
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Content       *structpb.Struct       `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Score         float32                `protobuf:"fixed32,3,opt,name=score,proto3" json:"score,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SearchResult) Reset() {
 	*x = SearchResult{}
-	mi := &file_proto_search_proto_msgTypes[1]
+	mi := &file_proto_search_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -90,7 +277,7 @@ func (x *SearchResult) String() string {
 func (*SearchResult) ProtoMessage() {}
 
 func (x *SearchResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_search_proto_msgTypes[1]
+	mi := &file_proto_search_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -103,7 +290,7 @@ func (x *SearchResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchResult.ProtoReflect.Descriptor instead.
 func (*SearchResult) Descriptor() ([]byte, []int) {
-	return file_proto_search_proto_rawDescGZIP(), []int{1}
+	return file_proto_search_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SearchResult) GetId() string {
@@ -137,7 +324,7 @@ type SearchResponse struct {
 
 func (x *SearchResponse) Reset() {
 	*x = SearchResponse{}
-	mi := &file_proto_search_proto_msgTypes[2]
+	mi := &file_proto_search_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -149,7 +336,7 @@ func (x *SearchResponse) String() string {
 func (*SearchResponse) ProtoMessage() {}
 
 func (x *SearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_search_proto_msgTypes[2]
+	mi := &file_proto_search_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -162,7 +349,7 @@ func (x *SearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchResponse.ProtoReflect.Descriptor instead.
 func (*SearchResponse) Descriptor() ([]byte, []int) {
-	return file_proto_search_proto_rawDescGZIP(), []int{2}
+	return file_proto_search_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SearchResponse) GetResults() []*SearchResult {
@@ -183,7 +370,20 @@ var File_proto_search_proto protoreflect.FileDescriptor
 
 const file_proto_search_proto_rawDesc = "" +
 	"\n" +
-	"\x12proto/search.proto\x12\x06search\x1a\x1cgoogle/protobuf/struct.proto\"%\n" +
+	"\x12proto/search.proto\x12\x06search\x1a\x1cgoogle/protobuf/struct.proto\".\n" +
+	"\x11EnrichmentRequest\x12\x19\n" +
+	"\buser_ids\x18\x01 \x03(\tR\auserIds\"\xea\x02\n" +
+	"\x0eEnrichmentData\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
+	"\tjob_roles\x18\x02 \x03(\tR\bjobRoles\x12'\n" +
+	"\x0fcandidate_level\x18\x03 \x01(\tR\x0ecandidateLevel\x12(\n" +
+	"\x10avg_work_quality\x18\x04 \x01(\x01R\x0eavgWorkQuality\x12%\n" +
+	"\x0eavg_timeliness\x18\x05 \x01(\x01R\ravgTimeliness\x12F\n" +
+	"\x1favg_communication_collaboration\x18\x06 \x01(\x01R\x1davgCommunicationCollaboration\x12C\n" +
+	"\x1eavg_problem_solving_initiative\x18\a \x01(\x01R\x1bavgProblemSolvingInitiative\x12\x1b\n" +
+	"\thas_score\x18\b \x01(\bR\bhasScore\"@\n" +
+	"\x12EnrichmentResponse\x12*\n" +
+	"\x04data\x18\x01 \x03(\v2\x16.search.EnrichmentDataR\x04data\"%\n" +
 	"\rSearchRequest\x12\x14\n" +
 	"\x05query\x18\x01 \x01(\tR\x05query\"g\n" +
 	"\fSearchResult\x12\x0e\n" +
@@ -194,7 +394,9 @@ const file_proto_search_proto_rawDesc = "" +
 	"\aresults\x18\x01 \x03(\v2\x14.search.SearchResultR\aresults\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage2H\n" +
 	"\rSearchService\x127\n" +
-	"\x06Search\x12\x15.search.SearchRequest\x1a\x16.search.SearchResponseB\x1bZ\x19gigsourcehub-ai-api/protob\x06proto3"
+	"\x06Search\x12\x15.search.SearchRequest\x1a\x16.search.SearchResponse2^\n" +
+	"\x10CandidateService\x12J\n" +
+	"\x11GetEnrichmentData\x12\x19.search.EnrichmentRequest\x1a\x1a.search.EnrichmentResponseB\x1bZ\x19gigsourcehub-ai-api/protob\x06proto3"
 
 var (
 	file_proto_search_proto_rawDescOnce sync.Once
@@ -208,23 +410,29 @@ func file_proto_search_proto_rawDescGZIP() []byte {
 	return file_proto_search_proto_rawDescData
 }
 
-var file_proto_search_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_proto_search_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_proto_search_proto_goTypes = []any{
-	(*SearchRequest)(nil),   // 0: search.SearchRequest
-	(*SearchResult)(nil),    // 1: search.SearchResult
-	(*SearchResponse)(nil),  // 2: search.SearchResponse
-	(*structpb.Struct)(nil), // 3: google.protobuf.Struct
+	(*EnrichmentRequest)(nil),  // 0: search.EnrichmentRequest
+	(*EnrichmentData)(nil),     // 1: search.EnrichmentData
+	(*EnrichmentResponse)(nil), // 2: search.EnrichmentResponse
+	(*SearchRequest)(nil),      // 3: search.SearchRequest
+	(*SearchResult)(nil),       // 4: search.SearchResult
+	(*SearchResponse)(nil),     // 5: search.SearchResponse
+	(*structpb.Struct)(nil),    // 6: google.protobuf.Struct
 }
 var file_proto_search_proto_depIdxs = []int32{
-	3, // 0: search.SearchResult.content:type_name -> google.protobuf.Struct
-	1, // 1: search.SearchResponse.results:type_name -> search.SearchResult
-	0, // 2: search.SearchService.Search:input_type -> search.SearchRequest
-	2, // 3: search.SearchService.Search:output_type -> search.SearchResponse
-	3, // [3:4] is the sub-list for method output_type
-	2, // [2:3] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	1, // 0: search.EnrichmentResponse.data:type_name -> search.EnrichmentData
+	6, // 1: search.SearchResult.content:type_name -> google.protobuf.Struct
+	4, // 2: search.SearchResponse.results:type_name -> search.SearchResult
+	3, // 3: search.SearchService.Search:input_type -> search.SearchRequest
+	0, // 4: search.CandidateService.GetEnrichmentData:input_type -> search.EnrichmentRequest
+	5, // 5: search.SearchService.Search:output_type -> search.SearchResponse
+	2, // 6: search.CandidateService.GetEnrichmentData:output_type -> search.EnrichmentResponse
+	5, // [5:7] is the sub-list for method output_type
+	3, // [3:5] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_proto_search_proto_init() }
@@ -238,9 +446,9 @@ func file_proto_search_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_search_proto_rawDesc), len(file_proto_search_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   6,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_proto_search_proto_goTypes,
 		DependencyIndexes: file_proto_search_proto_depIdxs,

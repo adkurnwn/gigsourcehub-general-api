@@ -2,28 +2,45 @@ syntax = "proto3";
 
 package search;
 
-option go_package = "gigsourcehub-ai-api/proto"; // (Adjust this package name on your general-api repo of course)
+option go_package = "gigsourcehub-ai-api/proto";
 
-// 1. Add this import at the top
 import "google/protobuf/struct.proto";
 
 service SearchService {
   rpc Search (SearchRequest) returns (SearchResponse);
 }
 
+service CandidateService {
+  rpc GetEnrichmentData (EnrichmentRequest) returns (EnrichmentResponse);
+}
+
+message EnrichmentRequest {
+  repeated string user_ids = 1;
+}
+
+message EnrichmentData {
+  string user_id = 1;
+  repeated string job_roles = 2;
+  string candidate_level = 3;
+  double avg_work_quality = 4;
+  double avg_timeliness = 5;
+  double avg_communication_collaboration = 6;
+  double avg_problem_solving_initiative = 7;
+  bool has_score = 8;
+}
+
+message EnrichmentResponse {
+  repeated EnrichmentData data = 1;
+}
+
 message SearchRequest {
   string query = 1;
-  // Add other filters if necessary
 }
 
 message SearchResult {
   string id = 1;
-  
-  // 2. Change this line from "string content = 2;" to:
   google.protobuf.Struct content = 2;
-  
   float score = 3;
-  // Add metadata or other fields as needed
 }
 
 message SearchResponse {
