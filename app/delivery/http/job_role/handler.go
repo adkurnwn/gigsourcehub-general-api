@@ -24,6 +24,7 @@ func NewJobRoleHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.
 	}
 
 	api := r.Group("/roles", mdl.Auth())
+	api.GET("/system", handler.FetchSystemRoles)
 	api.GET("", handler.FetchAll)
 	api.GET("/:id", handler.FetchData)
 
@@ -136,5 +137,20 @@ func (h *routeHandler) FetchAll(c *gin.Context) {
 func (h *routeHandler) FetchData(c *gin.Context) {
 	id := c.Param("id")
 	res := h.Usecase.FetchData(c.Request.Context(), id)
+	c.JSON(res.Status, res)
+}
+
+// Get System Job Roles
+// @Security BearerAuth
+// @Summary Get System Job Roles
+// @Description Get System Job Roles
+// @Tags Job Role
+// @Accept json
+// @Produce json
+// @Success 200 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /roles/system [get]
+func (h *routeHandler) FetchSystemRoles(c *gin.Context) {
+	res := h.Usecase.FetchSystemRoles(c.Request.Context())
 	c.JSON(res.Status, res)
 }

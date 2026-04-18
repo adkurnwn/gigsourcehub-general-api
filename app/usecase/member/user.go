@@ -182,6 +182,27 @@ func (u *appUsecase) CreateBySuperadmin(ctx context.Context, req request_model.C
 		return response.Error(http.StatusInternalServerError, "Failed to hash password")
 	}
 
+	// Strict Validation for HR Restriction
+	if req.SystemRoleId != nil && req.JobTitleId != nil {
+		var role gorm_model.SystemRole
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&role, "id = ?", *req.SystemRoleId).Error; err == nil {
+			var jt gorm_model.JobTitle
+			if err := u.gormDbRepo.GetDB().WithContext(ctx).Preload("Sector").First(&jt, "id = ?", *req.JobTitleId).Error; err == nil {
+				if role.Name == "Admin" {
+					// Admin MUST be in Human Resources sector
+					if jt.Sector == nil || jt.Sector.Name != "Human Resources" {
+						return response.Error(http.StatusBadRequest, "Admin role must be in Human Resources sector")
+					}
+				} else if role.Name == "Employee" {
+					// Employee (Pegawai) MUST NOT be in Human Resources sector
+					if jt.Sector != nil && jt.Sector.Name == "Human Resources" {
+						return response.Error(http.StatusBadRequest, "Employee role cannot be in Human Resources sector")
+					}
+				}
+			}
+		}
+	}
+
 	user := gorm_model.User{
 		ID:             uuid.New().String(),
 		Email:          req.Email,
@@ -189,6 +210,7 @@ func (u *appUsecase) CreateBySuperadmin(ctx context.Context, req request_model.C
 		Password:       string(hashedPassword),
 		AssignedRoleId: req.AssignedRoleId,
 		SystemRoleId:   req.SystemRoleId,
+		JobTitleId:     req.JobTitleId,
 	}
 
 	if req.AccountStatus != nil {

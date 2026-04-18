@@ -63,6 +63,7 @@ type GormRepo interface {
 
 	FetchKabupatenKota(ctx context.Context, options gorm_model.KabupatenKotaFilter) (*sql.Rows, error)
 	FetchProvinsi(ctx context.Context, options gorm_model.ProvinsiFilter) (*sql.Rows, error)
+	FetchSystemRole(ctx context.Context, options gorm_model.SystemRoleFilter) (*sql.Rows, error)
 
 	CreateBookmark(ctx context.Context, model *gorm_model.Bookmark) error
 	GetBookmark(ctx context.Context, adminID, candidateID string) (*gorm_model.Bookmark, error)
