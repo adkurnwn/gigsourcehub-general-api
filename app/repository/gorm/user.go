@@ -8,6 +8,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (r *gormRepo) FetchUser(ctx context.Context, options gorm_model.UserFilter) (cur *sql.Rows, err error) {
@@ -15,7 +16,7 @@ func (r *gormRepo) FetchUser(ctx context.Context, options gorm_model.UserFilter)
 	q := r.db.Model(&gorm_model.User{})
 	options.Query(q)
 
-	q = q.Preload("SystemRole")
+	q = q.Preload("SystemRole").Preload("JobRoles")
 
 	cur, err = q.WithContext(ctx).Rows()
 	if err != nil {
@@ -31,7 +32,7 @@ func (r *gormRepo) FetchOneUser(ctx context.Context, options gorm_model.UserFilt
 	q := r.db.Model(&gorm_model.User{})
 	options.Query(q)
 
-	q = q.Preload("SystemRole")
+	q = q.Preload("SystemRole").Preload("JobRoles")
 
 	// set row
 	row = new(gorm_model.User)
@@ -73,7 +74,7 @@ func (r *gormRepo) CreateUser(ctx context.Context, row *gorm_model.User) (err er
 }
 
 func (r *gormRepo) UpdateUser(ctx context.Context, row *gorm_model.User) (err error) {
-	err = r.db.WithContext(ctx).Save(row).Error
+	err = r.db.WithContext(ctx).Omit(clause.Associations).Save(row).Error
 	if err != nil {
 		logrus.Error("UpdateUser Exec:", err)
 		return
@@ -121,3 +122,37 @@ func (r *gormRepo) CreateUserBySuperadmin(ctx context.Context, row *gorm_model.U
 
 	return
 }
+
+func (r *gormRepo) GetCandidateLevelsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, error) {
+	if len(userIDs) == 0 {
+		return map[string]string{}, nil
+	}
+
+	type row struct {
+		ID             string  `gorm:"column:id"`
+		CandidateLevel *string `gorm:"column:candidate_level"`
+	}
+
+	var rows []row
+	err := r.db.WithContext(ctx).
+		Table("users").
+		Select("id, candidate_level").
+		Where("id IN (?)", userIDs).
+		Scan(&rows).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]string)
+	for _, r := range rows {
+		level := ""
+		if r.CandidateLevel != nil {
+			level = *r.CandidateLevel
+		}
+		result[r.ID] = level
+	}
+
+	return result, nil
+}
+

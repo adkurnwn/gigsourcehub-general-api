@@ -14,9 +14,9 @@ import (
 )
 
 type appMiddleware struct {
-	secret string
-	cache  CacheConfig
-	repo   domain.GormRepo
+	secret        string
+	cache         CacheConfig
+	repo          domain.GormRepo
 }
 
 type CacheConfig struct {
@@ -38,8 +38,8 @@ func NewMiddleware(redis *redis.Client, repo domain.GormRepo) Middleware {
 	redisKeyPrefix := os.Getenv("REDIS_KEY_PREFIX")
 
 	return &appMiddleware{
-		secret: jwt_helper.GetJwtCredential().Member.Secret,
-		repo:   repo,
+		secret:        jwt_helper.GetJwtCredential().Member.Secret,
+		repo:          repo,
 		cache: CacheConfig{
 			enabled:     useRedis,
 			store:       redis,

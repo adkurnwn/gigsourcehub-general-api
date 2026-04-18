@@ -35,19 +35,15 @@ func (f *JobRoleFilter) Query(q *gorm.DB) {
 }
 
 type JobRoleResp struct {
-	ID        string    `json:"id"`
-	SectorID  string    `json:"sector_id"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID       string `json:"id"`
+	SectorID string `json:"sector_id"`
+	Name     string `json:"name"`
 }
 
 func (row *JobRole) ToJobRoleResp() JobRoleResp {
 	return JobRoleResp{
-		ID:        row.ID,
-		SectorID:  row.SectorID,
-		Name:      row.Name,
-		CreatedAt: row.CreatedAt,
-		UpdatedAt: row.UpdatedAt,
+		ID:       row.ID,
+		SectorID: row.SectorID,
+		Name:     row.Name,
 	}
 }

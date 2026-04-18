@@ -40,6 +40,10 @@ table "users" {
     type = decimal(3,2)
     null = true
   }
+  column "summary" {
+    type = text
+    null = true
+  }
 
   column "phone_number" {
     type = varchar(20)
@@ -642,6 +646,10 @@ table "requests" {
     type = date
     null = true
   }
+  column "rejected_reason" {
+    type = text
+    null = true
+  }
   column "created_at" {
     type = timestamptz
     null = false
@@ -716,6 +724,10 @@ table "subrequests" {
     type    = boolean
     default = false
     null    = false
+  }
+  column "overview" {
+    type = text
+    null = true
   }
   column "created_at" {
     type = timestamptz
@@ -824,7 +836,11 @@ table "interviews" {
     null = true
   }
   column "meeting_link" {
-    type = varchar(255)
+    type = text
+    null = true
+  }
+  column "meeting_location" {
+    type = text
     null = true
   }
   column "is_email_sent" {
@@ -1360,5 +1376,587 @@ table "system_settings" {
 
   index "idx_system_settings_deleted_at" {
     columns = [column.deleted_at]
+  }
+}
+
+enum "job_vacancy_schema" {
+  schema = schema.public
+  values = ["ONSITE", "REMOTE", "HYBRID"]
+}
+
+enum "job_vacancy_status" {
+  schema = schema.public
+  values = ["DRAFT", "ARCHIVED", "PUBLISHED"]
+}
+
+enum "approval_request_table_name" {
+  schema = schema.public
+  values = ["faqs", "job_vacancies", "company_profiles"]
+}
+
+enum "approval_request_action" {
+  schema = schema.public
+  values = ["CREATE", "UPDATE", "DELETE"]
+}
+
+enum "approval_request_status" {
+  schema = schema.public
+  values = ["PENDING", "APPROVED", "REJECTED"]
+}
+
+table "company_profiles" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "address" {
+    type = text
+    null = true
+  }
+  column "phone" {
+    type = varchar(20)
+    null = true
+  }
+  column "email" {
+    type = varchar(255)
+    null = true
+  }
+  column "facebook_url" {
+    type = text
+    null = true
+  }
+  column "instagram_url" {
+    type = text
+    null = true
+  }
+  column "linkedin_url" {
+    type = text
+    null = true
+  }
+  column "twitter_url" {
+    type = text
+    null = true
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_company_profiles_deleted_at" {
+    columns = [column.deleted_at]
+  }
+}
+
+table "faqs" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "question" {
+    type = text
+    null = false
+  }
+  column "answer" {
+    type = text
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_faqs_deleted_at" {
+    columns = [column.deleted_at]
+  }
+}
+
+table "job_vacancies" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "subrequest_id" {
+    type = uuid
+    null = false
+  }
+  column "name" {
+    type = varchar(255)
+    null = false
+  }
+  column "takedown_date" {
+    type = date
+    null = true
+  }
+  column "fulfillment_date" {
+    type = date
+    null = true
+  }
+  column "schema" {
+    type = enum.job_vacancy_schema
+    null = true
+  }
+  column "status" {
+    type = enum.job_vacancy_status
+    null = true
+  }
+  column "description" {
+    type = varchar(50)
+    null = true
+  }
+  column "overview" {
+    type = text
+    null = true
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_job_vacancies_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  foreign_key "job_vacancies_subrequest_fk" {
+    columns     = [column.subrequest_id]
+    ref_columns = [table.subrequests.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "subrequest_candidates" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "subrequest_id" {
+    type = uuid
+    null = false
+  }
+  column "candidate_user_id" {
+    type = uuid
+    null = false
+  }
+  column "name" {
+    type = varchar(150)
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_subrequest_candidates_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  foreign_key "subrequest_candidates_subrequest_fk" {
+    columns     = [column.subrequest_id]
+    ref_columns = [table.subrequests.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "subrequest_candidates_user_fk" {
+    columns     = [column.candidate_user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "log_activities" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "actor_id" {
+    type = uuid
+    null = false
+  }
+  column "action_type" {
+    type = varchar(100)
+    null = false
+  }
+  column "module" {
+    type = varchar(100)
+    null = false
+  }
+  column "description" {
+    type = text
+    null = true
+  }
+  column "metadata" {
+    type = jsonb
+    null = true
+  }
+  column "ip_address" {
+    type = varchar(45)
+    null = true
+  }
+  column "is_success" {
+    type = boolean
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_log_activities_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  foreign_key "log_activities_actor_fk" {
+    columns     = [column.actor_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "notifications" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "admin_user_id_owner" {
+    type = uuid
+    null = false
+  }
+  column "title" {
+    type = varchar(255)
+    null = false
+  }
+  column "description" {
+    type = text
+    null = true
+  }
+  column "is_read" {
+    type = boolean
+    default = false
+    null = false
+  }
+  column "is_admin_broadcast" {
+    type = boolean
+    default = false
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_notifications_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  foreign_key "notifications_admin_fk" {
+    columns     = [column.admin_user_id_owner]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "admin_notes" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "admin_user_id" {
+    type = uuid
+    null = false
+  }
+  column "candidate_user_id" {
+    type = uuid
+    null = false
+  }
+  column "content" {
+    type = text
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_admin_notes_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  foreign_key "admin_notes_admin_fk" {
+    columns     = [column.admin_user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "admin_notes_candidate_fk" {
+    columns     = [column.candidate_user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "approval_requests" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "requested_by_admin_id" {
+    type = uuid
+    null = false
+  }
+  column "table_name" {
+    type = enum.approval_request_table_name
+    null = false
+  }
+  column "record_id" {
+    type = uuid
+    null = false
+  }
+  column "action" {
+    type = enum.approval_request_action
+    null = false
+  }
+  column "proposed_data" {
+    type = jsonb
+    null = true
+  }
+  column "status" {
+    type = enum.approval_request_status
+    default = "'PENDING'"
+    null = false
+  }
+  column "rejected_reason" {
+    type = text
+    null = true
+  }
+  column "reviewed_by_superadmin_id" {
+    type = uuid
+    null = true
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_approval_requests_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  foreign_key "approval_req_admin_fk" {
+    columns     = [column.requested_by_admin_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "approval_req_superadmin_fk" {
+    columns     = [column.reviewed_by_superadmin_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
+  }
+}
+
+table "ai_chats" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "admin_user_id" {
+    type    = uuid
+    null    = false
+  }
+  column "title" {
+    type = varchar(255)
+    null = true
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_ai_chats_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  foreign_key "ai_chats_admin_fk" {
+    columns     = [column.admin_user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "ai_messages" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "ai_chat_id" {
+    type = uuid
+    null = false
+  }
+  column "role" {
+    type = varchar(20)
+    null = false
+  }
+  column "content" {
+    type = text
+    null = false
+  }
+  column "is_last_message" {
+    type = boolean
+    default = false
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_ai_messages_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  foreign_key "ai_messages_chat_fk" {
+    columns     = [column.ai_chat_id]
+    ref_columns = [table.ai_chats.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
   }
 }

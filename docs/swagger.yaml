@@ -12,6 +12,15 @@ definitions:
       system_role_name:
         type: string
     type: object
+  gorm_model.JobRoleResp:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      sector_id:
+        type: string
+    type: object
   gorm_model.UserResp:
     properties:
       account_status:
@@ -30,6 +39,10 @@ definitions:
         type: string
       is_bookmark:
         type: boolean
+      job_roles:
+        items:
+          $ref: '#/definitions/gorm_model.JobRoleResp'
+        type: array
       job_title_id:
         type: string
       kabupaten_kota_id:
@@ -47,6 +60,8 @@ definitions:
       recruitment_status_id:
         type: string
       school_university:
+        type: string
+      summary:
         type: string
       system_role_name:
         type: string
@@ -211,6 +226,38 @@ definitions:
     - name
     - sector_id
     type: object
+  request_model.UpdateProfileRequest:
+    properties:
+      birthdate:
+        description: Expecting YYYY-MM-DD
+        type: string
+      gpa:
+        type: number
+      job_role_ids:
+        items:
+          type: string
+        type: array
+      kabupaten_kota_id:
+        type: string
+      major:
+        type: string
+      name:
+        type: string
+      phone_number:
+        type: string
+      portofolio_link:
+        type: string
+      school_university:
+        type: string
+      summary:
+        type: string
+      tech_stack:
+        items:
+          type: string
+        type: array
+      years_experience:
+        type: integer
+    type: object
   request_model.UpdateRecruitmentStatusRequest:
     properties:
       name:
@@ -278,6 +325,164 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 paths:
+  /ai-chat:
+    get:
+      consumes:
+      - application/json
+      description: Fetch My Chats
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch My Chats
+      tags:
+      - AI Chat
+    post:
+      consumes:
+      - application/json
+      description: Create Chat
+      parameters:
+      - description: Create Chat Request (first_query)
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Chat
+      tags:
+      - AI Chat
+  /ai-chat/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Chat
+      parameters:
+      - description: Chat ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Chat
+      tags:
+      - AI Chat
+  /ai-chat/{id}/messages:
+    get:
+      consumes:
+      - application/json
+      description: Fetch Chat Messages
+      parameters:
+      - description: Chat ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch Chat Messages
+      tags:
+      - AI Chat
+    post:
+      consumes:
+      - application/json
+      description: Store Chat Message
+      parameters:
+      - description: Chat ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Store Message Request (role, content, is_last)
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Store Chat Message
+      tags:
+      - AI Chat
   /auth/login:
     post:
       consumes:
@@ -816,6 +1021,41 @@ paths:
       security:
       - BearerAuth: []
       summary: Get Profile
+      tags:
+      - Profile
+    put:
+      consumes:
+      - application/json
+      description: Update the profile of the current user
+      parameters:
+      - description: Profile update data
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Profile
       tags:
       - Profile
   /profile/picture:
@@ -1880,6 +2120,45 @@ paths:
       security:
       - BearerAuth: []
       summary: Disable User By Superadmin
+      tags:
+      - Users
+  /users/{id}/profile-picture:
+    get:
+      consumes:
+      - application/json
+      description: Fetch the profile picture URL of a specific user with _thumb suffix
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch User Profile Picture
       tags:
       - Users
   /users/candidates:

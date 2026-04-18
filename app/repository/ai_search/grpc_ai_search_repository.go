@@ -71,3 +71,21 @@ func (r *aiSearchRepository) Search(ctx context.Context, query string) ([]model.
 
 	return results, nil
 }
+
+func (r *aiSearchRepository) UpdateCandidate(ctx context.Context, req *pb.UpdateCandidateRequest) error {
+	logrus.Infof("[gRPC] Sending UpdateCandidate Request: user_id=%s", req.UserId)
+
+	resp, err := r.client.UpdateCandidate(ctx, req)
+	if err != nil {
+		logrus.Errorf("[gRPC] UpdateCandidate Request Failed: %v", err)
+		return err
+	}
+
+	if !resp.Success {
+		logrus.Errorf("[gRPC] UpdateCandidate Request Failed: %s", resp.Message)
+		return fmt.Errorf("AI API failed to update candidate: %s", resp.Message)
+	}
+
+	logrus.Infof("[gRPC] UpdateCandidate Request Success: %s", resp.Message)
+	return nil
+}
