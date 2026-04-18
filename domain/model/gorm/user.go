@@ -30,9 +30,11 @@ type User struct {
 	SystemRoleId        *string        `gorm:"column:system_role_id;type:uuid"`
 	SystemRole          *SystemRole    `gorm:"foreignKey:SystemRoleId"`
 	AssignedRoleId      *string        `gorm:"column:assigned_role_id;type:uuid"`
+	AssignedRole        *JobRole       `gorm:"foreignKey:AssignedRoleId"`
 	JobRoles            []JobRole      `gorm:"many2many:user_has_job_roles;"`
 	AccountStatus       *string        `gorm:"column:account_status;type:user_account_status"`
 	JobTitleId          *string        `gorm:"column:job_title_id;type:uuid"`
+	JobTitle            *JobTitle      `gorm:"foreignKey:JobTitleId"`
 	CreatedAt           time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt           time.Time      `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt           gorm.DeletedAt `gorm:"column:deleted_at;index"`
@@ -82,6 +84,7 @@ type UserResp struct {
 	AccountStatus       *string    `json:"account_status"`
 	IsBookmark          *bool         `json:"is_bookmark,omitempty"`
 	JobTitleId          *string       `json:"job_title_id,omitempty"`
+	Bidang              *string       `json:"bidang,omitempty"`
 	JobRoles            []JobRoleResp `json:"job_roles"`
 }
 
@@ -120,6 +123,15 @@ func (row *User) ToUserResp() UserResp {
 		roles = append(roles, r.ToJobRoleResp())
 	}
 
+	bidangStr := "-"
+	if row.JobTitle != nil && row.JobTitle.Sector != nil {
+		bidangStr = row.JobTitle.Sector.Name
+	} else if row.AssignedRole != nil && row.AssignedRole.Sector != nil {
+		bidangStr = row.AssignedRole.Sector.Name
+	} else if len(row.JobRoles) > 0 && row.JobRoles[0].Sector != nil {
+		bidangStr = row.JobRoles[0].Sector.Name
+	}
+
 	return UserResp{
 		ID:                  row.ID,
 		Name:                row.Name,
@@ -142,6 +154,7 @@ func (row *User) ToUserResp() UserResp {
 		AssignedRoleId:      row.AssignedRoleId,
 		AccountStatus:       row.AccountStatus,
 		JobTitleId:          row.JobTitleId,
+		Bidang:              &bidangStr,
 		JobRoles:            roles,
 	}
 }

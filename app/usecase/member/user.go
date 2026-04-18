@@ -39,7 +39,11 @@ func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor s
 
 	// Execute actual limited fetch
 	var users []gorm_model.User
-	if err := db.Preload("SystemRole").Limit(int(limit)).Offset(int(offset)).Order("created_at DESC").Find(&users).Error; err != nil {
+	if err := db.Preload("SystemRole").
+		Preload("JobTitle.Sector").
+		Preload("AssignedRole.Sector").
+		Preload("JobRoles.Sector").
+		Limit(int(limit)).Offset(int(offset)).Order("created_at DESC").Find(&users).Error; err != nil {
 		logrus.Error("FetchUsers error: ", err)
 		return response.Error(http.StatusInternalServerError, "Failed to fetch users")
 	}

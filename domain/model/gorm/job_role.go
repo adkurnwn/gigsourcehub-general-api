@@ -9,6 +9,7 @@ import (
 type JobRole struct {
 	ID        string         `gorm:"column:id;primarykey;type:uuid;default:uuid_generate_v4()"`
 	SectorID  string         `gorm:"column:sector_id;type:uuid;not null"`
+	Sector    *Sector        `gorm:"foreignKey:SectorID"`
 	Name      string         `gorm:"column:name;type:varchar(150);not null"`
 	CreatedAt time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt time.Time      `gorm:"column:updated_at;autoUpdateTime"`
