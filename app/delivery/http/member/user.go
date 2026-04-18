@@ -104,6 +104,7 @@ func (h *routeHandler) FetchCandidates(c *gin.Context) {
 // @Produce json
 // @Param page query int false "Page number" default(1)
 // @Param limit query int false "Limit per page" default(10)
+// @Param role query string false "System role filtering (e.g., Admin, Employee, Candidate)"
 // @Success 200 {object} response.Base
 // @Failure 401 {object} response.Base
 // @Failure 403 {object} response.Base
@@ -112,8 +113,14 @@ func (h *routeHandler) FetchCandidates(c *gin.Context) {
 // @Security BearerAuth
 func (h *routeHandler) FetchAllUsers(c *gin.Context) {
 	pagination := helpers.GetPagination(c)
+	role := c.Query("role")
 
-	res := h.Usecase.FetchUsers(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, nil, nil)
+	var rolePtr *string
+	if role != "" {
+		rolePtr = &role
+	}
+
+	res := h.Usecase.FetchUsers(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, rolePtr, nil)
 	c.JSON(res.Status, res)
 }
 

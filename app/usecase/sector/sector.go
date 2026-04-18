@@ -106,6 +106,7 @@ func (u *appUsecase) Create(ctx context.Context, req request_model.CreateSectorR
 	newSector := gorm_model.Sector{
 		ID:       uuid.New().String(),
 		Name:     req.Name,
+		HexCode: req.HexCode,
 	}
 
 	if err := u.gormDbRepo.CreateSector(ctx, &newSector); err != nil {
@@ -141,6 +142,7 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 
 	// Overwrite modifiable components
 	existingSector.Name = req.Name
+	existingSector.HexCode = req.HexCode
 
 	// Write modifications to DB
 	if err := u.gormDbRepo.UpdateSector(ctx, &existingSector); err != nil {

@@ -6,12 +6,15 @@ type CreateUserBySuperadminRequest struct {
 	Password       string  `json:"password"`
 	AssignedRoleId *string `json:"assigned_role_id"`
 	SystemRoleId   *string `json:"system_role_id"`
+	JobTitleId     *string `json:"job_title_id"`
 	AccountStatus  *string `json:"account_status"`
 }
 
 type EditUserBySuperadminRequest struct {
 	Name           *string `json:"name"`
 	AssignedRoleId *string `json:"assigned_role_id"`
+	SystemRoleId   *string `json:"system_role_id"`
+	JobTitleId     *string `json:"job_title_id"`
 	AccountStatus  *string `json:"account_status"`
 }
 

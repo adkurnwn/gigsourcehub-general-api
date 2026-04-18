@@ -39,7 +39,11 @@ func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor s
 
 	// Execute actual limited fetch
 	var users []gorm_model.User
-	if err := db.Preload("SystemRole").Limit(int(limit)).Offset(int(offset)).Order("created_at DESC").Find(&users).Error; err != nil {
+	if err := db.Preload("SystemRole").
+		Preload("JobTitle.Sector").
+		Preload("AssignedRole.Sector").
+		Preload("JobRoles.Sector").
+		Limit(int(limit)).Offset(int(offset)).Order("created_at DESC").Find(&users).Error; err != nil {
 		logrus.Error("FetchUsers error: ", err)
 		return response.Error(http.StatusInternalServerError, "Failed to fetch users")
 	}
@@ -178,6 +182,27 @@ func (u *appUsecase) CreateBySuperadmin(ctx context.Context, req request_model.C
 		return response.Error(http.StatusInternalServerError, "Failed to hash password")
 	}
 
+	// Strict Validation for HR Restriction
+	if req.SystemRoleId != nil && req.JobTitleId != nil {
+		var role gorm_model.SystemRole
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&role, "id = ?", *req.SystemRoleId).Error; err == nil {
+			var jt gorm_model.JobTitle
+			if err := u.gormDbRepo.GetDB().WithContext(ctx).Preload("Sector").First(&jt, "id = ?", *req.JobTitleId).Error; err == nil {
+				if role.Name == "Admin" {
+					// Admin MUST be in Human Resources sector
+					if jt.Sector == nil || jt.Sector.Name != "Human Resources" {
+						return response.Error(http.StatusBadRequest, "Admin role must be in Human Resources sector")
+					}
+				} else if role.Name == "Employee" {
+					// Employee (Pegawai) MUST NOT be in Human Resources sector
+					if jt.Sector != nil && jt.Sector.Name == "Human Resources" {
+						return response.Error(http.StatusBadRequest, "Employee role cannot be in Human Resources sector")
+					}
+				}
+			}
+		}
+	}
+
 	user := gorm_model.User{
 		ID:             uuid.New().String(),
 		Email:          req.Email,
@@ -185,6 +210,7 @@ func (u *appUsecase) CreateBySuperadmin(ctx context.Context, req request_model.C
 		Password:       string(hashedPassword),
 		AssignedRoleId: req.AssignedRoleId,
 		SystemRoleId:   req.SystemRoleId,
+		JobTitleId:     req.JobTitleId,
 	}
 
 	if req.AccountStatus != nil {
@@ -212,12 +238,48 @@ func (u *appUsecase) EditUserBySuperadmin(ctx context.Context, id string, req re
 		return response.Error(http.StatusNotFound, "User not found")
 	}
 
+	// Strict Validation for HR Restriction during Edit
+	checkRoleId := user.SystemRoleId
+	if req.SystemRoleId != nil {
+		checkRoleId = req.SystemRoleId
+	}
+	checkJobTitleId := user.JobTitleId
+	if req.JobTitleId != nil {
+		checkJobTitleId = req.JobTitleId
+	}
+
+	if checkRoleId != nil && checkJobTitleId != nil {
+		var role gorm_model.SystemRole
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&role, "id = ?", *checkRoleId).Error; err == nil {
+			var jt gorm_model.JobTitle
+			if err := u.gormDbRepo.GetDB().WithContext(ctx).Preload("Sector").First(&jt, "id = ?", *checkJobTitleId).Error; err == nil {
+				if role.Name == "Admin" {
+					if jt.Sector == nil || jt.Sector.Name != "Human Resources" {
+						return response.Error(http.StatusBadRequest, "Admin role must be in Human Resources sector")
+					}
+				} else if role.Name == "Employee" {
+					if jt.Sector != nil && jt.Sector.Name == "Human Resources" {
+						return response.Error(http.StatusBadRequest, "Employee role cannot be in Human Resources sector")
+					}
+				}
+			}
+		}
+	}
+
 	if req.Name != nil && *req.Name != "" {
 		user.Name = *req.Name
 	}
 
 	if req.AssignedRoleId != nil {
 		user.AssignedRoleId = req.AssignedRoleId
+	}
+
+	if req.SystemRoleId != nil {
+		user.SystemRoleId = req.SystemRoleId
+	}
+
+	if req.JobTitleId != nil {
+		user.JobTitleId = req.JobTitleId
 	}
 
 	if req.AccountStatus != nil {

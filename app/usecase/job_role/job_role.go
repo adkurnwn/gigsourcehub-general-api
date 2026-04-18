@@ -164,3 +164,27 @@ func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
 
 	return response.Success(nil)
 }
+
+func (u *appUsecase) FetchSystemRoles(ctx context.Context) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	rows, err := u.gormDbRepo.FetchSystemRole(ctx, gorm_model.SystemRoleFilter{})
+	if err != nil {
+		logrus.Error("FetchSystemRoles error: ", err)
+		return response.Error(http.StatusInternalServerError, "Failed to fetch system roles")
+	}
+	defer rows.Close()
+
+	var results []interface{}
+	for rows.Next() {
+		var role gorm_model.SystemRole
+		if err := u.gormDbRepo.StructScan(rows, &role); err != nil {
+			logrus.Error("SystemRole map error:", err)
+			continue
+		}
+		results = append(results, role.ToSystemRoleResp())
+	}
+
+	return response.Success(results)
+}
