@@ -165,10 +165,17 @@ func main() {
 	// init storage repo
 	storageRepo := s3repo.NewS3Repo()
 
+	// init ai search repo
+	aiRepo, err := aisearchrepo.NewAISearchRepository(os.Getenv("AI_API_URL"))
+	if err != nil {
+		logrus.Errorf("failed to init ai search repo: %v", err)
+	}
+
 	// init usecase
 	ucMember := usecase_member.NewAppUsecase(usecase_member.RepoInjection{
-		GormDbRepo:  repo,
-		StorageRepo: storageRepo,
+		GormDbRepo:   repo,
+		StorageRepo:  storageRepo,
+		AISearchRepo: aiRepo,
 	}, timeoutContext)
 
 	// init job role usecase
@@ -280,11 +287,7 @@ func main() {
 	http_aichat.NewAIChatHandler(apiGroup, mdl, ucAIChat)
 
 	// init search (AI)
-	aiRepo, err := aisearchrepo.NewAISearchRepository(os.Getenv("AI_API_URL"))
-	if err != nil {
-		logrus.Errorf("failed to init ai search repo: %v", err)
-	} else {
-		// defer aiRepo.Close() // In a real app we might want to close on shutdown, but here we keep it open
+	if aiRepo != nil {
 		// Use a dedicated timeout for AI Search as it involves slow LLM evaluations
 		ucSearch := usecase_search.NewSearchUsecase(aiRepo, aiSearchTimeout)
 		http_search.NewSearchHandler(apiGroup, mdl, ucSearch)

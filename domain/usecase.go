@@ -24,6 +24,7 @@ type MemberAppUsecase interface {
 	ActivateUserBySuperadmin(ctx context.Context, id string) response.Base
 	UploadProfilePicture(ctx context.Context, userID string, file *multipart.FileHeader) response.Base
 	FetchUserThumb(ctx context.Context, id string) response.Base
+	UpdateProfile(ctx context.Context, userID string, req request_model.UpdateProfileRequest) response.Base
 }
 
 type JobRoleAppUsecase interface {

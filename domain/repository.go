@@ -9,6 +9,7 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	storage_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/storage"
+	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
 	"gorm.io/gorm"
 )
 
@@ -121,4 +122,5 @@ type MessageBroker interface {
 
 type AISearchRepository interface {
 	Search(ctx context.Context, query string) ([]model.SearchResult, error)
+	UpdateCandidate(ctx context.Context, req *pb.UpdateCandidateRequest) error
 }

@@ -366,6 +366,166 @@ func (x *SearchResponse) GetMessage() string {
 	return ""
 }
 
+type UpdateCandidateRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	UserId          string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Name            string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Roles           []string               `protobuf:"bytes,3,rep,name=roles,proto3" json:"roles,omitempty"`
+	Summary         string                 `protobuf:"bytes,4,opt,name=summary,proto3" json:"summary,omitempty"`
+	EducationMajor  string                 `protobuf:"bytes,5,opt,name=education_major,json=educationMajor,proto3" json:"education_major,omitempty"`
+	Gpa             float64                `protobuf:"fixed64,6,opt,name=gpa,proto3" json:"gpa,omitempty"`
+	Location        string                 `protobuf:"bytes,7,opt,name=location,proto3" json:"location,omitempty"`
+	TechStack       []string               `protobuf:"bytes,8,rep,name=tech_stack,json=techStack,proto3" json:"tech_stack,omitempty"`
+	YearsExperience int32                  `protobuf:"varint,9,opt,name=years_experience,json=yearsExperience,proto3" json:"years_experience,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *UpdateCandidateRequest) Reset() {
+	*x = UpdateCandidateRequest{}
+	mi := &file_proto_search_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateCandidateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateCandidateRequest) ProtoMessage() {}
+
+func (x *UpdateCandidateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_search_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateCandidateRequest.ProtoReflect.Descriptor instead.
+func (*UpdateCandidateRequest) Descriptor() ([]byte, []int) {
+	return file_proto_search_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *UpdateCandidateRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *UpdateCandidateRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateCandidateRequest) GetRoles() []string {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
+}
+
+func (x *UpdateCandidateRequest) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *UpdateCandidateRequest) GetEducationMajor() string {
+	if x != nil {
+		return x.EducationMajor
+	}
+	return ""
+}
+
+func (x *UpdateCandidateRequest) GetGpa() float64 {
+	if x != nil {
+		return x.Gpa
+	}
+	return 0
+}
+
+func (x *UpdateCandidateRequest) GetLocation() string {
+	if x != nil {
+		return x.Location
+	}
+	return ""
+}
+
+func (x *UpdateCandidateRequest) GetTechStack() []string {
+	if x != nil {
+		return x.TechStack
+	}
+	return nil
+}
+
+func (x *UpdateCandidateRequest) GetYearsExperience() int32 {
+	if x != nil {
+		return x.YearsExperience
+	}
+	return 0
+}
+
+type UpdateCandidateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateCandidateResponse) Reset() {
+	*x = UpdateCandidateResponse{}
+	mi := &file_proto_search_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateCandidateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateCandidateResponse) ProtoMessage() {}
+
+func (x *UpdateCandidateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_search_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateCandidateResponse.ProtoReflect.Descriptor instead.
+func (*UpdateCandidateResponse) Descriptor() ([]byte, []int) {
+	return file_proto_search_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UpdateCandidateResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateCandidateResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_proto_search_proto protoreflect.FileDescriptor
 
 const file_proto_search_proto_rawDesc = "" +
@@ -392,9 +552,24 @@ const file_proto_search_proto_rawDesc = "" +
 	"\x05score\x18\x03 \x01(\x02R\x05score\"Z\n" +
 	"\x0eSearchResponse\x12.\n" +
 	"\aresults\x18\x01 \x03(\v2\x14.search.SearchResultR\aresults\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage2H\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\x96\x02\n" +
+	"\x16UpdateCandidateRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05roles\x18\x03 \x03(\tR\x05roles\x12\x18\n" +
+	"\asummary\x18\x04 \x01(\tR\asummary\x12'\n" +
+	"\x0feducation_major\x18\x05 \x01(\tR\x0eeducationMajor\x12\x10\n" +
+	"\x03gpa\x18\x06 \x01(\x01R\x03gpa\x12\x1a\n" +
+	"\blocation\x18\a \x01(\tR\blocation\x12\x1d\n" +
+	"\n" +
+	"tech_stack\x18\b \x03(\tR\ttechStack\x12)\n" +
+	"\x10years_experience\x18\t \x01(\x05R\x0fyearsExperience\"M\n" +
+	"\x17UpdateCandidateResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage2\x9c\x01\n" +
 	"\rSearchService\x127\n" +
-	"\x06Search\x12\x15.search.SearchRequest\x1a\x16.search.SearchResponse2^\n" +
+	"\x06Search\x12\x15.search.SearchRequest\x1a\x16.search.SearchResponse\x12R\n" +
+	"\x0fUpdateCandidate\x12\x1e.search.UpdateCandidateRequest\x1a\x1f.search.UpdateCandidateResponse2^\n" +
 	"\x10CandidateService\x12J\n" +
 	"\x11GetEnrichmentData\x12\x19.search.EnrichmentRequest\x1a\x1a.search.EnrichmentResponseB\x1bZ\x19gigsourcehub-ai-api/protob\x06proto3"
 
@@ -410,26 +585,30 @@ func file_proto_search_proto_rawDescGZIP() []byte {
 	return file_proto_search_proto_rawDescData
 }
 
-var file_proto_search_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_proto_search_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_proto_search_proto_goTypes = []any{
-	(*EnrichmentRequest)(nil),  // 0: search.EnrichmentRequest
-	(*EnrichmentData)(nil),     // 1: search.EnrichmentData
-	(*EnrichmentResponse)(nil), // 2: search.EnrichmentResponse
-	(*SearchRequest)(nil),      // 3: search.SearchRequest
-	(*SearchResult)(nil),       // 4: search.SearchResult
-	(*SearchResponse)(nil),     // 5: search.SearchResponse
-	(*structpb.Struct)(nil),    // 6: google.protobuf.Struct
+	(*EnrichmentRequest)(nil),       // 0: search.EnrichmentRequest
+	(*EnrichmentData)(nil),          // 1: search.EnrichmentData
+	(*EnrichmentResponse)(nil),      // 2: search.EnrichmentResponse
+	(*SearchRequest)(nil),           // 3: search.SearchRequest
+	(*SearchResult)(nil),            // 4: search.SearchResult
+	(*SearchResponse)(nil),          // 5: search.SearchResponse
+	(*UpdateCandidateRequest)(nil),  // 6: search.UpdateCandidateRequest
+	(*UpdateCandidateResponse)(nil), // 7: search.UpdateCandidateResponse
+	(*structpb.Struct)(nil),         // 8: google.protobuf.Struct
 }
 var file_proto_search_proto_depIdxs = []int32{
 	1, // 0: search.EnrichmentResponse.data:type_name -> search.EnrichmentData
-	6, // 1: search.SearchResult.content:type_name -> google.protobuf.Struct
+	8, // 1: search.SearchResult.content:type_name -> google.protobuf.Struct
 	4, // 2: search.SearchResponse.results:type_name -> search.SearchResult
 	3, // 3: search.SearchService.Search:input_type -> search.SearchRequest
-	0, // 4: search.CandidateService.GetEnrichmentData:input_type -> search.EnrichmentRequest
-	5, // 5: search.SearchService.Search:output_type -> search.SearchResponse
-	2, // 6: search.CandidateService.GetEnrichmentData:output_type -> search.EnrichmentResponse
-	5, // [5:7] is the sub-list for method output_type
-	3, // [3:5] is the sub-list for method input_type
+	6, // 4: search.SearchService.UpdateCandidate:input_type -> search.UpdateCandidateRequest
+	0, // 5: search.CandidateService.GetEnrichmentData:input_type -> search.EnrichmentRequest
+	5, // 6: search.SearchService.Search:output_type -> search.SearchResponse
+	7, // 7: search.SearchService.UpdateCandidate:output_type -> search.UpdateCandidateResponse
+	2, // 8: search.CandidateService.GetEnrichmentData:output_type -> search.EnrichmentResponse
+	6, // [6:9] is the sub-list for method output_type
+	3, // [3:6] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
 	3, // [3:3] is the sub-list for extension extendee
 	0, // [0:3] is the sub-list for field type_name
@@ -446,7 +625,7 @@ func file_proto_search_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_search_proto_rawDesc), len(file_proto_search_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

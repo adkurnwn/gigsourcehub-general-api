@@ -1117,6 +1117,61 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the profile of the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Update Profile",
+                "parameters": [
+                    {
+                        "description": "Profile update data",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.UpdateProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
             }
         },
         "/profile/picture": {
@@ -2946,6 +3001,20 @@ const docTemplate = `{
                 }
             }
         },
+        "gorm_model.JobRoleResp": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sector_id": {
+                    "type": "string"
+                }
+            }
+        },
         "gorm_model.UserResp": {
             "type": "object",
             "properties": {
@@ -2973,6 +3042,12 @@ const docTemplate = `{
                 "is_bookmark": {
                     "type": "boolean"
                 },
+                "job_roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/gorm_model.JobRoleResp"
+                    }
+                },
                 "job_title_id": {
                     "type": "string"
                 },
@@ -2998,6 +3073,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "school_university": {
+                    "type": "string"
+                },
+                "summary": {
                     "type": "string"
                 },
                 "system_role_name": {
@@ -3244,6 +3322,54 @@ const docTemplate = `{
                 },
                 "sector_id": {
                     "type": "string"
+                }
+            }
+        },
+        "request_model.UpdateProfileRequest": {
+            "type": "object",
+            "properties": {
+                "birthdate": {
+                    "description": "Expecting YYYY-MM-DD",
+                    "type": "string"
+                },
+                "gpa": {
+                    "type": "number"
+                },
+                "job_role_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "kabupaten_kota_id": {
+                    "type": "string"
+                },
+                "major": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "portofolio_link": {
+                    "type": "string"
+                },
+                "school_university": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "tech_stack": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "years_experience": {
+                    "type": "integer"
                 }
             }
         },

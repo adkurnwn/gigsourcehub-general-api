@@ -2,6 +2,7 @@ package usecase_member
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
+	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -318,6 +320,160 @@ func (u *appUsecase) ActivateUserBySuperadmin(ctx context.Context, id string) re
 	}
 
 	return response.SuccessAction("User", user.Email, "activated")
+}
+
+func (u *appUsecase) UpdateProfile(ctx context.Context, userID string, req request_model.UpdateProfileRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: userID},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+
+	// Update fields
+	if req.Name != nil {
+		user.Name = *req.Name
+	}
+	if req.Birthdate != nil {
+		t, err := time.Parse("2006-01-02", *req.Birthdate)
+		if err == nil {
+			user.Birthdate = &t
+		}
+	}
+	if req.SchoolUniversity != nil {
+		user.SchoolUniversity = req.SchoolUniversity
+	}
+	if req.Major != nil {
+		user.Major = req.Major
+	}
+	if req.Gpa != nil {
+		user.Gpa = req.Gpa
+	}
+	if req.PhoneNumber != nil {
+		user.PhoneNumber = req.PhoneNumber
+	}
+	if req.PortofolioLink != nil {
+		user.PortofolioLink = req.PortofolioLink
+	}
+	if req.KabupatenKotaId != nil {
+		user.KabupatenKotaId = req.KabupatenKotaId
+	}
+	if req.YearsExperience != nil {
+		user.YearsExperience = req.YearsExperience
+	}
+	if req.TechStack != nil {
+		techStackJson, _ := json.Marshal(req.TechStack)
+		tsStr := string(techStackJson)
+		user.TechStack = &tsStr
+	}
+
+	if req.Summary != nil {
+		user.Summary = req.Summary
+	}
+
+	if req.JobRoleIds != nil {
+		var jobRoles []gorm_model.JobRole
+		if len(req.JobRoleIds) > 0 {
+			if err := u.gormDbRepo.GetDB().WithContext(ctx).Where("id IN ?", req.JobRoleIds).Find(&jobRoles).Error; err != nil {
+				logrus.Errorf("failed to fetch job roles: %v", err)
+			}
+		}
+
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(user).Association("JobRoles").Replace(jobRoles); err != nil {
+			logrus.Errorf("failed to update job roles association: %v", err)
+		}
+
+		user.JobRoles = jobRoles
+	}
+
+	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+
+	// Synchronize with Qdrant
+	go func() {
+		syncCtx := context.Background()
+
+		location := ""
+		if user.KabupatenKotaId != nil {
+			kab, _ := u.gormDbRepo.GetKabupatenName(syncCtx, *user.KabupatenKotaId)
+			provId := ""
+			u.gormDbRepo.GetDB().Table("kabupaten_kota").Where("id = ?", *user.KabupatenKotaId).Pluck("provinsi_id", &provId)
+			prov, _ := u.gormDbRepo.GetProvinsiName(syncCtx, provId)
+			if kab != "" && prov != "" {
+				location = fmt.Sprintf("%s, %s", kab, prov)
+			} else if kab != "" {
+				location = kab
+			}
+		}
+
+		summary := ""
+		if user.Summary != nil && *user.Summary != "" {
+			summary = *user.Summary
+		} else {
+			cv, err := u.gormDbRepo.GetCVByUserID(syncCtx, user.ID)
+			if err == nil && cv != nil && cv.ParsedData != nil {
+				var parsed map[string]interface{}
+				if err := json.Unmarshal([]byte(*cv.ParsedData), &parsed); err == nil {
+					if s, ok := parsed["summary"].(string); ok {
+						summary = s
+					}
+				}
+			}
+		}
+
+		var roleNames []string
+		u.gormDbRepo.GetDB().Table("job_roles").
+			Joins("JOIN user_has_job_roles ON job_roles.id = user_has_job_roles.job_role_id").
+			Where("user_has_job_roles.user_id = ?", user.ID).
+			Pluck("name", &roleNames)
+
+		var techStack []string
+		if user.TechStack != nil {
+			json.Unmarshal([]byte(*user.TechStack), &techStack)
+		}
+
+		gpa := 0.0
+		if user.Gpa != nil {
+			gpa = *user.Gpa
+		}
+
+		major := ""
+		if user.Major != nil {
+			major = *user.Major
+		}
+
+		yearsExp := 0
+		if user.YearsExperience != nil {
+			yearsExp = *user.YearsExperience
+		}
+
+		updateReq := &pb.UpdateCandidateRequest{
+			UserId:          user.ID,
+			Name:            user.Name,
+			Roles:           roleNames,
+			Summary:         summary,
+			EducationMajor:  major,
+			Gpa:             gpa,
+			Location:        location,
+			TechStack:       techStack,
+			YearsExperience: int32(yearsExp),
+		}
+
+		if u.aiSearchRepo != nil {
+			if err := u.aiSearchRepo.UpdateCandidate(syncCtx, updateReq); err != nil {
+				logrus.Errorf("failed to synchronize candidate update to AI API: %v", err)
+			}
+		}
+	}()
+
+	return response.Success(user.ToUserResp())
 }
 
 func (u *appUsecase) FetchUserThumb(ctx context.Context, id string) response.Base {

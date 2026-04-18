@@ -331,6 +331,10 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID string, editedData map
 			}
 		}
 
+		if val, ok := unifiedData["summary"].(string); ok {
+			user.Summary = &val
+		}
+
 		if skillsArr, ok := unifiedData["tech_stack"]; ok {
 			if marshaled, err := json.Marshal(skillsArr); err == nil {
 				skillsStr := string(marshaled)
