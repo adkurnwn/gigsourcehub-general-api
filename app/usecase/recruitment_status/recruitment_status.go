@@ -102,10 +102,17 @@ func (u *appUsecase) Create(ctx context.Context, req request_model.CreateRecruit
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
+	isActive := true
+	if req.IsActive != nil {
+		isActive = *req.IsActive
+	}
+
 	// Initializing new RecruitmentStatus instance
 	newRecruitmentStatus := gorm_model.RecruitmentStatus{
-		ID:       uuid.New().String(),
-		Name:     req.Name,
+		ID:      uuid.New().String(),
+		Name:    req.Name,
+		HexCode: req.HexCode,
+		IsActive: isActive,
 	}
 
 	if err := u.gormDbRepo.CreateRecruitmentStatus(ctx, &newRecruitmentStatus); err != nil {
@@ -141,6 +148,10 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 
 	// Overwrite modifiable components
 	existingRecruitmentStatus.Name = req.Name
+	existingRecruitmentStatus.HexCode = req.HexCode
+	if req.IsActive != nil {
+		existingRecruitmentStatus.IsActive = *req.IsActive
+	}
 
 	// Write modifications to DB
 	if err := u.gormDbRepo.UpdateRecruitmentStatus(ctx, &existingRecruitmentStatus); err != nil {
