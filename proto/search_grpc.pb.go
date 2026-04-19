@@ -160,6 +160,7 @@ var SearchService_ServiceDesc = grpc.ServiceDesc{
 
 const (
 	CandidateService_GetEnrichmentData_FullMethodName = "/search.CandidateService/GetEnrichmentData"
+	CandidateService_GetSectors_FullMethodName        = "/search.CandidateService/GetSectors"
 )
 
 // CandidateServiceClient is the client API for CandidateService service.
@@ -167,6 +168,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CandidateServiceClient interface {
 	GetEnrichmentData(ctx context.Context, in *EnrichmentRequest, opts ...grpc.CallOption) (*EnrichmentResponse, error)
+	GetSectors(ctx context.Context, in *GetSectorsRequest, opts ...grpc.CallOption) (*GetSectorsResponse, error)
 }
 
 type candidateServiceClient struct {
@@ -187,11 +189,22 @@ func (c *candidateServiceClient) GetEnrichmentData(ctx context.Context, in *Enri
 	return out, nil
 }
 
+func (c *candidateServiceClient) GetSectors(ctx context.Context, in *GetSectorsRequest, opts ...grpc.CallOption) (*GetSectorsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSectorsResponse)
+	err := c.cc.Invoke(ctx, CandidateService_GetSectors_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CandidateServiceServer is the server API for CandidateService service.
 // All implementations must embed UnimplementedCandidateServiceServer
 // for forward compatibility.
 type CandidateServiceServer interface {
 	GetEnrichmentData(context.Context, *EnrichmentRequest) (*EnrichmentResponse, error)
+	GetSectors(context.Context, *GetSectorsRequest) (*GetSectorsResponse, error)
 	mustEmbedUnimplementedCandidateServiceServer()
 }
 
@@ -204,6 +217,9 @@ type UnimplementedCandidateServiceServer struct{}
 
 func (UnimplementedCandidateServiceServer) GetEnrichmentData(context.Context, *EnrichmentRequest) (*EnrichmentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetEnrichmentData not implemented")
+}
+func (UnimplementedCandidateServiceServer) GetSectors(context.Context, *GetSectorsRequest) (*GetSectorsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSectors not implemented")
 }
 func (UnimplementedCandidateServiceServer) mustEmbedUnimplementedCandidateServiceServer() {}
 func (UnimplementedCandidateServiceServer) testEmbeddedByValue()                          {}
@@ -244,6 +260,24 @@ func _CandidateService_GetEnrichmentData_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CandidateService_GetSectors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSectorsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CandidateServiceServer).GetSectors(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CandidateService_GetSectors_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CandidateServiceServer).GetSectors(ctx, req.(*GetSectorsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CandidateService_ServiceDesc is the grpc.ServiceDesc for CandidateService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -254,6 +288,10 @@ var CandidateService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetEnrichmentData",
 			Handler:    _CandidateService_GetEnrichmentData_Handler,
+		},
+		{
+			MethodName: "GetSectors",
+			Handler:    _CandidateService_GetSectors_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

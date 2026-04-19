@@ -74,3 +74,22 @@ func (h *CandidateHandler) GetEnrichmentData(ctx context.Context, req *pb.Enrich
 		Data: data,
 	}, nil
 }
+
+func (h *CandidateHandler) GetSectors(ctx context.Context, req *pb.GetSectorsRequest) (*pb.GetSectorsResponse, error) {
+	sectors, err := h.gormRepo.GetActiveSectors(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var pbSectors []*pb.SectorInfo
+	for _, s := range sectors {
+		pbSectors = append(pbSectors, &pb.SectorInfo{
+			Id:   s.ID,
+			Name: s.Name,
+		})
+	}
+
+	return &pb.GetSectorsResponse{
+		Sectors: pbSectors,
+	}, nil
+}

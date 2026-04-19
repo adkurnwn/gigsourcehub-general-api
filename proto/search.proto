@@ -13,6 +13,18 @@ service SearchService {
 
 service CandidateService {
   rpc GetEnrichmentData (EnrichmentRequest) returns (EnrichmentResponse);
+  rpc GetSectors (GetSectorsRequest) returns (GetSectorsResponse);
+}
+
+message GetSectorsRequest {}
+
+message SectorInfo {
+  string id = 1;
+  string name = 2;
+}
+
+message GetSectorsResponse {
+  repeated SectorInfo sectors = 1;
 }
 
 message EnrichmentRequest {

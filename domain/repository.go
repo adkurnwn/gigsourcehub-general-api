@@ -52,6 +52,7 @@ type GormRepo interface {
 	DeleteJobTitle(ctx context.Context, id string) error
 
 	FetchSector(ctx context.Context, options gorm_model.SectorFilter) (*sql.Rows, error)
+	GetActiveSectors(ctx context.Context) ([]gorm_model.Sector, error)
 	CreateSector(ctx context.Context, model *gorm_model.Sector) error
 	UpdateSector(ctx context.Context, model *gorm_model.Sector) error
 	DeleteSector(ctx context.Context, id string) error
