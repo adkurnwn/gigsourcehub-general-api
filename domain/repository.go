@@ -102,6 +102,9 @@ type GormRepo interface {
 
 	CreateAIMessage(ctx context.Context, msg *gorm_model.AIMessage) error
 	FetchAIMessagesByChat(ctx context.Context, chatID string) ([]gorm_model.AIMessage, error)
+
+	GetSystemSetting(ctx context.Context) (*gorm_model.SystemSetting, error)
+	UpdateSystemSetting(ctx context.Context, model *gorm_model.SystemSetting) error
 }
 
 type CacheRepo interface {

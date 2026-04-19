@@ -16,6 +16,7 @@ import (
 	httpdelivery_request "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/request"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
 	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
+	http_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/system_setting"
 	delivery_grpc "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/grpc"
 	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
 	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
@@ -35,6 +36,7 @@ import (
 	usecase_request "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/request"
 	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
 	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
+	usecase_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/system_setting"
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
 
 	"context"
@@ -239,6 +241,11 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init system setting usecase
+	ucSystemSetting := usecase_system_setting.NewAppUsecase(usecase_system_setting.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// start consumer
 	if mqRepo != nil {
 		cvConsumer := consumer.NewCVParserConsumer(mqRepo, repo)
@@ -296,6 +303,7 @@ func main() {
 	http_bookmark.NewBookmarkHandler(apiGroup, mdl, ucBookmark)
 	http_aichat.NewAIChatHandler(apiGroup, mdl, ucAIChat)
 	http_activity_log.NewActivityLogHandler(apiGroup, mdl, ucActivityLog)
+	http_system_setting.NewSystemSettingHandler(apiGroup, mdl, ucSystemSetting)
 
 	// init search (AI)
 	if aiRepo != nil {
