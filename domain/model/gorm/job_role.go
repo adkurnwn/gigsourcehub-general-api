@@ -22,6 +22,7 @@ type JobRoleFilter struct {
 	DefaultFilter
 	SectorID *string
 	Name     *string
+	Search   *string
 }
 
 func (f *JobRoleFilter) Query(q *gorm.DB) {
@@ -30,21 +31,31 @@ func (f *JobRoleFilter) Query(q *gorm.DB) {
 	if f.Name != nil {
 		q.Where("name = ?", *f.Name)
 	}
+	if f.Search != nil && *f.Search != "" {
+		q.Where("name ILIKE ?", "%"+*f.Search+"%")
+	}
 	if f.SectorID != nil {
 		q.Where("sector_id = ?", *f.SectorID)
 	}
 }
 
 type JobRoleResp struct {
-	ID       string `json:"id"`
-	SectorID string `json:"sector_id"`
-	Name     string `json:"name"`
+	ID       string      `json:"id"`
+	SectorID string      `json:"sector_id"`
+	Name     string      `json:"name"`
+	Sector   *SectorResp `json:"sector,omitempty"`
 }
 
 func (row *JobRole) ToJobRoleResp() JobRoleResp {
+	var sectorResp *SectorResp
+	if row.Sector != nil {
+		s := row.Sector.ToSectorResp()
+		sectorResp = &s
+	}
 	return JobRoleResp{
 		ID:       row.ID,
 		SectorID: row.SectorID,
 		Name:     row.Name,
+		Sector:   sectorResp,
 	}
 }

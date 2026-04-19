@@ -10,6 +10,7 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.JobRoleFilter) response.Base {
@@ -40,20 +41,18 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, cursor str
 	}
 
 	// Query Database for Paginated Rows
-	rows, err := u.gormDbRepo.FetchJobRole(ctx, filter)
-	if err != nil {
+	var roles []gorm_model.JobRole
+	dbFetch := u.gormDbRepo.GetDB().WithContext(ctx).Preload("Sector")
+	filter.Query(dbFetch)
+
+	if err := dbFetch.Find(&roles).Error; err != nil {
+		logrus.Error("JobRole fetch error: ", err)
 		return response.Error(http.StatusInternalServerError, "Failed to fetch Job Role data")
 	}
-	defer rows.Close()
 
-	// Parse database response cursors
+	// Parse database response
 	var results []interface{}
-	for rows.Next() {
-		var role gorm_model.JobRole
-		if err := u.gormDbRepo.StructScan(rows, &role); err != nil {
-			logrus.Error("JobRole map error:", err)
-			continue
-		}
+	for _, role := range roles {
 		results = append(results, role.ToJobRoleResp())
 	}
 
@@ -77,22 +76,19 @@ func (u *appUsecase) FetchData(ctx context.Context, id string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
-	data, err := u.gormDbRepo.FetchJobRole(ctx, gorm_model.JobRoleFilter{
-		DefaultFilter: gorm_model.DefaultFilter{ID: id},
-	})
-	if err != nil {
-		return response.Error(http.StatusInternalServerError, "Failed to fetch Role")
-	}
-	defer data.Close()
-
-	if !data.Next() {
-		return response.Error(http.StatusNotFound, "Role not found")
-	}
-
 	var role gorm_model.JobRole
-	if err := u.gormDbRepo.StructScan(data, &role); err != nil {
-		logrus.Error("Role struct map error:", err)
-		return response.Error(http.StatusInternalServerError, "Failed to serialize Role data")
+	dbFetch := u.gormDbRepo.GetDB().WithContext(ctx).Preload("Sector")
+	filter := gorm_model.JobRoleFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	}
+	filter.Query(dbFetch)
+
+	if err := dbFetch.First(&role).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return response.Error(http.StatusNotFound, "Role not found")
+		}
+		logrus.Error("JobRole fetch data error: ", err)
+		return response.Error(http.StatusInternalServerError, "Failed to fetch Role")
 	}
 
 	return response.Success(role.ToJobRoleResp())
@@ -156,6 +152,28 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
+
+	// Safety Check 1: Check if assigned to any user as AssignedRole
+	var assignedCount int64
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.User{}).Where("assigned_role_id = ?", id).Count(&assignedCount).Error; err != nil {
+		logrus.Error("JobRole delete check error: ", err)
+		return response.Error(http.StatusInternalServerError, "Failed to check Job Role usage")
+	}
+
+	if assignedCount > 0 {
+		return response.Error(http.StatusBadRequest, "Tidak bisa menghapus posisi karena sedang digunakan oleh user sebagai role utama")
+	}
+
+	// Safety Check 2: Check many-to-many user_has_job_roles
+	var m2mCount int64
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).Table("user_has_job_roles").Where("job_role_id = ?", id).Count(&m2mCount).Error; err != nil {
+		logrus.Error("JobRole delete check m2m error: ", err)
+		return response.Error(http.StatusInternalServerError, "Failed to check Job Role usage in relations")
+	}
+
+	if m2mCount > 0 {
+		return response.Error(http.StatusBadRequest, "Tidak bisa menghapus posisi karena sedang dipilih oleh kandidat")
+	}
 
 	if err := u.gormDbRepo.DeleteJobRole(ctx, id); err != nil {
 		logrus.Error("JobRole Delete error:", err)
