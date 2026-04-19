@@ -185,19 +185,24 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 
 	helpers.LogActivity(ctx, u.gormRepo, "Upload", "CV", userID, nil, true)
 
-	// 4. Publish Event
+	// 4. Publish Event (Only if AI Module is Enabled)
 	go func(cv *gorm_model.CV) {
-		// Use a detached context or background context for async publishing
-		// to avoid cancellation if the request context is cancelled.
+		bgCtx := context.Background()
+
+		// Check if AI module is enabled
+		settings, err := u.gormRepo.GetSystemSetting(bgCtx)
+		if err != nil || !settings.IsAIModeEnabled {
+			fmt.Println("AI Module is disabled or failed to fetch settings, skipping parsing event")
+			return
+		}
 
 		if u.mqRepo == nil {
 			fmt.Println("mqRepo is nil, skipping event publishing")
 			return
 		}
 
-		bgCtx := context.Background()
 		// Here we just fire and forget with a new context.
-		err := u.mqRepo.Publish(bgCtx, os.Getenv("RABBITMQ_QUEUE_CV_UPLOAD"), map[string]interface{}{
+		err = u.mqRepo.Publish(bgCtx, os.Getenv("RABBITMQ_QUEUE_CV_UPLOAD"), map[string]interface{}{
 			"event":       "cv_uploaded",
 			"user_id":     cv.UserID,
 			"cv_id":       cv.ID,

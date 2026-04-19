@@ -308,7 +308,7 @@ func main() {
 	// init search (AI)
 	if aiRepo != nil {
 		// Use a dedicated timeout for AI Search as it involves slow LLM evaluations
-		ucSearch := usecase_search.NewSearchUsecase(aiRepo, aiSearchTimeout)
+		ucSearch := usecase_search.NewSearchUsecase(aiRepo, repo, aiSearchTimeout)
 		http_search.NewSearchHandler(apiGroup, mdl, ucSearch)
 	}
 
