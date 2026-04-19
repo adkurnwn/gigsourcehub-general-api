@@ -55,6 +55,16 @@ func (u *appUsecase) Login(ctx context.Context, payload request_model.LoginReque
 		return response.Error(http.StatusBadRequest, "Wrong password")
 	}
 
+	// check account status
+	if user.AccountStatus != nil {
+		if *user.AccountStatus == "Inactive" {
+			return response.Error(http.StatusForbidden, "Your account is inactive. Please contact support.")
+		}
+		if *user.AccountStatus == "Blocked" {
+			return response.Error(http.StatusForbidden, "Your account has been blocked.")
+		}
+	}
+
 	// generate token
 	tokenString, err := jwt_helper.GenerateJWTToken(
 		jwt_helper.GetJwtCredential().Member,

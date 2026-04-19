@@ -113,6 +113,19 @@ func (r *gormRepo) GetRoleNameByUserID(ctx context.Context, userID string) (role
 	return roleName, err
 }
 
+func (r *gormRepo) GetUserAccountStatus(ctx context.Context, userID string) (status string, err error) {
+	err = r.db.WithContext(ctx).
+		Table("users").
+		Where("id = ?", userID).
+		Select("account_status").
+		Row().
+		Scan(&status)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+	return status, err
+}
+
 func (r *gormRepo) CreateUserBySuperadmin(ctx context.Context, row *gorm_model.User) (err error) {
 	err = r.db.WithContext(ctx).Create(row).Error
 	if err != nil {
