@@ -20,8 +20,9 @@ var RecruitmentStatusAllowedSort = []string{"name", "created_at", "updated_at"}
 
 type RecruitmentStatusFilter struct {
 	DefaultFilter
-	Name     *string
-	IsActive *bool
+	Name                *string
+	Search              *string
+	IsActive            *bool
 	RecruitmentStatusID *string
 }
 
@@ -31,6 +32,9 @@ func (f *RecruitmentStatusFilter) Query(q *gorm.DB) {
 
 	if f.Name != nil {
 		q.Where("name = ?", *f.Name)
+	}
+	if f.Search != nil && *f.Search != "" {
+		q.Where("name ILIKE ?", "%"+*f.Search+"%")
 	}
 	if f.IsActive != nil {
 		q.Where("is_active = ?", *f.IsActive)

@@ -118,6 +118,11 @@ func (h *routeHandler) FetchAll(c *gin.Context) {
 		filter.SectorID = &sectorID
 	}
 
+	search := c.Query("search")
+	if search != "" {
+		filter.Search = &search
+	}
+
 	res := h.Usecase.FetchAll(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, filter)
 	c.JSON(res.Status, res)
 }

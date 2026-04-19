@@ -96,8 +96,15 @@ type GormRepo interface {
 	GetAIChatByID(ctx context.Context, id string) (*gorm_model.AIChat, error)
 	FetchAIChatsByAdmin(ctx context.Context, adminID string) ([]gorm_model.AIChat, error)
 	DeleteAIChat(ctx context.Context, id string) error
+	CreateLogActivity(ctx context.Context, model *gorm_model.LogActivity) error
+	FetchLogActivity(ctx context.Context, options gorm_model.LogActivityFilter) ([]gorm_model.LogActivity, error)
+	FetchCountLogActivity(ctx context.Context, options gorm_model.LogActivityFilter) (int64, error)
+
 	CreateAIMessage(ctx context.Context, msg *gorm_model.AIMessage) error
 	FetchAIMessagesByChat(ctx context.Context, chatID string) ([]gorm_model.AIMessage, error)
+
+	GetSystemSetting(ctx context.Context) (*gorm_model.SystemSetting, error)
+	UpdateSystemSetting(ctx context.Context, model *gorm_model.SystemSetting) error
 }
 
 type CacheRepo interface {

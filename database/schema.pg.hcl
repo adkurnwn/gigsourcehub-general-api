@@ -1625,7 +1625,7 @@ table "log_activities" {
   }
   column "actor_id" {
     type = uuid
-    null = false
+    null = true
   }
   column "action_type" {
     type = varchar(100)

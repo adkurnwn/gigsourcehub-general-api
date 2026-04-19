@@ -19,7 +19,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor string, roleName *string, adminID *string) response.Base {
+func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor string, search *string, roleName *string, adminID *string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -30,6 +30,10 @@ func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor s
 
 	if roleName != nil {
 		db = db.Joins("JOIN system_roles rs ON users.system_role_id = rs.id").Where("rs.name = ?", *roleName)
+	}
+
+	if search != nil && *search != "" {
+		db = db.Where("(users.name ILIKE ? OR users.email ILIKE ?)", "%"+*search+"%", "%"+*search+"%")
 	}
 
 	var total int64
@@ -218,9 +222,11 @@ func (u *appUsecase) CreateBySuperadmin(ctx context.Context, req request_model.C
 	}
 
 	if err := u.gormDbRepo.CreateUser(ctx, &user); err != nil {
+		helpers.LogActivity(ctx, u.gormDbRepo, "Create", "User Management", user.Email, req, false)
 		return response.Error(http.StatusInternalServerError, err.Error())
 	}
 
+	helpers.LogActivity(ctx, u.gormDbRepo, "Create", "User Management", user.Email, req, true)
 	return response.Success(user.ToUserResp())
 }
 
@@ -287,9 +293,11 @@ func (u *appUsecase) EditUserBySuperadmin(ctx context.Context, id string, req re
 	}
 
 	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		helpers.LogActivity(ctx, u.gormDbRepo, "Edit", "User Management", user.Email, req, false)
 		return response.Error(http.StatusInternalServerError, err.Error())
 	}
 
+	helpers.LogActivity(ctx, u.gormDbRepo, "Edit", "User Management", user.Email, req, true)
 	return response.Success(user.ToUserResp())
 }
 
@@ -318,9 +326,11 @@ func (u *appUsecase) BlockUserBySuperadmin(ctx context.Context, id string) respo
 	user.AccountStatus = &blockedStatus
 
 	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		helpers.LogActivity(ctx, u.gormDbRepo, "Block", "User Management", user.Email, nil, false)
 		return response.Error(http.StatusInternalServerError, err.Error())
 	}
 
+	helpers.LogActivity(ctx, u.gormDbRepo, "Block", "User Management", user.Email, nil, true)
 	return response.SuccessAction("User", user.Email, "blocked")
 }
 
@@ -349,9 +359,11 @@ func (u *appUsecase) DisableUserBySuperadmin(ctx context.Context, id string) res
 	user.AccountStatus = &inactiveStatus
 
 	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		helpers.LogActivity(ctx, u.gormDbRepo, "Disable", "User Management", user.Email, nil, false)
 		return response.Error(http.StatusInternalServerError, err.Error())
 	}
 
+	helpers.LogActivity(ctx, u.gormDbRepo, "Disable", "User Management", user.Email, nil, true)
 	return response.SuccessAction("User", user.Email, "disabled")
 }
 
@@ -374,9 +386,11 @@ func (u *appUsecase) ActivateUserBySuperadmin(ctx context.Context, id string) re
 	user.AccountStatus = &activeStatus
 
 	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		helpers.LogActivity(ctx, u.gormDbRepo, "Activate", "User Management", user.Email, nil, false)
 		return response.Error(http.StatusInternalServerError, err.Error())
 	}
 
+	helpers.LogActivity(ctx, u.gormDbRepo, "Activate", "User Management", user.Email, nil, true)
 	if *oldStatus == "Blocked" {
 		return response.SuccessAction("User", user.Email, "ublocked")
 	}
@@ -455,8 +469,11 @@ func (u *appUsecase) UpdateProfile(ctx context.Context, userID string, req reque
 	}
 
 	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Profile", user.Email, req, false)
 		return response.Error(http.StatusInternalServerError, err.Error())
 	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Profile", user.Email, req, true)
 
 	// Synchronize with Qdrant
 	go func() {

@@ -112,9 +112,9 @@ func (h *routeHandler) FetchAll(c *gin.Context) {
 	pagination := helpers.GetPagination(c)
 	filter := gorm_model.SectorFilter{}
 
-	sectorID := c.Query("sector_id")
-	if sectorID != "" {
-		filter.SectorID = &sectorID
+	search := c.Query("search")
+	if search != "" {
+		filter.Search = &search
 	}
 
 	res := h.Usecase.FetchAll(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, filter)

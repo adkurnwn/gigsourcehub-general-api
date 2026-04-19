@@ -15,6 +15,7 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -165,6 +166,7 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 		}
 
 		if err := u.gormRepo.CreateCV(ctx, cv); err != nil {
+			helpers.LogActivity(ctx, u.gormRepo, "Upload", "CV", userID, nil, false)
 			return response.Error(http.StatusInternalServerError, "db save failed")
 		}
 		existingCV = cv
@@ -176,23 +178,31 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 		existingCV.Status = "UPLOADED" // Reset status
 
 		if err := u.gormRepo.UpdateCV(ctx, existingCV); err != nil {
+			helpers.LogActivity(ctx, u.gormRepo, "Upload", "CV", userID, nil, false)
 			return response.Error(http.StatusInternalServerError, "db update failed")
 		}
 	}
 
-	// 4. Publish Event
+	helpers.LogActivity(ctx, u.gormRepo, "Upload", "CV", userID, nil, true)
+
+	// 4. Publish Event (Only if AI Module is Enabled)
 	go func(cv *gorm_model.CV) {
-		// Use a detached context or background context for async publishing
-		// to avoid cancellation if the request context is cancelled.
+		bgCtx := context.Background()
+
+		// Check if AI module is enabled
+		settings, err := u.gormRepo.GetSystemSetting(bgCtx)
+		if err != nil || !settings.IsAIModeEnabled {
+			fmt.Println("AI Module is disabled or failed to fetch settings, skipping parsing event")
+			return
+		}
 
 		if u.mqRepo == nil {
 			fmt.Println("mqRepo is nil, skipping event publishing")
 			return
 		}
 
-		bgCtx := context.Background()
 		// Here we just fire and forget with a new context.
-		err := u.mqRepo.Publish(bgCtx, os.Getenv("RABBITMQ_QUEUE_CV_UPLOAD"), map[string]interface{}{
+		err = u.mqRepo.Publish(bgCtx, os.Getenv("RABBITMQ_QUEUE_CV_UPLOAD"), map[string]interface{}{
 			"event":       "cv_uploaded",
 			"user_id":     cv.UserID,
 			"cv_id":       cv.ID,
@@ -456,8 +466,11 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID string, editedData map
 	cv.Status = "CONFIRMED"
 
 	if err := u.gormRepo.UpdateCV(ctx, cv); err != nil {
+		helpers.LogActivity(ctx, u.gormRepo, "Confirm", "CV", userID, editedData, false)
 		return response.Error(http.StatusInternalServerError, "failed to update cv")
 	}
+
+	helpers.LogActivity(ctx, u.gormRepo, "Confirm", "CV", userID, editedData, true)
 
 	return response.Success(cv.ToCVResp())
 }

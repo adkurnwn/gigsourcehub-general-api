@@ -5,6 +5,7 @@ import (
 	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
 	http_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/ai_chat"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
+	http_activity_log "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/activity_log"
 	http_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_role"
 	http_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_title"
 	http_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/kabupaten_kota"
@@ -15,6 +16,7 @@ import (
 	httpdelivery_request "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/request"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
 	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
+	http_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/system_setting"
 	delivery_grpc "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/grpc"
 	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
 	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
@@ -24,6 +26,7 @@ import (
 	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
 	usecase_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/ai_chat"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
+	usecase_activity_log "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/activity_log"
 	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
 	usecase_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_title"
 	usecase_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/kabupaten_kota"
@@ -33,6 +36,7 @@ import (
 	usecase_request "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/request"
 	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
 	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
+	usecase_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/system_setting"
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
 
 	"context"
@@ -232,6 +236,16 @@ func main() {
 	// init cv usecase
 	ucCV := usecase_cv.NewCVUsecase(repo, storageRepo, mqRepo, timeoutContext)
 
+	// init activity log usecase
+	ucActivityLog := usecase_activity_log.NewAppUsecase(usecase_activity_log.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init system setting usecase
+	ucSystemSetting := usecase_system_setting.NewAppUsecase(usecase_system_setting.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// start consumer
 	if mqRepo != nil {
 		cvConsumer := consumer.NewCVParserConsumer(mqRepo, repo)
@@ -262,6 +276,9 @@ func main() {
 	// cors
 	ginEngine.Use(mdl.Cors())
 
+	// Context Enricher (Real IP, User-Agent, etc.)
+	ginEngine.Use(mdl.ContextEnricher())
+
 	// default route
 	ginEngine.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, map[string]any{
@@ -285,11 +302,13 @@ func main() {
 	http_recruitment_status.NewRecruitmentStatusHandler(apiGroup, mdl, ucRecruitmentStatus)
 	http_bookmark.NewBookmarkHandler(apiGroup, mdl, ucBookmark)
 	http_aichat.NewAIChatHandler(apiGroup, mdl, ucAIChat)
+	http_activity_log.NewActivityLogHandler(apiGroup, mdl, ucActivityLog)
+	http_system_setting.NewSystemSettingHandler(apiGroup, mdl, ucSystemSetting)
 
 	// init search (AI)
 	if aiRepo != nil {
 		// Use a dedicated timeout for AI Search as it involves slow LLM evaluations
-		ucSearch := usecase_search.NewSearchUsecase(aiRepo, aiSearchTimeout)
+		ucSearch := usecase_search.NewSearchUsecase(aiRepo, repo, aiSearchTimeout)
 		http_search.NewSearchHandler(apiGroup, mdl, ucSearch)
 	}
 

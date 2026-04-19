@@ -15,7 +15,7 @@ type MemberAppUsecase interface {
 	Register(ctx context.Context, payload request_model.RegisterRequest) response.Base
 	GetMe(ctx context.Context, claim JWTClaimUser) response.Base
 	GetProfile(ctx context.Context, claim JWTClaimUser) response.Base
-	FetchUsers(ctx context.Context, page, limit int64, cursor string, roleName *string, adminID *string) response.Base
+	FetchUsers(ctx context.Context, page, limit int64, cursor string, search *string, roleName *string, adminID *string) response.Base
 	FetchUserDetail(ctx context.Context, id string) response.Base
 	CreateBySuperadmin(ctx context.Context, req request_model.CreateUserBySuperadminRequest) response.Base
 	EditUserBySuperadmin(ctx context.Context, id string, req request_model.EditUserBySuperadminRequest) response.Base
@@ -91,4 +91,9 @@ type AIChatAppUsecase interface {
 	DeleteChat(ctx context.Context, adminID string, chatID string) response.Base
 	FetchChatMessages(ctx context.Context, adminID string, chatID string) response.Base
 	StoreChatMessage(ctx context.Context, adminID string, chatID string, role string, content string, isLast bool) response.Base
+}
+
+type ActivityLogAppUsecase interface {
+	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.LogActivityFilter) response.Base
+	ExportData(ctx context.Context, filter gorm_model.LogActivityFilter, format string, actorID string) ([]byte, string, string, error)
 }

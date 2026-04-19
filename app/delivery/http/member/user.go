@@ -92,7 +92,13 @@ func (h *routeHandler) FetchCandidates(c *gin.Context) {
 		adminID = &tokenData.UserID
 	}
 
-	res := h.Usecase.FetchUsers(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, &roleName, adminID)
+	search := c.Query("search")
+	var searchPtr *string
+	if search != "" {
+		searchPtr = &search
+	}
+
+	res := h.Usecase.FetchUsers(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, searchPtr, &roleName, adminID)
 	c.JSON(res.Status, res)
 }
 
@@ -120,7 +126,13 @@ func (h *routeHandler) FetchAllUsers(c *gin.Context) {
 		rolePtr = &role
 	}
 
-	res := h.Usecase.FetchUsers(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, rolePtr, nil)
+	search := c.Query("search")
+	var searchPtr *string
+	if search != "" {
+		searchPtr = &search
+	}
+
+	res := h.Usecase.FetchUsers(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, searchPtr, rolePtr, nil)
 	c.JSON(res.Status, res)
 }
 
