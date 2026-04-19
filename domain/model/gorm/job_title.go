@@ -22,6 +22,7 @@ type JobTitleFilter struct {
 	DefaultFilter
 	SectorID *string
 	Name     *string
+	Search   *string
 }
 
 func (f *JobTitleFilter) Query(q *gorm.DB) {
@@ -30,25 +31,31 @@ func (f *JobTitleFilter) Query(q *gorm.DB) {
 	if f.Name != nil {
 		q.Where("name = ?", *f.Name)
 	}
+	if f.Search != nil && *f.Search != "" {
+		q.Where("name ILIKE ?", "%"+*f.Search+"%")
+	}
 	if f.SectorID != nil {
 		q.Where("sector_id = ?", *f.SectorID)
 	}
 }
 
 type JobTitleResp struct {
-	ID        string    `json:"id"`
-	SectorID  string    `json:"sector_id"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID       string      `json:"id"`
+	SectorID string      `json:"sector_id"`
+	Name     string      `json:"name"`
+	Sector   *SectorResp `json:"sector,omitempty"`
 }
 
 func (row *JobTitle) ToJobTitleResp() JobTitleResp {
+	var sectorResp *SectorResp
+	if row.Sector != nil {
+		s := row.Sector.ToSectorResp()
+		sectorResp = &s
+	}
 	return JobTitleResp{
-		ID:        row.ID,
-		SectorID:  row.SectorID,
-		Name:      row.Name,
-		CreatedAt: row.CreatedAt,
-		UpdatedAt: row.UpdatedAt,
+		ID:       row.ID,
+		SectorID: row.SectorID,
+		Name:     row.Name,
+		Sector:   sectorResp,
 	}
 }

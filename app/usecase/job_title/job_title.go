@@ -10,6 +10,7 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.JobTitleFilter) response.Base {
@@ -40,20 +41,18 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, cursor str
 	}
 
 	// Query Database for Paginated Rows
-	rows, err := u.gormDbRepo.FetchJobTitle(ctx, filter)
-	if err != nil {
+	var titles []gorm_model.JobTitle
+	dbFetch := u.gormDbRepo.GetDB().WithContext(ctx).Preload("Sector")
+	filter.Query(dbFetch)
+
+	if err := dbFetch.Find(&titles).Error; err != nil {
+		logrus.Error("JobTitle fetch error: ", err)
 		return response.Error(http.StatusInternalServerError, "Failed to fetch Job Title data")
 	}
-	defer rows.Close()
 
-	// Parse database response cursors
+	// Parse database response
 	var results []interface{}
-	for rows.Next() {
-		var title gorm_model.JobTitle
-		if err := u.gormDbRepo.StructScan(rows, &title); err != nil {
-			logrus.Error("JobTitle map error:", err)
-			continue
-		}
+	for _, title := range titles {
 		results = append(results, title.ToJobTitleResp())
 	}
 
@@ -77,22 +76,19 @@ func (u *appUsecase) FetchData(ctx context.Context, id string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
-	data, err := u.gormDbRepo.FetchJobTitle(ctx, gorm_model.JobTitleFilter{
-		DefaultFilter: gorm_model.DefaultFilter{ID: id},
-	})
-	if err != nil {
-		return response.Error(http.StatusInternalServerError, "Failed to fetch Title")
-	}
-	defer data.Close()
-
-	if !data.Next() {
-		return response.Error(http.StatusNotFound, "Title not found")
-	}
-
 	var title gorm_model.JobTitle
-	if err := u.gormDbRepo.StructScan(data, &title); err != nil {
-		logrus.Error("Title struct map error:", err)
-		return response.Error(http.StatusInternalServerError, "Failed to serialize Title data")
+	dbFetch := u.gormDbRepo.GetDB().WithContext(ctx).Preload("Sector")
+	filter := gorm_model.JobTitleFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	}
+	filter.Query(dbFetch)
+
+	if err := dbFetch.First(&title).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return response.Error(http.StatusNotFound, "Title not found")
+		}
+		logrus.Error("JobTitle fetch data error: ", err)
+		return response.Error(http.StatusInternalServerError, "Failed to fetch Title")
 	}
 
 	return response.Success(title.ToJobTitleResp())
@@ -156,6 +152,17 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
+
+	// Safety Check: Check if assigned to any user
+	var assignedCount int64
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.User{}).Where("job_title_id = ?", id).Count(&assignedCount).Error; err != nil {
+		logrus.Error("JobTitle delete check error: ", err)
+		return response.Error(http.StatusInternalServerError, "Failed to check Job Title usage")
+	}
+
+	if assignedCount > 0 {
+		return response.Error(http.StatusBadRequest, "Tidak bisa menghapus jabatan karena sedang digunakan oleh user")
+	}
 
 	if err := u.gormDbRepo.DeleteJobTitle(ctx, id); err != nil {
 		logrus.Error("JobTitle Delete error:", err)
