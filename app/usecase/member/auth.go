@@ -134,6 +134,7 @@ func (u *appUsecase) Register(ctx context.Context, payload request_model.Registe
 		Email:         payload.Email,
 		Password:      string(hashedPassword),
 		SystemRoleId:  systemRoleID,
+		SystemRole:    &candidateRole,
 		AccountStatus: &activeStatus,
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
@@ -156,8 +157,7 @@ func (u *appUsecase) Register(ctx context.Context, payload request_model.Registe
 	}
 
 	return response.Success(map[string]interface{}{
-		"name":  newUser.Name,
-		"email": newUser.Email,
+		"user":  newUser.ToUserResp(),
 		"token": tokenString,
 	})
 }
