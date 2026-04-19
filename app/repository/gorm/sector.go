@@ -22,6 +22,12 @@ func (r *gormRepo) FetchSector(ctx context.Context, options gorm_model.SectorFil
 	return
 }
 
+func (r *gormRepo) GetActiveSectors(ctx context.Context) ([]gorm_model.Sector, error) {
+	var sectors []gorm_model.Sector
+	err := r.db.WithContext(ctx).Where("is_active = ?", true).Order("name asc").Find(&sectors).Error
+	return sectors, err
+}
+
 func (r *gormRepo) CreateSector(ctx context.Context, model *gorm_model.Sector) error {
 	return r.db.WithContext(ctx).Create(model).Error
 }

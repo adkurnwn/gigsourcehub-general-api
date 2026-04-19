@@ -114,6 +114,24 @@ func getOrCreateUndefinedSector(db *gorm.DB) (*gorm_model.Sector, error) {
 	return &sector, nil
 }
 
+// getOrCreateSectorByName fetches or creates a sector by its name (case-insensitive).
+func getOrCreateSectorByName(db *gorm.DB, name string) (*gorm_model.Sector, error) {
+	var sector gorm_model.Sector
+	if err := db.Where("LOWER(name) = ?", strings.ToLower(name)).First(&sector).Error; err == nil {
+		return &sector, nil
+	}
+	sector = gorm_model.Sector{
+		ID:       uuid.New().String(),
+		Name:     toTitleCase(name),
+		HexCode:  "#808080", // Default gray for new sectors
+		IsActive: true,
+	}
+	if err := db.Create(&sector).Error; err != nil {
+		return nil, err
+	}
+	return &sector, nil
+}
+
 type CVUsecase interface {
 	UploadCV(ctx context.Context, userID string, fileHeader *multipart.FileHeader) response.Base
 	GetParsedCV(ctx context.Context, userID string) response.Base
@@ -242,12 +260,39 @@ func (u *cvUsecase) GetParsedCV(ctx context.Context, userID string) response.Bas
 				db.Find(&allRoles)
 
 				for _, r := range roles {
-					if roleName, ok := r.(string); ok && roleName != "" {
-						if match, found := fuzzyMatchJobRole(allRoles, roleName, 2); found {
-							roleNames = append(roleNames, match.Name)
-						} else {
-							roleNames = append(roleNames, toTitleCase(roleName)) // Keep fallback text, title-cased
+					var roleName string
+					var sectorName string
+
+					if m, ok := r.(map[string]interface{}); ok {
+						roleName, _ = m["name"].(string)
+						sectorName, _ = m["sector"].(string)
+					} else if s, ok := r.(string); ok {
+						roleName = s
+					}
+
+					if roleName == "" {
+						continue
+					}
+
+					if match, found := fuzzyMatchJobRole(allRoles, roleName, 2); found {
+						// Found existing role, use its canonical name and its sector name
+						sName := "Undefined"
+						if match.Sector != nil {
+							sName = match.Sector.Name
 						}
+						roleNames = append(roleNames, map[string]string{
+							"name":   match.Name,
+							"sector": sName,
+						})
+					} else {
+						// New role, preserve the sector suggested by AI, or fallback to Undefined
+						if sectorName == "" {
+							sectorName = "Undefined"
+						}
+						roleNames = append(roleNames, map[string]string{
+							"name":   toTitleCase(roleName),
+							"sector": toTitleCase(sectorName),
+						})
 					}
 				}
 				parsedMap["applied_roles"] = roleNames
@@ -374,7 +419,12 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID string, editedData map
 		}
 
 		// Handle JobRoles Many-to-Many logic with fuzzy matching and auto-generation
-		if roles, ok := unifiedData["applied_roles"].([]interface{}); ok {
+		rolesSource := "applied_roles"
+		if _, ok := unifiedData["job_role_ids"]; ok {
+			rolesSource = "job_role_ids"
+		}
+
+		if roles, ok := unifiedData[rolesSource].([]interface{}); ok {
 			// Enforce maximum of 3 job roles per user
 			const maxJobRoles = 3
 			if len(roles) > maxJobRoles {
@@ -383,43 +433,71 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID string, editedData map
 
 			db := u.gormRepo.GetDB()
 
-			// Load all job roles once for fuzzy matching
+			// Load all job roles once for fuzzy matching, including sector info
 			var allRoles []gorm_model.JobRole
-			db.Find(&allRoles)
+			db.Preload("Sector").Find(&allRoles)
 
 			var jobRoles []gorm_model.JobRole
 			for _, r := range roles {
-				if roleStr, ok := r.(string); ok && roleStr != "" {
-					var jr gorm_model.JobRole
+				var roleName string
+				var sectorName string
 
-					// 1. If it's already a UUID, look up by ID directly
-					if _, err := uuid.Parse(roleStr); err == nil {
-						if err := db.Where("id = ?", roleStr).First(&jr).Error; err == nil {
-							jobRoles = append(jobRoles, jr)
+				if m, ok := r.(map[string]interface{}); ok {
+					roleName, _ = m["name"].(string)
+					sectorName, _ = m["sector"].(string)
+				} else if s, ok := r.(string); ok {
+					if strings.HasPrefix(s, "NEW_ROLE:") {
+						parts := strings.Split(s, ":")
+						if len(parts) >= 3 {
+							sectorName = parts[1]
+							roleName = parts[2]
 						}
-						continue
+					} else {
+						roleName = s
 					}
+				}
 
-					// 2. Fuzzy match against all existing roles (handles small typos like "forntend developer" → "Frontend Developer")
-					if match, found := fuzzyMatchJobRole(allRoles, roleStr, 2); found {
-						jobRoles = append(jobRoles, *match)
-						continue
+				if roleName == "" {
+					continue
+				}
+
+				var jr gorm_model.JobRole
+
+				// 1. If it's already a UUID, look up by ID directly
+				if _, err := uuid.Parse(roleName); err == nil {
+					if err := db.Where("id = ?", roleName).Preload("Sector").First(&jr).Error; err == nil {
+						jobRoles = append(jobRoles, jr)
 					}
+					continue
+				}
 
-					// 3. Not found — auto-generate in the "undefined" sector
-					titled := toTitleCase(roleStr)
-					sector, err := getOrCreateUndefinedSector(db)
-					if err == nil {
-						newRole := gorm_model.JobRole{
-							ID:       uuid.New().String(),
-							Name:     titled,
-							SectorID: sector.ID,
-						}
-						if err := db.Create(&newRole).Error; err == nil {
-							jobRoles = append(jobRoles, newRole)
-							// Append to allRoles so duplicates in the same confirmation are deduplicated
-							allRoles = append(allRoles, newRole)
-						}
+				// 2. Fuzzy match against all existing roles (handles small typos like "forntend developer" → "Frontend Developer")
+				if match, found := fuzzyMatchJobRole(allRoles, roleName, 2); found {
+					jobRoles = append(jobRoles, *match)
+					continue
+				}
+
+				// 3. Not found — auto-generate
+				titled := toTitleCase(roleName)
+				var sector *gorm_model.Sector
+				var err error
+
+				if sectorName != "" {
+					sector, err = getOrCreateSectorByName(db, sectorName)
+				} else {
+					sector, err = getOrCreateUndefinedSector(db)
+				}
+
+				if err == nil {
+					newRole := gorm_model.JobRole{
+						ID:       uuid.New().String(),
+						Name:     titled,
+						SectorID: sector.ID,
+					}
+					if err := db.Create(&newRole).Error; err == nil {
+						jobRoles = append(jobRoles, newRole)
+						// Append to allRoles so duplicates in the same confirmation are deduplicated
+						allRoles = append(allRoles, newRole)
 					}
 				}
 			}
@@ -428,12 +506,19 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID string, editedData map
 				// Replace associations in many2many table
 				db.Model(user).Association("JobRoles").Replace(jobRoles)
 
-				// Overwrite applied_roles with canonical names for the Qdrant index
-				var strRoles []string
+				// Overwrite applied_roles with canonical objects for the Qdrant index (AI pipeline)
+				var roleObjects []map[string]string
 				for _, jr := range jobRoles {
-					strRoles = append(strRoles, jr.Name)
+					sectorName := "Undefined"
+					if jr.Sector != nil {
+						sectorName = jr.Sector.Name
+					}
+					roleObjects = append(roleObjects, map[string]string{
+						"name":   jr.Name,
+						"sector": sectorName,
+					})
 				}
-				unifiedData["applied_roles"] = strRoles
+				unifiedData["applied_roles"] = roleObjects
 			}
 		}
 
