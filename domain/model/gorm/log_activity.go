@@ -68,6 +68,6 @@ func (f *LogActivityFilter) Query(q *gorm.DB) {
 	}
 	if f.Search != nil && *f.Search != "" {
 		s := "%" + *f.Search + "%"
-		q.Where("(action_type ILIKE ? OR module ILIKE ? OR description ILIKE ? OR EXISTS (SELECT 1 FROM users u WHERE u.id = actor_id AND u.name ILIKE ?))", s, s, s, s)
+		q.Where("(action_type ILIKE ? OR module ILIKE ? OR description ILIKE ? OR ip_address ILIKE ? OR EXISTS (SELECT 1 FROM users u WHERE u.id = actor_id AND u.name ILIKE ?))", s, s, s, s, s)
 	}
 }
