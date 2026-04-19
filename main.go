@@ -5,6 +5,7 @@ import (
 	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
 	http_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/ai_chat"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
+	http_activity_log "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/activity_log"
 	http_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_role"
 	http_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_title"
 	http_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/kabupaten_kota"
@@ -24,6 +25,7 @@ import (
 	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
 	usecase_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/ai_chat"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
+	usecase_activity_log "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/activity_log"
 	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
 	usecase_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_title"
 	usecase_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/kabupaten_kota"
@@ -232,6 +234,11 @@ func main() {
 	// init cv usecase
 	ucCV := usecase_cv.NewCVUsecase(repo, storageRepo, mqRepo, timeoutContext)
 
+	// init activity log usecase
+	ucActivityLog := usecase_activity_log.NewAppUsecase(usecase_activity_log.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// start consumer
 	if mqRepo != nil {
 		cvConsumer := consumer.NewCVParserConsumer(mqRepo, repo)
@@ -285,6 +292,7 @@ func main() {
 	http_recruitment_status.NewRecruitmentStatusHandler(apiGroup, mdl, ucRecruitmentStatus)
 	http_bookmark.NewBookmarkHandler(apiGroup, mdl, ucBookmark)
 	http_aichat.NewAIChatHandler(apiGroup, mdl, ucAIChat)
+	http_activity_log.NewActivityLogHandler(apiGroup, mdl, ucActivityLog)
 
 	// init search (AI)
 	if aiRepo != nil {

@@ -92,3 +92,8 @@ type AIChatAppUsecase interface {
 	FetchChatMessages(ctx context.Context, adminID string, chatID string) response.Base
 	StoreChatMessage(ctx context.Context, adminID string, chatID string, role string, content string, isLast bool) response.Base
 }
+
+type ActivityLogAppUsecase interface {
+	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.LogActivityFilter) response.Base
+	ExportData(ctx context.Context, filter gorm_model.LogActivityFilter, format string, actorID string) ([]byte, string, string, error)
+}

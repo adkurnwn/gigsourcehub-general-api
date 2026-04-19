@@ -7,6 +7,7 @@ import (
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -74,6 +75,26 @@ func (m *appMiddleware) Auth() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
 			return
 		}
+
+		// Enrichment for Activity Logging
+		ip := c.GetHeader("CF-Connecting-IP")
+		if ip == "" {
+			ip = c.GetHeader("X-Forwarded-For")
+			if ip != "" {
+				// X-Forwarded-For can be a comma-separated list
+				ip = strings.Split(ip, ",")[0]
+			} else {
+				ip = c.ClientIP()
+			}
+		}
+
+		// Inject into Request Context for Usecases
+		ctx := c.Request.Context()
+		ctx = helpers.SetActorID(ctx, claims.UserID)
+		ctx = helpers.SetIPAddress(ctx, ip)
+		ctx = helpers.SetUserAgent(ctx, c.Request.UserAgent())
+		ctx = helpers.SetEndpoint(ctx, c.Request.Method+" "+c.Request.URL.Path)
+		c.Request = c.Request.WithContext(ctx)
 
 		c.Set("token_data", *claims)
 		c.Next()

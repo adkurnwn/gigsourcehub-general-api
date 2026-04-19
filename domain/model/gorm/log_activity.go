@@ -28,3 +28,46 @@ func (m *LogActivity) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	return
 }
+
+type LogActivityFilter struct {
+	DefaultFilter
+	ActorID    *string
+	ActionType *string
+	Module     *string
+	Search     *string
+	StartDate  *time.Time
+	EndDate    *time.Time
+	RoleName   *string
+	IsSuccess  *bool
+}
+
+func (f *LogActivityFilter) Query(q *gorm.DB) {
+	// default query
+	f.DefaultFilter.DefaultQuery(q)
+
+	if f.ActorID != nil {
+		q.Where("actor_id = ?", *f.ActorID)
+	}
+	if f.ActionType != nil {
+		q.Where("action_type = ?", *f.ActionType)
+	}
+	if f.Module != nil {
+		q.Where("module = ?", *f.Module)
+	}
+	if f.StartDate != nil {
+		q.Where("created_at >= ?", *f.StartDate)
+	}
+	if f.EndDate != nil {
+		q.Where("created_at <= ?", *f.EndDate)
+	}
+	if f.RoleName != nil {
+		q.Where("EXISTS (SELECT 1 FROM users u JOIN system_roles sr ON u.system_role_id = sr.id WHERE u.id = actor_id AND sr.name = ?)", *f.RoleName)
+	}
+	if f.IsSuccess != nil {
+		q.Where("is_success = ?", *f.IsSuccess)
+	}
+	if f.Search != nil && *f.Search != "" {
+		s := "%" + *f.Search + "%"
+		q.Where("(action_type ILIKE ? OR module ILIKE ? OR description ILIKE ? OR EXISTS (SELECT 1 FROM users u WHERE u.id = actor_id AND u.name ILIKE ?))", s, s, s, s)
+	}
+}
