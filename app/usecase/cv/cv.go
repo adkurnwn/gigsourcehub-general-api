@@ -15,6 +15,7 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -165,6 +166,7 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 		}
 
 		if err := u.gormRepo.CreateCV(ctx, cv); err != nil {
+			helpers.LogActivity(ctx, u.gormRepo, "Upload", "CV", userID, nil, false)
 			return response.Error(http.StatusInternalServerError, "db save failed")
 		}
 		existingCV = cv
@@ -176,9 +178,12 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 		existingCV.Status = "UPLOADED" // Reset status
 
 		if err := u.gormRepo.UpdateCV(ctx, existingCV); err != nil {
+			helpers.LogActivity(ctx, u.gormRepo, "Upload", "CV", userID, nil, false)
 			return response.Error(http.StatusInternalServerError, "db update failed")
 		}
 	}
+
+	helpers.LogActivity(ctx, u.gormRepo, "Upload", "CV", userID, nil, true)
 
 	// 4. Publish Event
 	go func(cv *gorm_model.CV) {
@@ -456,8 +461,11 @@ func (u *cvUsecase) ConfirmCV(ctx context.Context, userID string, editedData map
 	cv.Status = "CONFIRMED"
 
 	if err := u.gormRepo.UpdateCV(ctx, cv); err != nil {
+		helpers.LogActivity(ctx, u.gormRepo, "Confirm", "CV", userID, editedData, false)
 		return response.Error(http.StatusInternalServerError, "failed to update cv")
 	}
+
+	helpers.LogActivity(ctx, u.gormRepo, "Confirm", "CV", userID, editedData, true)
 
 	return response.Success(cv.ToCVResp())
 }

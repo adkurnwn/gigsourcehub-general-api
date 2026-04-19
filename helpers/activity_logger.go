@@ -16,7 +16,6 @@ type ActivityLogRepo interface {
 }
 
 func LogActivity(ctx context.Context, repo ActivityLogRepo, action, module, target string, metadata interface{}, isSuccess bool) {
-	actorID := GetActorID(ctx)
 	ipAddress := GetIPAddress(ctx)
 	userAgent := GetUserAgent(ctx)
 	endpoint := GetEndpoint(ctx)
@@ -75,8 +74,13 @@ func LogActivity(ctx context.Context, repo ActivityLogRepo, action, module, targ
 		metaStr = &ms
 	}
 
+	var actorIDPtr *string
+	if aid := GetActorID(ctx); aid != "" {
+		actorIDPtr = &aid
+	}
+
 	log := &gorm_model.LogActivity{
-		ActorID:     actorID,
+		ActorID:     actorIDPtr,
 		ActionType:  titleAction,
 		Module:      titleModule,
 		Description: &description,

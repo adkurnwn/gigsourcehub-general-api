@@ -45,11 +45,13 @@ func (u *appUsecase) Login(ctx context.Context, payload request_model.LoginReque
 	}
 
 	if user == nil {
+		helpers.LogActivity(ctx, u.gormDbRepo, "Login", "Authentication", payload.Email, nil, false)
 		return response.Error(http.StatusBadRequest, "user not found")
 	}
 
 	// check password
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password)); err != nil {
+		helpers.LogActivity(ctx, u.gormDbRepo, "Login", "Authentication", payload.Email, nil, false)
 		return response.Error(http.StatusBadRequest, "Wrong password")
 	}
 
@@ -63,6 +65,8 @@ func (u *appUsecase) Login(ctx context.Context, payload request_model.LoginReque
 	if err != nil {
 		return response.Error(http.StatusBadRequest, err.Error())
 	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Login", "Authentication", user.Email, nil, true)
 
 	// Manually ensure the Role Name is fetched so ToUserResp can properly suppress Candidate fields
 	roleName, errRole := u.gormDbRepo.GetRoleNameByUserID(ctx, user.ID)

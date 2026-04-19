@@ -8,6 +8,7 @@ import (
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
@@ -111,8 +112,11 @@ func (u *appUsecase) Create(ctx context.Context, req request_model.CreateSectorR
 
 	if err := u.gormDbRepo.CreateSector(ctx, &newSector); err != nil {
 		logrus.Error("Sector Create error:", err)
+		helpers.LogActivity(ctx, u.gormDbRepo, "Create", "Sector", req.Name, req, false)
 		return response.Error(http.StatusInternalServerError, "Failed to create Sector")
 	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Create", "Sector", req.Name, req, true)
 
 	return response.Success(newSector.ToSectorResp())
 }
@@ -147,8 +151,11 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 	// Write modifications to DB
 	if err := u.gormDbRepo.UpdateSector(ctx, &existingSector); err != nil {
 		logrus.Error("Sector Update error:", err)
+		helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Sector", existingSector.Name, req, false)
 		return response.Error(http.StatusInternalServerError, "Failed to update Sector")
 	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Sector", existingSector.Name, req, true)
 
 	return response.Success(existingSector.ToSectorResp())
 }
@@ -159,8 +166,11 @@ func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
 
 	if err := u.gormDbRepo.DeleteSector(ctx, id); err != nil {
 		logrus.Error("Sector Delete error:", err)
+		helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "Sector", id, nil, false)
 		return response.Error(http.StatusInternalServerError, "Failed to delete Sector")
 	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "Sector", id, nil, true)
 
 	return response.Success(nil)
 }

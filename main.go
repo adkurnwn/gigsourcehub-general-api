@@ -269,6 +269,9 @@ func main() {
 	// cors
 	ginEngine.Use(mdl.Cors())
 
+	// Context Enricher (Real IP, User-Agent, etc.)
+	ginEngine.Use(mdl.ContextEnricher())
+
 	// default route
 	ginEngine.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, map[string]any{

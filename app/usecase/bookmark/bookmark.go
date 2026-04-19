@@ -8,6 +8,7 @@ import (
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/sirupsen/logrus"
 )
 
@@ -36,8 +37,11 @@ func (u *appUsecase) Create(ctx context.Context, adminID string, req request_mod
 
 	if err := u.gormDbRepo.CreateBookmark(ctx, &bookmark); err != nil {
 		logrus.Error("Bookmark Create error: ", err)
+		helpers.LogActivity(ctx, u.gormDbRepo, "Bookmark", "Candidate", req.CandidateID, req, false)
 		return response.Error(http.StatusInternalServerError, "Failed to create bookmark")
 	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Bookmark", "Candidate", req.CandidateID, req, true)
 
 	return response.Success(bookmark)
 }
@@ -49,8 +53,11 @@ func (u *appUsecase) Delete(ctx context.Context, adminID string, candidateID str
 	rowsAffected, err := u.gormDbRepo.DeleteBookmark(ctx, adminID, candidateID)
 	if err != nil {
 		logrus.Error("Bookmark Delete error: ", err)
+		helpers.LogActivity(ctx, u.gormDbRepo, "Unbookmark", "Candidate", candidateID, nil, false)
 		return response.Error(http.StatusInternalServerError, "Failed to delete bookmark")
 	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Unbookmark", "Candidate", candidateID, nil, true)
 
 	if rowsAffected == 0 {
 		return response.Error(http.StatusNotFound, "Bookmark already deleted!")

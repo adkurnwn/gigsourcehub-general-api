@@ -9,7 +9,7 @@ import (
 
 type LogActivity struct {
 	ID          string         `gorm:"column:id;primarykey;type:uuid;default:uuid_generate_v4()"`
-	ActorID     string         `gorm:"column:actor_id;type:uuid;not null"`
+	ActorID     *string        `gorm:"column:actor_id;type:uuid"`
 	Actor       *User          `gorm:"foreignKey:ActorID"`
 	ActionType  string         `gorm:"column:action_type;type:varchar(100);not null"`
 	Module      string         `gorm:"column:module;type:varchar(100);not null"`

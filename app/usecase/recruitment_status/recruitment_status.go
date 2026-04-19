@@ -8,6 +8,7 @@ import (
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
@@ -117,8 +118,11 @@ func (u *appUsecase) Create(ctx context.Context, req request_model.CreateRecruit
 
 	if err := u.gormDbRepo.CreateRecruitmentStatus(ctx, &newRecruitmentStatus); err != nil {
 		logrus.Error("RecruitmentStatus Create error:", err)
+		helpers.LogActivity(ctx, u.gormDbRepo, "Create", "Recruitment Status", req.Name, req, false)
 		return response.Error(http.StatusInternalServerError, "Failed to create RecruitmentStatus")
 	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Create", "Recruitment Status", req.Name, req, true)
 
 	return response.Success(newRecruitmentStatus.ToRecruitmentStatusResp())
 }
@@ -156,8 +160,11 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 	// Write modifications to DB
 	if err := u.gormDbRepo.UpdateRecruitmentStatus(ctx, &existingRecruitmentStatus); err != nil {
 		logrus.Error("RecruitmentStatus Update error:", err)
+		helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Recruitment Status", existingRecruitmentStatus.Name, req, false)
 		return response.Error(http.StatusInternalServerError, "Failed to update RecruitmentStatus")
 	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Recruitment Status", existingRecruitmentStatus.Name, req, true)
 
 	return response.Success(existingRecruitmentStatus.ToRecruitmentStatusResp())
 }
@@ -168,8 +175,11 @@ func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
 
 	if err := u.gormDbRepo.DeleteRecruitmentStatus(ctx, id); err != nil {
 		logrus.Error("RecruitmentStatus Delete error:", err)
+		helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "Recruitment Status", id, nil, false)
 		return response.Error(http.StatusInternalServerError, "Failed to delete RecruitmentStatus")
 	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "Recruitment Status", id, nil, true)
 
 	return response.Success(nil)
 }

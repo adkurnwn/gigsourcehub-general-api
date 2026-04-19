@@ -8,6 +8,7 @@ import (
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -107,8 +108,11 @@ func (u *appUsecase) Create(ctx context.Context, req request_model.CreateJobTitl
 
 	if err := u.gormDbRepo.CreateJobTitle(ctx, &newTitle); err != nil {
 		logrus.Error("JobTitle Create error:", err)
+		helpers.LogActivity(ctx, u.gormDbRepo, "Create", "Job Title", req.Name, req, false)
 		return response.Error(http.StatusInternalServerError, "Failed to create Job Title")
 	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Create", "Job Title", req.Name, req, true)
 
 	return response.Success(newTitle.ToJobTitleResp())
 }
@@ -143,8 +147,11 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 	// Write modifications to DB
 	if err := u.gormDbRepo.UpdateJobTitle(ctx, &existingTitle); err != nil {
 		logrus.Error("JobTitle Update error:", err)
+		helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Job Title", existingTitle.Name, req, false)
 		return response.Error(http.StatusInternalServerError, "Failed to update Job Title")
 	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Job Title", existingTitle.Name, req, true)
 
 	return response.Success(existingTitle.ToJobTitleResp())
 }
@@ -166,8 +173,11 @@ func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
 
 	if err := u.gormDbRepo.DeleteJobTitle(ctx, id); err != nil {
 		logrus.Error("JobTitle Delete error:", err)
+		helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "Job Title", id, nil, false)
 		return response.Error(http.StatusInternalServerError, "Failed to delete Job Title")
 	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "Job Title", id, nil, true)
 
 	return response.Success(nil)
 }

@@ -469,8 +469,11 @@ func (u *appUsecase) UpdateProfile(ctx context.Context, userID string, req reque
 	}
 
 	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Profile", user.Email, req, false)
 		return response.Error(http.StatusInternalServerError, err.Error())
 	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Profile", user.Email, req, true)
 
 	// Synchronize with Qdrant
 	go func() {

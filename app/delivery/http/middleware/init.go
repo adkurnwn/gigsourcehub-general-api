@@ -68,4 +68,5 @@ type Middleware interface {
 	Logger(writer io.Writer) gin.HandlerFunc
 	Recovery() gin.HandlerFunc
 	Cache(expiry ...time.Duration) gin.HandlerFunc
+	ContextEnricher() gin.HandlerFunc
 }
