@@ -114,9 +114,9 @@ func (h *routeHandler) FetchAll(c *gin.Context) {
 	pagination := helpers.GetPagination(c)
 	filter := gorm_model.RecruitmentStatusFilter{}
 
-	recruitmentStatusID := c.Query("recruitment_status_id")
-	if recruitmentStatusID != "" {
-		filter.RecruitmentStatusID = &recruitmentStatusID
+	search := c.Query("search")
+	if search != "" {
+		filter.Search = &search
 	}
 
 	res := h.Usecase.FetchAll(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, filter)

@@ -21,6 +21,7 @@ var SectorAllowedSort = []string{"name", "created_at", "updated_at"}
 type SectorFilter struct {
 	DefaultFilter
 	Name     *string
+	Search   *string
 	SectorID *string
 	IsActive *bool
 }
@@ -32,6 +33,9 @@ func (f *SectorFilter) Query(q *gorm.DB) {
 
 	if f.Name != nil {
 		q.Where("name = ?", *f.Name)
+	}
+	if f.Search != nil && *f.Search != "" {
+		q.Where("name ILIKE ?", "%"+*f.Search+"%")
 	}
 	if f.IsActive != nil {
 		q.Where("is_active = ?", *f.IsActive)

@@ -18,7 +18,24 @@ definitions:
         type: string
       name:
         type: string
+      sector:
+        $ref: '#/definitions/gorm_model.SectorResp'
       sector_id:
+        type: string
+    type: object
+  gorm_model.SectorResp:
+    properties:
+      created_at:
+        type: string
+      hex_code:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      updated_at:
         type: string
     type: object
   gorm_model.UserResp:
@@ -26,6 +43,8 @@ definitions:
       account_status:
         type: string
       assigned_role_id:
+        type: string
+      bidang:
         type: string
       birthdate:
         type: string
@@ -109,6 +128,10 @@ definitions:
     type: object
   request_model.CreateRecruitmentStatusRequest:
     properties:
+      hex_code:
+        type: string
+      is_active:
+        type: boolean
       name:
         type: string
     required:
@@ -167,6 +190,8 @@ definitions:
         type: string
       email:
         type: string
+      job_title_id:
+        type: string
       name:
         type: string
       password:
@@ -180,7 +205,11 @@ definitions:
         type: string
       assigned_role_id:
         type: string
+      job_title_id:
+        type: string
       name:
+        type: string
+      system_role_id:
         type: string
     type: object
   request_model.LoginRequest:
@@ -260,6 +289,10 @@ definitions:
     type: object
   request_model.UpdateRecruitmentStatusRequest:
     properties:
+      hex_code:
+        type: string
+      is_active:
+        type: boolean
       name:
         type: string
     required:
@@ -285,6 +318,8 @@ definitions:
     properties:
       hex_code:
         type: string
+      is_active:
+        type: boolean
       name:
         type: string
     type: object
@@ -1641,6 +1676,27 @@ paths:
       summary: Update Job Role
       tags:
       - Job Role
+  /roles/system:
+    get:
+      consumes:
+      - application/json
+      description: Get System Job Roles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get System Job Roles
+      tags:
+      - Job Role
   /search:
     post:
       consumes:
@@ -1842,6 +1898,10 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: System role filtering (e.g., Admin, Employee, Candidate)
+        in: query
+        name: role
+        type: string
       produces:
       - application/json
       responses:

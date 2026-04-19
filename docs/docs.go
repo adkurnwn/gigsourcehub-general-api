@@ -1956,6 +1956,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/roles/system": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get System Job Roles",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job Role"
+                ],
+                "summary": "Get System Job Roles",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            }
+        },
         "/roles/{id}": {
             "get": {
                 "security": [
@@ -2428,6 +2462,12 @@ const docTemplate = `{
                         "default": 10,
                         "description": "Limit per page",
                         "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "System role filtering (e.g., Admin, Employee, Candidate)",
+                        "name": "role",
                         "in": "query"
                     }
                 ],
@@ -3010,7 +3050,33 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "sector": {
+                    "$ref": "#/definitions/gorm_model.SectorResp"
+                },
                 "sector_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "gorm_model.SectorResp": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "hex_code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
@@ -3022,6 +3088,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "assigned_role_id": {
+                    "type": "string"
+                },
+                "bidang": {
                     "type": "string"
                 },
                 "birthdate": {
@@ -3151,6 +3220,12 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "hex_code": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 }
@@ -3234,6 +3309,9 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "job_title_id": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -3254,7 +3332,13 @@ const docTemplate = `{
                 "assigned_role_id": {
                     "type": "string"
                 },
+                "job_title_id": {
+                    "type": "string"
+                },
                 "name": {
+                    "type": "string"
+                },
+                "system_role_id": {
                     "type": "string"
                 }
             }
@@ -3379,6 +3463,12 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "hex_code": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 }
@@ -3412,6 +3502,9 @@ const docTemplate = `{
             "properties": {
                 "hex_code": {
                     "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
