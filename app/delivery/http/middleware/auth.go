@@ -97,6 +97,27 @@ func (m *appMiddleware) Auth() gin.HandlerFunc {
 		c.Request = c.Request.WithContext(ctx)
 
 		c.Set("token_data", *claims)
+
+		// Real-time account status check for active sessions
+		status, errStatus := m.repo.GetUserAccountStatus(c.Request.Context(), claims.UserID)
+		if errStatus != nil {
+			response := response.Error(http.StatusInternalServerError, "Internal Server Error: Unable to verify account status.")
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response)
+			return
+		}
+
+		if status == "Inactive" {
+			response := response.Error(http.StatusForbidden, "Your account is inactive. Please contact support.")
+			c.AbortWithStatusJSON(http.StatusForbidden, response)
+			return
+		}
+
+		if status == "Blocked" {
+			response := response.Error(http.StatusForbidden, "Your account has been blocked.")
+			c.AbortWithStatusJSON(http.StatusForbidden, response)
+			return
+		}
+
 		c.Next()
 	}
 }

@@ -22,6 +22,138 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type GetSectorsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSectorsRequest) Reset() {
+	*x = GetSectorsRequest{}
+	mi := &file_proto_search_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSectorsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSectorsRequest) ProtoMessage() {}
+
+func (x *GetSectorsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_search_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSectorsRequest.ProtoReflect.Descriptor instead.
+func (*GetSectorsRequest) Descriptor() ([]byte, []int) {
+	return file_proto_search_proto_rawDescGZIP(), []int{0}
+}
+
+type SectorInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SectorInfo) Reset() {
+	*x = SectorInfo{}
+	mi := &file_proto_search_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SectorInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SectorInfo) ProtoMessage() {}
+
+func (x *SectorInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_search_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SectorInfo.ProtoReflect.Descriptor instead.
+func (*SectorInfo) Descriptor() ([]byte, []int) {
+	return file_proto_search_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *SectorInfo) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SectorInfo) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type GetSectorsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Sectors       []*SectorInfo          `protobuf:"bytes,1,rep,name=sectors,proto3" json:"sectors,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSectorsResponse) Reset() {
+	*x = GetSectorsResponse{}
+	mi := &file_proto_search_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSectorsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSectorsResponse) ProtoMessage() {}
+
+func (x *GetSectorsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_search_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSectorsResponse.ProtoReflect.Descriptor instead.
+func (*GetSectorsResponse) Descriptor() ([]byte, []int) {
+	return file_proto_search_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetSectorsResponse) GetSectors() []*SectorInfo {
+	if x != nil {
+		return x.Sectors
+	}
+	return nil
+}
+
 type EnrichmentRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserIds       []string               `protobuf:"bytes,1,rep,name=user_ids,json=userIds,proto3" json:"user_ids,omitempty"`
@@ -31,7 +163,7 @@ type EnrichmentRequest struct {
 
 func (x *EnrichmentRequest) Reset() {
 	*x = EnrichmentRequest{}
-	mi := &file_proto_search_proto_msgTypes[0]
+	mi := &file_proto_search_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +175,7 @@ func (x *EnrichmentRequest) String() string {
 func (*EnrichmentRequest) ProtoMessage() {}
 
 func (x *EnrichmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_search_proto_msgTypes[0]
+	mi := &file_proto_search_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +188,7 @@ func (x *EnrichmentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnrichmentRequest.ProtoReflect.Descriptor instead.
 func (*EnrichmentRequest) Descriptor() ([]byte, []int) {
-	return file_proto_search_proto_rawDescGZIP(), []int{0}
+	return file_proto_search_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *EnrichmentRequest) GetUserIds() []string {
@@ -82,7 +214,7 @@ type EnrichmentData struct {
 
 func (x *EnrichmentData) Reset() {
 	*x = EnrichmentData{}
-	mi := &file_proto_search_proto_msgTypes[1]
+	mi := &file_proto_search_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -94,7 +226,7 @@ func (x *EnrichmentData) String() string {
 func (*EnrichmentData) ProtoMessage() {}
 
 func (x *EnrichmentData) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_search_proto_msgTypes[1]
+	mi := &file_proto_search_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -107,7 +239,7 @@ func (x *EnrichmentData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnrichmentData.ProtoReflect.Descriptor instead.
 func (*EnrichmentData) Descriptor() ([]byte, []int) {
-	return file_proto_search_proto_rawDescGZIP(), []int{1}
+	return file_proto_search_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *EnrichmentData) GetUserId() string {
@@ -175,7 +307,7 @@ type EnrichmentResponse struct {
 
 func (x *EnrichmentResponse) Reset() {
 	*x = EnrichmentResponse{}
-	mi := &file_proto_search_proto_msgTypes[2]
+	mi := &file_proto_search_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -187,7 +319,7 @@ func (x *EnrichmentResponse) String() string {
 func (*EnrichmentResponse) ProtoMessage() {}
 
 func (x *EnrichmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_search_proto_msgTypes[2]
+	mi := &file_proto_search_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -200,7 +332,7 @@ func (x *EnrichmentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnrichmentResponse.ProtoReflect.Descriptor instead.
 func (*EnrichmentResponse) Descriptor() ([]byte, []int) {
-	return file_proto_search_proto_rawDescGZIP(), []int{2}
+	return file_proto_search_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *EnrichmentResponse) GetData() []*EnrichmentData {
@@ -219,7 +351,7 @@ type SearchRequest struct {
 
 func (x *SearchRequest) Reset() {
 	*x = SearchRequest{}
-	mi := &file_proto_search_proto_msgTypes[3]
+	mi := &file_proto_search_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -231,7 +363,7 @@ func (x *SearchRequest) String() string {
 func (*SearchRequest) ProtoMessage() {}
 
 func (x *SearchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_search_proto_msgTypes[3]
+	mi := &file_proto_search_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -244,7 +376,7 @@ func (x *SearchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchRequest.ProtoReflect.Descriptor instead.
 func (*SearchRequest) Descriptor() ([]byte, []int) {
-	return file_proto_search_proto_rawDescGZIP(), []int{3}
+	return file_proto_search_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SearchRequest) GetQuery() string {
@@ -265,7 +397,7 @@ type SearchResult struct {
 
 func (x *SearchResult) Reset() {
 	*x = SearchResult{}
-	mi := &file_proto_search_proto_msgTypes[4]
+	mi := &file_proto_search_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -277,7 +409,7 @@ func (x *SearchResult) String() string {
 func (*SearchResult) ProtoMessage() {}
 
 func (x *SearchResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_search_proto_msgTypes[4]
+	mi := &file_proto_search_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -290,7 +422,7 @@ func (x *SearchResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchResult.ProtoReflect.Descriptor instead.
 func (*SearchResult) Descriptor() ([]byte, []int) {
-	return file_proto_search_proto_rawDescGZIP(), []int{4}
+	return file_proto_search_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *SearchResult) GetId() string {
@@ -324,7 +456,7 @@ type SearchResponse struct {
 
 func (x *SearchResponse) Reset() {
 	*x = SearchResponse{}
-	mi := &file_proto_search_proto_msgTypes[5]
+	mi := &file_proto_search_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -336,7 +468,7 @@ func (x *SearchResponse) String() string {
 func (*SearchResponse) ProtoMessage() {}
 
 func (x *SearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_search_proto_msgTypes[5]
+	mi := &file_proto_search_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -349,7 +481,7 @@ func (x *SearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchResponse.ProtoReflect.Descriptor instead.
 func (*SearchResponse) Descriptor() ([]byte, []int) {
-	return file_proto_search_proto_rawDescGZIP(), []int{5}
+	return file_proto_search_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *SearchResponse) GetResults() []*SearchResult {
@@ -383,7 +515,7 @@ type UpdateCandidateRequest struct {
 
 func (x *UpdateCandidateRequest) Reset() {
 	*x = UpdateCandidateRequest{}
-	mi := &file_proto_search_proto_msgTypes[6]
+	mi := &file_proto_search_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -395,7 +527,7 @@ func (x *UpdateCandidateRequest) String() string {
 func (*UpdateCandidateRequest) ProtoMessage() {}
 
 func (x *UpdateCandidateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_search_proto_msgTypes[6]
+	mi := &file_proto_search_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -408,7 +540,7 @@ func (x *UpdateCandidateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCandidateRequest.ProtoReflect.Descriptor instead.
 func (*UpdateCandidateRequest) Descriptor() ([]byte, []int) {
-	return file_proto_search_proto_rawDescGZIP(), []int{6}
+	return file_proto_search_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *UpdateCandidateRequest) GetUserId() string {
@@ -484,7 +616,7 @@ type UpdateCandidateResponse struct {
 
 func (x *UpdateCandidateResponse) Reset() {
 	*x = UpdateCandidateResponse{}
-	mi := &file_proto_search_proto_msgTypes[7]
+	mi := &file_proto_search_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -496,7 +628,7 @@ func (x *UpdateCandidateResponse) String() string {
 func (*UpdateCandidateResponse) ProtoMessage() {}
 
 func (x *UpdateCandidateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_search_proto_msgTypes[7]
+	mi := &file_proto_search_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -509,7 +641,7 @@ func (x *UpdateCandidateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCandidateResponse.ProtoReflect.Descriptor instead.
 func (*UpdateCandidateResponse) Descriptor() ([]byte, []int) {
-	return file_proto_search_proto_rawDescGZIP(), []int{7}
+	return file_proto_search_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *UpdateCandidateResponse) GetSuccess() bool {
@@ -530,7 +662,14 @@ var File_proto_search_proto protoreflect.FileDescriptor
 
 const file_proto_search_proto_rawDesc = "" +
 	"\n" +
-	"\x12proto/search.proto\x12\x06search\x1a\x1cgoogle/protobuf/struct.proto\".\n" +
+	"\x12proto/search.proto\x12\x06search\x1a\x1cgoogle/protobuf/struct.proto\"\x13\n" +
+	"\x11GetSectorsRequest\"0\n" +
+	"\n" +
+	"SectorInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"B\n" +
+	"\x12GetSectorsResponse\x12,\n" +
+	"\asectors\x18\x01 \x03(\v2\x12.search.SectorInfoR\asectors\".\n" +
 	"\x11EnrichmentRequest\x12\x19\n" +
 	"\buser_ids\x18\x01 \x03(\tR\auserIds\"\xea\x02\n" +
 	"\x0eEnrichmentData\x12\x17\n" +
@@ -569,9 +708,11 @@ const file_proto_search_proto_rawDesc = "" +
 	"\amessage\x18\x02 \x01(\tR\amessage2\x9c\x01\n" +
 	"\rSearchService\x127\n" +
 	"\x06Search\x12\x15.search.SearchRequest\x1a\x16.search.SearchResponse\x12R\n" +
-	"\x0fUpdateCandidate\x12\x1e.search.UpdateCandidateRequest\x1a\x1f.search.UpdateCandidateResponse2^\n" +
+	"\x0fUpdateCandidate\x12\x1e.search.UpdateCandidateRequest\x1a\x1f.search.UpdateCandidateResponse2\xa3\x01\n" +
 	"\x10CandidateService\x12J\n" +
-	"\x11GetEnrichmentData\x12\x19.search.EnrichmentRequest\x1a\x1a.search.EnrichmentResponseB\x1bZ\x19gigsourcehub-ai-api/protob\x06proto3"
+	"\x11GetEnrichmentData\x12\x19.search.EnrichmentRequest\x1a\x1a.search.EnrichmentResponse\x12C\n" +
+	"\n" +
+	"GetSectors\x12\x19.search.GetSectorsRequest\x1a\x1a.search.GetSectorsResponseB\x1bZ\x19gigsourcehub-ai-api/protob\x06proto3"
 
 var (
 	file_proto_search_proto_rawDescOnce sync.Once
@@ -585,33 +726,39 @@ func file_proto_search_proto_rawDescGZIP() []byte {
 	return file_proto_search_proto_rawDescData
 }
 
-var file_proto_search_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_search_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_search_proto_goTypes = []any{
-	(*EnrichmentRequest)(nil),       // 0: search.EnrichmentRequest
-	(*EnrichmentData)(nil),          // 1: search.EnrichmentData
-	(*EnrichmentResponse)(nil),      // 2: search.EnrichmentResponse
-	(*SearchRequest)(nil),           // 3: search.SearchRequest
-	(*SearchResult)(nil),            // 4: search.SearchResult
-	(*SearchResponse)(nil),          // 5: search.SearchResponse
-	(*UpdateCandidateRequest)(nil),  // 6: search.UpdateCandidateRequest
-	(*UpdateCandidateResponse)(nil), // 7: search.UpdateCandidateResponse
-	(*structpb.Struct)(nil),         // 8: google.protobuf.Struct
+	(*GetSectorsRequest)(nil),       // 0: search.GetSectorsRequest
+	(*SectorInfo)(nil),              // 1: search.SectorInfo
+	(*GetSectorsResponse)(nil),      // 2: search.GetSectorsResponse
+	(*EnrichmentRequest)(nil),       // 3: search.EnrichmentRequest
+	(*EnrichmentData)(nil),          // 4: search.EnrichmentData
+	(*EnrichmentResponse)(nil),      // 5: search.EnrichmentResponse
+	(*SearchRequest)(nil),           // 6: search.SearchRequest
+	(*SearchResult)(nil),            // 7: search.SearchResult
+	(*SearchResponse)(nil),          // 8: search.SearchResponse
+	(*UpdateCandidateRequest)(nil),  // 9: search.UpdateCandidateRequest
+	(*UpdateCandidateResponse)(nil), // 10: search.UpdateCandidateResponse
+	(*structpb.Struct)(nil),         // 11: google.protobuf.Struct
 }
 var file_proto_search_proto_depIdxs = []int32{
-	1, // 0: search.EnrichmentResponse.data:type_name -> search.EnrichmentData
-	8, // 1: search.SearchResult.content:type_name -> google.protobuf.Struct
-	4, // 2: search.SearchResponse.results:type_name -> search.SearchResult
-	3, // 3: search.SearchService.Search:input_type -> search.SearchRequest
-	6, // 4: search.SearchService.UpdateCandidate:input_type -> search.UpdateCandidateRequest
-	0, // 5: search.CandidateService.GetEnrichmentData:input_type -> search.EnrichmentRequest
-	5, // 6: search.SearchService.Search:output_type -> search.SearchResponse
-	7, // 7: search.SearchService.UpdateCandidate:output_type -> search.UpdateCandidateResponse
-	2, // 8: search.CandidateService.GetEnrichmentData:output_type -> search.EnrichmentResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	1,  // 0: search.GetSectorsResponse.sectors:type_name -> search.SectorInfo
+	4,  // 1: search.EnrichmentResponse.data:type_name -> search.EnrichmentData
+	11, // 2: search.SearchResult.content:type_name -> google.protobuf.Struct
+	7,  // 3: search.SearchResponse.results:type_name -> search.SearchResult
+	6,  // 4: search.SearchService.Search:input_type -> search.SearchRequest
+	9,  // 5: search.SearchService.UpdateCandidate:input_type -> search.UpdateCandidateRequest
+	3,  // 6: search.CandidateService.GetEnrichmentData:input_type -> search.EnrichmentRequest
+	0,  // 7: search.CandidateService.GetSectors:input_type -> search.GetSectorsRequest
+	8,  // 8: search.SearchService.Search:output_type -> search.SearchResponse
+	10, // 9: search.SearchService.UpdateCandidate:output_type -> search.UpdateCandidateResponse
+	5,  // 10: search.CandidateService.GetEnrichmentData:output_type -> search.EnrichmentResponse
+	2,  // 11: search.CandidateService.GetSectors:output_type -> search.GetSectorsResponse
+	8,  // [8:12] is the sub-list for method output_type
+	4,  // [4:8] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_proto_search_proto_init() }
@@ -625,7 +772,7 @@ func file_proto_search_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_search_proto_rawDesc), len(file_proto_search_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

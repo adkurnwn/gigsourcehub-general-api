@@ -32,6 +32,7 @@ type GormRepo interface {
 	CreateUserBySuperadmin(ctx context.Context, model *gorm_model.User) (err error)
 	UpdateUser(ctx context.Context, model *gorm_model.User) (err error)
 	GetRoleNameByUserID(ctx context.Context, userID string) (string, error)
+	GetUserAccountStatus(ctx context.Context, userID string) (string, error)
 
 	CreateCV(ctx context.Context, cv *gorm_model.CV) error
 	GetCVByUserID(ctx context.Context, userID string) (*gorm_model.CV, error)
@@ -52,6 +53,7 @@ type GormRepo interface {
 	DeleteJobTitle(ctx context.Context, id string) error
 
 	FetchSector(ctx context.Context, options gorm_model.SectorFilter) (*sql.Rows, error)
+	GetActiveSectors(ctx context.Context) ([]gorm_model.Sector, error)
 	CreateSector(ctx context.Context, model *gorm_model.Sector) error
 	UpdateSector(ctx context.Context, model *gorm_model.Sector) error
 	DeleteSector(ctx context.Context, id string) error
