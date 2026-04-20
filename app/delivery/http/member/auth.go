@@ -16,7 +16,88 @@ func (h *routeHandler) handleAuthRoute(prefixPath string) {
 	api.POST("/login", h.Login)
 	api.POST("/register", h.Register)
 
+	api.GET("/verify", h.VerifyAccount)
+	api.POST("/forgot-password", h.ForgotPassword)
+	api.POST("/reset-password", h.ResetPassword)
+
 	api.GET("/me", h.Middleware.Auth(), h.GetMe)
+}
+
+// Verify Account
+//
+//	@Summary		Verify account
+//	@Description	Verify account use token from email
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			token	query		string	true	"Verification Token"
+//	@Success		200		{object}	response.Base
+//	@Failure		400		{object}	response.Base
+//	@Failure		500		{object}	response.Base
+//	@Router			/auth/verify [get]
+func (r *routeHandler) VerifyAccount(c *gin.Context) {
+	ctx := c.Request.Context()
+	token := c.Query("token")
+
+	if token == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "token is required"))
+		return
+	}
+
+	response := r.Usecase.VerifyAccount(ctx, token)
+	c.JSON(response.Status, response)
+}
+
+// Forgot Password
+//
+//	@Summary		Forgot password
+//	@Description	Request password reset link
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		request_model.ForgotPasswordRequest	true	"Forgot Password Request"
+//	@Success		200		{object}	response.Base
+//	@Failure		400		{object}	response.Base
+//	@Failure		500		{object}	response.Base
+//	@Router			/auth/forgot-password [post]
+func (r *routeHandler) ForgotPassword(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	payload := request_model.ForgotPasswordRequest{}
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "invalid json data"))
+		return
+	}
+
+	response := r.Usecase.ForgotPassword(ctx, payload)
+	c.JSON(response.Status, response)
+}
+
+// Reset Password
+//
+//	@Summary		Reset password
+//	@Description	Reset password use token from email
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		request_model.ResetPasswordRequest	true	"Reset Password Request"
+//	@Success		200		{object}	response.Base
+//	@Failure		400		{object}	response.Base
+//	@Failure		500		{object}	response.Base
+//	@Router			/auth/reset-password [post]
+func (r *routeHandler) ResetPassword(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	payload := request_model.ResetPasswordRequest{}
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "invalid json data"))
+		return
+	}
+
+	response := r.Usecase.ResetPassword(ctx, payload)
+	c.JSON(response.Status, response)
 }
 
 // Login User

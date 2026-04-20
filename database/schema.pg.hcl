@@ -97,6 +97,10 @@ table "users" {
     type = uuid
     null = true
   }
+  column "verified_at" {
+    type = timestamptz
+    null = true
+  }
   column "created_at" {
     type = timestamptz
     null = false
@@ -166,6 +170,55 @@ table "users" {
   index "idx_users_email" {
     columns = [column.email]
     unique  = true
+  }
+}
+
+table "user_tokens" {
+  schema = schema.public
+
+  column "id" {
+    type    = uuid
+  }
+  column "user_id" {
+    type = uuid
+    null = false
+  }
+  column "type" {
+    type = varchar(50)
+    null = false
+  }
+  column "token" {
+    type = varchar(255)
+    null = false
+  }
+  column "expires_at" {
+    type = timestamptz
+    null = false
+  }
+  column "created_at" {
+    type    = timestamptz
+    null    = false
+    default = sql("now()")
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  foreign_key "user_tokens_user_id_fk" {
+    columns     = [column.user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  index "idx_user_tokens_token" {
+    columns = [column.token]
+    unique  = true
+  }
+
+  index "idx_user_tokens_user_id_type" {
+    columns = [column.user_id, column.type]
   }
 }
 

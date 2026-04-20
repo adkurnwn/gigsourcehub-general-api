@@ -106,14 +106,22 @@ func (m *appMiddleware) Auth() gin.HandlerFunc {
 			return
 		}
 
-		if status == "Inactive" {
-			response := response.Error(http.StatusForbidden, "Your account is inactive. Please contact support.")
+		if status == "Blocked" {
+			response := response.Error(http.StatusForbidden, "Your account has been blocked.")
 			c.AbortWithStatusJSON(http.StatusForbidden, response)
 			return
 		}
 
-		if status == "Blocked" {
-			response := response.Error(http.StatusForbidden, "Your account has been blocked.")
+		// Real-time verification check
+		verifiedAt, errVerified := m.repo.GetUserVerifiedAt(c.Request.Context(), claims.UserID)
+		if errVerified != nil {
+			response := response.Error(http.StatusInternalServerError, "Internal Server Error: Unable to verify account verification status.")
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response)
+			return
+		}
+
+		if verifiedAt == nil {
+			response := response.Error(http.StatusForbidden, "Please verify your email address before continuing.")
 			c.AbortWithStatusJSON(http.StatusForbidden, response)
 			return
 		}

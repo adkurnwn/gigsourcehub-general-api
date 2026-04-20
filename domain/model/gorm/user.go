@@ -35,6 +35,7 @@ type User struct {
 	AccountStatus       *string        `gorm:"column:account_status;type:user_account_status"`
 	JobTitleId          *string        `gorm:"column:job_title_id;type:uuid"`
 	JobTitle            *JobTitle      `gorm:"foreignKey:JobTitleId"`
+	VerifiedAt          *time.Time     `gorm:"column:verified_at;type:timestamptz"`
 	CreatedAt           time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt           time.Time      `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt           gorm.DeletedAt `gorm:"column:deleted_at;index"`

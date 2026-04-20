@@ -57,12 +57,14 @@ func (u *appUsecase) Login(ctx context.Context, payload request_model.LoginReque
 
 	// check account status
 	if user.AccountStatus != nil {
-		if *user.AccountStatus == "Inactive" {
-			return response.Error(http.StatusForbidden, "Your account is inactive. Please contact support.")
-		}
 		if *user.AccountStatus == "Blocked" {
 			return response.Error(http.StatusForbidden, "Your account has been blocked.")
 		}
+	}
+
+	// check verification status
+	if user.VerifiedAt == nil {
+		return response.Error(http.StatusForbidden, "Account not verified. Please check your email to verify your account.")
 	}
 
 	// generate token
@@ -155,20 +157,22 @@ func (u *appUsecase) Register(ctx context.Context, payload request_model.Registe
 		return response.Error(http.StatusInternalServerError, err.Error())
 	}
 
-	// generate token
-	tokenString, err := jwt_helper.GenerateJWTToken(
-		jwt_helper.GetJwtCredential().Member,
-		domain.JWTClaimUser{
-			UserID: newUser.ID,
-		},
+	// Create Verification Token
+	verifyToken := uuid.New().String()
+	userToken := gorm_model.NewUserToken(
+		newUser.ID,
+		gorm_model.TokenTypeVerification,
+		verifyToken,
+		time.Now().Add(24*time.Hour),
 	)
-	if err != nil {
-		return response.Error(http.StatusInternalServerError, "failed to generate token")
-	}
+	_ = u.gormDbRepo.CreateUserToken(ctx, &userToken)
+
+	// Send Verification Email
+	_ = u.mailerRepo.SendVerificationEmail(newUser.Email, newUser.Name, verifyToken)
 
 	return response.Success(map[string]interface{}{
-		"user":  newUser.ToUserResp(),
-		"token": tokenString,
+		"user":    newUser.ToUserResp(),
+		"message": "Registration successful! Please check your email to verify your account.",
 	})
 }
 
@@ -201,4 +205,132 @@ func (u *appUsecase) GetMe(ctx context.Context, claim domain.JWTClaimUser) respo
 	}
 
 	return response.Success(user.ToAuthMeResp())
+}
+
+func (u *appUsecase) VerifyAccount(ctx context.Context, token string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	// 1. Get Token
+	userToken, err := u.gormDbRepo.GetUserToken(ctx, token, gorm_model.TokenTypeVerification)
+	if err != nil {
+		return response.Error(http.StatusBadRequest, "Invalid or expired verification token")
+	}
+
+	// 2. Check Expiration
+	if time.Now().After(userToken.ExpiresAt) {
+		_ = u.gormDbRepo.DeleteUserToken(ctx, userToken.ID)
+		return response.Error(http.StatusBadRequest, "Verification token has expired")
+	}
+
+	// 3. Update User Status
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{
+			ID: userToken.UserID,
+		},
+	})
+	if err != nil || user == nil {
+		return response.Error(http.StatusInternalServerError, "User not found during verification")
+	}
+
+	activeStatus := "Active"
+	now := time.Now()
+	user.AccountStatus = &activeStatus
+	user.VerifiedAt = &now
+
+	err = u.gormDbRepo.UpdateUser(ctx, user)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to update user status")
+	}
+
+	// 4. Delete Token
+	_ = u.gormDbRepo.DeleteUserToken(ctx, userToken.ID)
+
+	return response.Success(map[string]string{
+		"message": "Account verified successfully! You can now log in.",
+	})
+}
+
+func (u *appUsecase) ForgotPassword(ctx context.Context, req request_model.ForgotPasswordRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	// 1. Find User
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		Email: &req.Email,
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+
+	if user == nil {
+		// Return success even if not found for security (prevent email enumeration)
+		return response.Success(map[string]string{
+			"message": "If that email matches an account, we have sent a password reset link.",
+		})
+	}
+
+	// 2. Create Reset Token (Delete old ones first)
+	_ = u.gormDbRepo.DeleteUserTokensByUserID(ctx, user.ID, gorm_model.TokenTypePasswordReset)
+
+	resetToken := uuid.New().String()
+	userToken := gorm_model.NewUserToken(
+		user.ID,
+		gorm_model.TokenTypePasswordReset,
+		resetToken,
+		time.Now().Add(1*time.Hour),
+	)
+	err = u.gormDbRepo.CreateUserToken(ctx, &userToken)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to create reset token")
+	}
+
+	// 3. Send Email
+	_ = u.mailerRepo.SendResetPasswordEmail(user.Email, user.Name, resetToken)
+
+	return response.Success(map[string]string{
+		"message": "If that email matches an account, we have sent a password reset link.",
+	})
+}
+
+func (u *appUsecase) ResetPassword(ctx context.Context, req request_model.ResetPasswordRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	// 1. Get Token
+	userToken, err := u.gormDbRepo.GetUserToken(ctx, req.Token, gorm_model.TokenTypePasswordReset)
+	if err != nil {
+		return response.Error(http.StatusBadRequest, "Invalid or expired reset token")
+	}
+
+	// 2. Check Expiration
+	if time.Now().After(userToken.ExpiresAt) {
+		_ = u.gormDbRepo.DeleteUserToken(ctx, userToken.ID)
+		return response.Error(http.StatusBadRequest, "Reset token has expired")
+	}
+
+	// 3. Update Password
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{
+			ID: userToken.UserID,
+		},
+	})
+	if err != nil || user == nil {
+		return response.Error(http.StatusInternalServerError, "User not found")
+	}
+
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	user.Password = string(hashedPassword)
+
+	err = u.gormDbRepo.UpdateUser(ctx, user)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to update password")
+	}
+
+	// 4. Delete Token
+	_ = u.gormDbRepo.DeleteUserTokensByUserID(ctx, user.ID, gorm_model.TokenTypePasswordReset)
+
+	return response.Success(map[string]string{
+		"message": "Password reset successfully! You can now log in with your new password.",
+	})
 }

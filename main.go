@@ -23,6 +23,7 @@ import (
 	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
 	rabbitmqrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/rabbitmq"
 	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
+	mailgunrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/mailgun"
 	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
 	usecase_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/ai_chat"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
@@ -175,11 +176,15 @@ func main() {
 		logrus.Errorf("failed to init ai search repo: %v", err)
 	}
 
+	// init mailer repo
+	mailerRepo := mailgunrepo.NewMailgunRepo()
+
 	// init usecase
 	ucMember := usecase_member.NewAppUsecase(usecase_member.RepoInjection{
 		GormDbRepo:   repo,
 		StorageRepo:  storageRepo,
 		AISearchRepo: aiRepo,
+		Mailer:       mailerRepo,
 	}, timeoutContext)
 
 	// init job role usecase
