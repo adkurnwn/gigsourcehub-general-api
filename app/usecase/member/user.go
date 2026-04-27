@@ -44,6 +44,8 @@ func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor s
 	// Execute actual limited fetch
 	var users []gorm_model.User
 	if err := db.Preload("SystemRole").
+		Preload("RecruitmentStatus").
+		Preload("KabupatenKota.Provinsi").
 		Preload("JobTitle.Sector").
 		Preload("AssignedRole.Sector").
 		Preload("JobRoles.Sector").
@@ -117,6 +119,17 @@ func (u *appUsecase) FetchUserDetail(ctx context.Context, id string) response.Ba
 
 	res := gorm_model.UserDetailResp{
 		UserResp: user.ToUserResp(),
+	}
+
+	res.Province = nil
+	if user.KabupatenKota != nil {
+		kabupatenName := user.KabupatenKota.Name
+		res.KabupatenName = &kabupatenName
+
+		if user.KabupatenKota.Provinsi != nil {
+			provinceName := user.KabupatenKota.Provinsi.Name
+			res.ProvinceName = &provinceName
+		}
 	}
 
 	// Fetch CV mapped to user

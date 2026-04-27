@@ -10,6 +10,7 @@ type KabupatenKota struct {
 	ID         string         `gorm:"column:id;primarykey;type:varchar(5); not null"`
 	Name       string         `gorm:"column:name;type:varchar(255);not null"`
 	ProvinsiID string         `gorm:"column:provinsi_id;type:varchar(2);not null"`
+	Provinsi   *Provinsi      `gorm:"foreignKey:ProvinsiID;references:ID"`
 	CreatedAt  time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt  time.Time      `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt  gorm.DeletedAt `gorm:"column:deleted_at;index"`

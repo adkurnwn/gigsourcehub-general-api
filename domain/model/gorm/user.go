@@ -9,37 +9,39 @@ import (
 )
 
 type User struct {
-	ID                  string         `gorm:"column:id;primarykey;type:uuid;default:uuid_generate_v4()"`
-	Name                string         `gorm:"column:name;type:varchar(255);not null"`
-	Email               string         `gorm:"column:email;type:varchar(255);unique;not null"`
-	Password            string         `gorm:"column:password;type:varchar(255);not null"`
-	Birthdate           *time.Time     `gorm:"column:birthdate;type:date"`
-	SchoolUniversity    *string        `gorm:"column:school_university;type:varchar(255)"`
-	Major               *string        `gorm:"column:major;type:varchar(255)"`
-	Gpa                 *float64       `gorm:"column:gpa;type:decimal(3,2)"`
-	PhoneNumber         *string        `gorm:"column:phone_number;type:varchar(20)"`
-	PortofolioLink      *string        `gorm:"column:portofolio_link;type:text"`
-	KabupatenKotaId     *string        `gorm:"column:kabupaten_kota_id;type:varchar(5)"`
-	YearsExperience     *int           `gorm:"column:years_experience;type:int"`
-	TechStack           *string        `gorm:"column:tech_stack;type:jsonb"`
-	Summary             *string        `gorm:"column:summary;type:text"`
-	ProfilePicture      *string        `gorm:"column:profile_picture;type:varchar(255)"`
-	CandidateLevel      *string        `gorm:"column:candidate_level;type:varchar(50)"`
-	RecruitmentStatusId *string        `gorm:"column:recruitment_status_id;type:uuid"`
-	UnavailableUntil    *time.Time     `gorm:"column:unavailable_until;type:date"`
-	SystemRoleId        *string        `gorm:"column:system_role_id;type:uuid"`
-	SystemRole          *SystemRole    `gorm:"foreignKey:SystemRoleId"`
-	AssignedRoleId      *string        `gorm:"column:assigned_role_id;type:uuid"`
-	AssignedRole        *JobRole       `gorm:"foreignKey:AssignedRoleId"`
-	JobRoles            []JobRole      `gorm:"many2many:user_has_job_roles;"`
-	AccountStatus       *string        `gorm:"column:account_status;type:user_account_status"`
-	JobTitleId          *string        `gorm:"column:job_title_id;type:uuid"`
-	JobTitle            *JobTitle      `gorm:"foreignKey:JobTitleId"`
-	VerifiedAt          *time.Time     `gorm:"column:verified_at;type:timestamptz"`
-	MustResetPassword   bool           `gorm:"column:must_reset_password;type:boolean;default:false;not null"`
-	CreatedAt           time.Time      `gorm:"column:created_at;autoCreateTime"`
-	UpdatedAt           time.Time      `gorm:"column:updated_at;autoUpdateTime"`
-	DeletedAt           gorm.DeletedAt `gorm:"column:deleted_at;index"`
+	ID                  string             `gorm:"column:id;primarykey;type:uuid;default:uuid_generate_v4()"`
+	Name                string             `gorm:"column:name;type:varchar(255);not null"`
+	Email               string             `gorm:"column:email;type:varchar(255);unique;not null"`
+	Password            string             `gorm:"column:password;type:varchar(255);not null"`
+	Birthdate           *time.Time         `gorm:"column:birthdate;type:date"`
+	SchoolUniversity    *string            `gorm:"column:school_university;type:varchar(255)"`
+	Major               *string            `gorm:"column:major;type:varchar(255)"`
+	Gpa                 *float64           `gorm:"column:gpa;type:decimal(3,2)"`
+	PhoneNumber         *string            `gorm:"column:phone_number;type:varchar(20)"`
+	PortofolioLink      *string            `gorm:"column:portofolio_link;type:text"`
+	KabupatenKotaId     *string            `gorm:"column:kabupaten_kota_id;type:varchar(5)"`
+	YearsExperience     *int               `gorm:"column:years_experience;type:int"`
+	TechStack           *string            `gorm:"column:tech_stack;type:jsonb"`
+	Summary             *string            `gorm:"column:summary;type:text"`
+	ProfilePicture      *string            `gorm:"column:profile_picture;type:varchar(255)"`
+	CandidateLevel      *string            `gorm:"column:candidate_level;type:varchar(50)"`
+	RecruitmentStatusId *string            `gorm:"column:recruitment_status_id;type:uuid"`
+	RecruitmentStatus   *RecruitmentStatus `gorm:"foreignKey:RecruitmentStatusId"`
+	KabupatenKota       *KabupatenKota     `gorm:"foreignKey:KabupatenKotaId;references:ID"`
+	UnavailableUntil    *time.Time         `gorm:"column:unavailable_until;type:date"`
+	SystemRoleId        *string            `gorm:"column:system_role_id;type:uuid"`
+	SystemRole          *SystemRole        `gorm:"foreignKey:SystemRoleId"`
+	AssignedRoleId      *string            `gorm:"column:assigned_role_id;type:uuid"`
+	AssignedRole        *JobRole           `gorm:"foreignKey:AssignedRoleId"`
+	JobRoles            []JobRole          `gorm:"many2many:user_has_job_roles;"`
+	AccountStatus       *string            `gorm:"column:account_status;type:user_account_status"`
+	JobTitleId          *string            `gorm:"column:job_title_id;type:uuid"`
+	JobTitle            *JobTitle          `gorm:"foreignKey:JobTitleId"`
+	VerifiedAt          *time.Time     	   `gorm:"column:verified_at;type:timestamptz"`
+	MustResetPassword   bool           	   `gorm:"column:must_reset_password;type:boolean;default:false;not null"`
+	CreatedAt           time.Time          `gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt           time.Time          `gorm:"column:updated_at;autoUpdateTime"`
+	DeletedAt           gorm.DeletedAt     `gorm:"column:deleted_at;index"`
 }
 
 var UserAllowedSort = []string{"name", "email", "created_at", "updated_at"}
@@ -64,31 +66,34 @@ func (f *UserFilter) Query(q *gorm.DB) {
 }
 
 type UserResp struct {
-	ID                  string     `json:"id"`
-	Name                string     `json:"name"`
-	Email               string     `json:"email"`
-	Birthdate           *time.Time `json:"birthdate"`
-	SchoolUniversity    *string    `json:"school_university"`
-	Major               *string    `json:"major"`
-	Gpa                 *float64   `json:"gpa"`
-	PhoneNumber         *string    `json:"phone_number"`
-	PortofolioLink      *string    `json:"portofolio_link"`
-	KabupatenKotaId     *string    `json:"kabupaten_kota_id"`
-	YearsExperience     *int       `json:"years_experience"`
-	TechStack           *string    `json:"tech_stack"`
-	Summary             *string    `json:"summary"`
-	ProfilePicture      *string    `json:"profile_picture"`
-	CandidateLevel      *string    `json:"candidate_level,omitempty"`
-	RecruitmentStatusId *string    `json:"recruitment_status_id"`
-	UnavailableUntil    *time.Time `json:"unavailable_until"`
-	SystemRoleName      *string    `json:"system_role_name"`
-	AssignedRoleId      *string    `json:"assigned_role_id"`
-	AccountStatus       *string    `json:"account_status"`
-	IsBookmark          *bool         `json:"is_bookmark,omitempty"`
-	JobTitleId          *string       `json:"job_title_id,omitempty"`
-	Bidang              *string       `json:"bidang,omitempty"`
-	MustResetPassword   bool          `json:"must_reset_password"`
-	JobRoles            []JobRoleResp `json:"job_roles"`
+	ID                       string        `json:"id"`
+	Name                     string        `json:"name"`
+	Email                    string        `json:"email"`
+	Birthdate                *time.Time    `json:"birthdate"`
+	SchoolUniversity         *string       `json:"school_university"`
+	Major                    *string       `json:"major"`
+	Gpa                      *float64      `json:"gpa"`
+	PhoneNumber              *string       `json:"phone_number"`
+	PortofolioLink           *string       `json:"portofolio_link"`
+	KabupatenKotaId          *string       `json:"kabupaten_kota_id"`
+	YearsExperience          *int          `json:"years_experience"`
+	TechStack                *string       `json:"tech_stack"`
+	Summary                  *string       `json:"summary"`
+	ProfilePicture           *string       `json:"profile_picture"`
+	CandidateLevel           *string       `json:"candidate_level,omitempty"`
+	RecruitmentStatusId      *string       `json:"recruitment_status_id"`
+	RecruitmentStatusName    *string       `json:"recruitment_status_name,omitempty"`
+	RecruitmentStatusHexCode *string       `json:"recruitment_status_hex_code,omitempty"`
+	Province                 *ProvinsiResp `json:"province,omitempty"`
+	UnavailableUntil         *time.Time    `json:"unavailable_until"`
+	SystemRoleName           *string       `json:"system_role_name"`
+	AssignedRoleId           *string       `json:"assigned_role_id"`
+	AccountStatus            *string       `json:"account_status"`
+	IsBookmark               *bool         `json:"is_bookmark,omitempty"`
+	JobTitleId               *string       `json:"job_title_id,omitempty"`
+	MustResetPassword   	 bool          `json:"must_reset_password"`
+	Bidang                   *string       `json:"bidang,omitempty"`
+	JobRoles                 []JobRoleResp `json:"job_roles"`
 }
 
 type AuthMeResp struct {
@@ -107,7 +112,7 @@ func (row *User) ToUserResp() UserResp {
 
 	candidateLevel := row.CandidateLevel
 
-	if roleName != nil && *roleName == "Candidate" {
+	if roleName != nil && *roleName != "Candidate" {
 		candidateLevel = nil
 	}
 
@@ -126,6 +131,19 @@ func (row *User) ToUserResp() UserResp {
 		roles = append(roles, r.ToJobRoleResp())
 	}
 
+	var recruitmentStatusName *string
+	var recruitmentStatusHexCode *string
+	if row.RecruitmentStatus != nil {
+		recruitmentStatusName = &row.RecruitmentStatus.Name
+		recruitmentStatusHexCode = &row.RecruitmentStatus.HexCode
+	}
+
+	var province *ProvinsiResp
+	if row.KabupatenKota != nil && row.KabupatenKota.Provinsi != nil {
+		prov := row.KabupatenKota.Provinsi.ToProvinsiResp()
+		province = &prov
+	}
+
 	bidangStr := "-"
 	if row.JobTitle != nil && row.JobTitle.Sector != nil {
 		bidangStr = row.JobTitle.Sector.Name
@@ -136,30 +154,33 @@ func (row *User) ToUserResp() UserResp {
 	}
 
 	return UserResp{
-		ID:                  row.ID,
-		Name:                row.Name,
-		Email:               row.Email,
-		Birthdate:           row.Birthdate,
-		SchoolUniversity:    row.SchoolUniversity,
-		Major:               row.Major,
-		Gpa:                 row.Gpa,
-		PhoneNumber:         row.PhoneNumber,
-		PortofolioLink:      row.PortofolioLink,
-		KabupatenKotaId:     row.KabupatenKotaId,
-		YearsExperience:     row.YearsExperience,
-		TechStack:           row.TechStack,
-		Summary:             row.Summary,
-		ProfilePicture:      profilePicture,
-		CandidateLevel:      candidateLevel,
-		RecruitmentStatusId: row.RecruitmentStatusId,
-		UnavailableUntil:    row.UnavailableUntil,
-		SystemRoleName:      roleName,
-		AssignedRoleId:      row.AssignedRoleId,
-		AccountStatus:       row.AccountStatus,
-		JobTitleId:          row.JobTitleId,
-		Bidang:              &bidangStr,
-		MustResetPassword:   row.MustResetPassword,
-		JobRoles:            roles,
+		ID:                       row.ID,
+		Name:                     row.Name,
+		Email:                    row.Email,
+		Birthdate:                row.Birthdate,
+		SchoolUniversity:         row.SchoolUniversity,
+		Major:                    row.Major,
+		Gpa:                      row.Gpa,
+		PhoneNumber:              row.PhoneNumber,
+		PortofolioLink:           row.PortofolioLink,
+		KabupatenKotaId:          row.KabupatenKotaId,
+		YearsExperience:          row.YearsExperience,
+		TechStack:                row.TechStack,
+		Summary:                  row.Summary,
+		ProfilePicture:           profilePicture,
+		CandidateLevel:           candidateLevel,
+		RecruitmentStatusId:      row.RecruitmentStatusId,
+		RecruitmentStatusName:    recruitmentStatusName,
+		RecruitmentStatusHexCode: recruitmentStatusHexCode,
+		Province:                 province,
+		UnavailableUntil:         row.UnavailableUntil,
+		SystemRoleName:           roleName,
+		AssignedRoleId:           row.AssignedRoleId,
+		AccountStatus:            row.AccountStatus,
+		JobTitleId:               row.JobTitleId,
+		Bidang:                   &bidangStr,
+		MustResetPassword:		  row.MustResetPassword,
+		JobRoles:                 roles,
 	}
 }
 
@@ -180,5 +201,7 @@ func (row *User) ToAuthMeResp() AuthMeResp {
 // UserDetailResp bundles the standard user output along with a restricted CV link
 type UserDetailResp struct {
 	UserResp
-	CV *CVPrivateResp `json:"cv"`
+	ProvinceName  *string        `json:"province_name,omitempty"`
+	KabupatenName *string        `json:"kabupaten_name,omitempty"`
+	CV            *CVPrivateResp `json:"cv"`
 }

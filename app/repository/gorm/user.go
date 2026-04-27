@@ -17,7 +17,7 @@ func (r *gormRepo) FetchUser(ctx context.Context, options gorm_model.UserFilter)
 	q := r.db.Model(&gorm_model.User{})
 	options.Query(q)
 
-	q = q.Preload("SystemRole").Preload("JobRoles")
+	q = q.Preload("SystemRole").Preload("JobRoles").Preload("RecruitmentStatus").Preload("KabupatenKota.Provinsi")
 
 	cur, err = q.WithContext(ctx).Rows()
 	if err != nil {
@@ -33,7 +33,7 @@ func (r *gormRepo) FetchOneUser(ctx context.Context, options gorm_model.UserFilt
 	q := r.db.Model(&gorm_model.User{})
 	options.Query(q)
 
-	q = q.Preload("SystemRole").Preload("JobRoles")
+	q = q.Preload("SystemRole").Preload("JobRoles").Preload("RecruitmentStatus").Preload("KabupatenKota.Provinsi")
 
 	// set row
 	row = new(gorm_model.User)
