@@ -101,6 +101,11 @@ table "users" {
     type = timestamptz
     null = true
   }
+  column "must_reset_password" {
+    type    = boolean
+    default = false
+    null    = false
+  }
   column "created_at" {
     type = timestamptz
     null = false

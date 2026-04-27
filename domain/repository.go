@@ -114,6 +114,7 @@ type GormRepo interface {
 	DeleteUserTokensByUserID(ctx context.Context, userID string, tokenType string) error
 
 	GetUserVerifiedAt(ctx context.Context, userID string) (*time.Time, error)
+	GetUserMustResetPassword(ctx context.Context, userID string) (bool, error)
 }
 
 type CacheRepo interface {

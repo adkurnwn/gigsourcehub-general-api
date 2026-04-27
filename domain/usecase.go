@@ -29,6 +29,7 @@ type MemberAppUsecase interface {
 	VerifyAccount(ctx context.Context, token string) response.Base
 	ForgotPassword(ctx context.Context, req request_model.ForgotPasswordRequest) response.Base
 	ResetPassword(ctx context.Context, req request_model.ResetPasswordRequest) response.Base
+	UpdatePassword(ctx context.Context, userID string, req request_model.UpdatePasswordRequest) response.Base
 }
 
 type JobRoleAppUsecase interface {

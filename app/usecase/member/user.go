@@ -207,14 +207,17 @@ func (u *appUsecase) CreateBySuperadmin(ctx context.Context, req request_model.C
 		}
 	}
 
+	now := time.Now()
 	user := gorm_model.User{
-		ID:             uuid.New().String(),
-		Email:          req.Email,
-		Name:           req.Name,
-		Password:       string(hashedPassword),
-		AssignedRoleId: req.AssignedRoleId,
-		SystemRoleId:   req.SystemRoleId,
-		JobTitleId:     req.JobTitleId,
+		ID:                uuid.New().String(),
+		Email:             req.Email,
+		Name:              req.Name,
+		Password:          string(hashedPassword),
+		AssignedRoleId:    req.AssignedRoleId,
+		SystemRoleId:      req.SystemRoleId,
+		JobTitleId:        req.JobTitleId,
+		VerifiedAt:        &now,
+		MustResetPassword: true,
 	}
 
 	if req.AccountStatus != nil {
@@ -604,4 +607,41 @@ func (u *appUsecase) FetchUserThumb(ctx context.Context, id string) response.Bas
 	return response.Success(map[string]interface{}{
 		"profile_picture_url": thumbURL,
 	})
+}
+
+func (u *appUsecase) UpdatePassword(ctx context.Context, userID string, req request_model.UpdatePasswordRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: userID},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+
+	// Verify old password
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword)); err != nil {
+		return response.Error(http.StatusBadRequest, "Old password does not match")
+	}
+
+	// Hash new password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to hash new password")
+	}
+
+	user.Password = string(hashedPassword)
+	user.MustResetPassword = false
+
+	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Password", user.Email, nil, false)
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Password", user.Email, nil, true)
+	return response.SuccessAction("User", user.Email, "password updated")
 }
