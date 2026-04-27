@@ -37,6 +37,8 @@ type User struct {
 	AccountStatus       *string            `gorm:"column:account_status;type:user_account_status"`
 	JobTitleId          *string            `gorm:"column:job_title_id;type:uuid"`
 	JobTitle            *JobTitle          `gorm:"foreignKey:JobTitleId"`
+	VerifiedAt          *time.Time     	   `gorm:"column:verified_at;type:timestamptz"`
+	MustResetPassword   bool           	   `gorm:"column:must_reset_password;type:boolean;default:false;not null"`
 	CreatedAt           time.Time          `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt           time.Time          `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt           gorm.DeletedAt     `gorm:"column:deleted_at;index"`
@@ -89,6 +91,7 @@ type UserResp struct {
 	AccountStatus            *string       `json:"account_status"`
 	IsBookmark               *bool         `json:"is_bookmark,omitempty"`
 	JobTitleId               *string       `json:"job_title_id,omitempty"`
+	MustResetPassword   	 bool          `json:"must_reset_password"`
 	Bidang                   *string       `json:"bidang,omitempty"`
 	JobRoles                 []JobRoleResp `json:"job_roles"`
 }
@@ -176,6 +179,7 @@ func (row *User) ToUserResp() UserResp {
 		AccountStatus:            row.AccountStatus,
 		JobTitleId:               row.JobTitleId,
 		Bidang:                   &bidangStr,
+		MustResetPassword:		  row.MustResetPassword,
 		JobRoles:                 roles,
 	}
 }
