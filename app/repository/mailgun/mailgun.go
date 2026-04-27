@@ -22,7 +22,7 @@ func NewMailgunRepo() domain.Mailer {
 	apiKey := os.Getenv("MAILGUN_API_KEY")
 	fromEmail := os.Getenv("MAILGUN_FROM_EMAIL")
 	fromName := os.Getenv("MAILGUN_FROM_NAME")
-	appURL := os.Getenv("APP_URL")
+	appURL := os.Getenv("FRONTEND_URL")
 
 	mg := mailgun.NewMailgun(domainName, apiKey)
 
