@@ -107,6 +107,14 @@ type GormRepo interface {
 
 	GetSystemSetting(ctx context.Context) (*gorm_model.SystemSetting, error)
 	UpdateSystemSetting(ctx context.Context, model *gorm_model.SystemSetting) error
+
+	CreateUserToken(ctx context.Context, model *gorm_model.UserToken) error
+	GetUserToken(ctx context.Context, token string, tokenType string) (*gorm_model.UserToken, error)
+	DeleteUserToken(ctx context.Context, id string) error
+	DeleteUserTokensByUserID(ctx context.Context, userID string, tokenType string) error
+
+	GetUserVerifiedAt(ctx context.Context, userID string) (*time.Time, error)
+	GetUserMustResetPassword(ctx context.Context, userID string) (bool, error)
 }
 
 type CacheRepo interface {

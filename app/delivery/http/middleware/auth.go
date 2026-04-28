@@ -106,16 +106,46 @@ func (m *appMiddleware) Auth() gin.HandlerFunc {
 			return
 		}
 
-		if status == "Inactive" {
-			response := response.Error(http.StatusForbidden, "Your account is inactive. Please contact support.")
-			c.AbortWithStatusJSON(http.StatusForbidden, response)
-			return
-		}
-
 		if status == "Blocked" {
 			response := response.Error(http.StatusForbidden, "Your account has been blocked.")
 			c.AbortWithStatusJSON(http.StatusForbidden, response)
 			return
+		}
+
+		// Real-time verification check
+		verifiedAt, errVerified := m.repo.GetUserVerifiedAt(c.Request.Context(), claims.UserID)
+		if errVerified != nil {
+			response := response.Error(http.StatusInternalServerError, "Internal Server Error: Unable to verify account verification status.")
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response)
+			return
+		}
+
+		if verifiedAt == nil {
+			response := response.Error(http.StatusForbidden, "Please verify your email address before continuing.")
+			c.AbortWithStatusJSON(http.StatusForbidden, response)
+			return
+		}
+
+		// Real-time password reset check
+		mustReset, errReset := m.repo.GetUserMustResetPassword(c.Request.Context(), claims.UserID)
+		if errReset != nil {
+			response := response.Error(http.StatusInternalServerError, "Internal Server Error: Unable to verify password status.")
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response)
+			return
+		}
+
+		if mustReset {
+			path := c.Request.URL.Path
+			method := c.Request.Method
+			// Allow only GET for profile/me and PUT for password reset
+			isAllowed := (method == "GET" && (strings.HasSuffix(path, "/profile") || strings.HasSuffix(path, "/me"))) ||
+				(method == "PUT" && strings.HasSuffix(path, "/profile/password"))
+
+			if !isAllowed {
+				response := response.Error(http.StatusForbidden, "Password reset required before continuing.")
+				c.AbortWithStatusJSON(http.StatusForbidden, response)
+				return
+			}
 		}
 
 		c.Next()

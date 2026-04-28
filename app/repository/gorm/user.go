@@ -3,6 +3,7 @@ package gormrepo
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 
@@ -126,6 +127,19 @@ func (r *gormRepo) GetUserAccountStatus(ctx context.Context, userID string) (sta
 	return status, err
 }
 
+func (r *gormRepo) GetUserVerifiedAt(ctx context.Context, userID string) (verifiedAt *time.Time, err error) {
+	err = r.db.WithContext(ctx).
+		Table("users").
+		Where("id = ?", userID).
+		Select("verified_at").
+		Row().
+		Scan(&verifiedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return verifiedAt, err
+}
+
 func (r *gormRepo) CreateUserBySuperadmin(ctx context.Context, row *gorm_model.User) (err error) {
 	err = r.db.WithContext(ctx).Create(row).Error
 	if err != nil {
@@ -168,3 +182,18 @@ func (r *gormRepo) GetCandidateLevelsByUserIDs(ctx context.Context, userIDs []st
 
 	return result, nil
 }
+
+func (r *gormRepo) GetUserMustResetPassword(ctx context.Context, userID string) (bool, error) {
+	var mustReset bool
+	err := r.db.WithContext(ctx).
+		Table("users").
+		Where("id = ?", userID).
+		Select("must_reset_password").
+		Row().
+		Scan(&mustReset)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+	return mustReset, err
+}
+

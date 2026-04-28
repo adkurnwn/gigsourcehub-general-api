@@ -82,3 +82,30 @@ func (r *routeHandler) UpdateProfile(c *gin.Context) {
 	resp := r.Usecase.UpdateProfile(c.Request.Context(), userClaim.UserID, req)
 	c.JSON(resp.Status, resp)
 }
+
+// Update Password
+//
+//	@Summary		Update Password
+//	@Description	Change the current user's password. Mandatory if must_reset_password is true.
+//	@Tags			Profile
+//	@Accept			json
+//	@Produce		json
+//	@Param			req		body		request_model.UpdatePasswordRequest	true	"Password update data"
+//	@Success		200		{object}	response.Base
+//	@Failure		400		{object}	response.Base
+//	@Failure		401		{object}	response.Base
+//	@Failure		500		{object}	response.Base
+//	@Router			/profile/password [put]
+//
+//	@Security		BearerAuth
+func (r *routeHandler) UpdatePassword(c *gin.Context) {
+	var req request_model.UpdatePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, map[string]any{"status": 400, "message": err.Error()})
+		return
+	}
+
+	userClaim := c.MustGet("token_data").(domain.JWTClaimUser)
+	resp := r.Usecase.UpdatePassword(c.Request.Context(), userClaim.UserID, req)
+	c.JSON(resp.Status, resp)
+}

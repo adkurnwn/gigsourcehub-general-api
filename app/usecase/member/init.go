@@ -10,6 +10,7 @@ type appUsecase struct {
 	gormDbRepo     domain.GormRepo
 	storageRepo    domain.StorageRepo
 	aiSearchRepo   domain.AISearchRepository
+	mailerRepo     domain.Mailer
 	contextTimeout time.Duration
 }
 
@@ -17,6 +18,7 @@ type RepoInjection struct {
 	GormDbRepo   domain.GormRepo
 	StorageRepo  domain.StorageRepo
 	AISearchRepo domain.AISearchRepository
+	Mailer       domain.Mailer
 }
 
 func NewAppUsecase(r RepoInjection, timeout time.Duration) domain.MemberAppUsecase {
@@ -24,6 +26,7 @@ func NewAppUsecase(r RepoInjection, timeout time.Duration) domain.MemberAppUseca
 		gormDbRepo:     r.GormDbRepo,
 		storageRepo:    r.StorageRepo,
 		aiSearchRepo:   r.AISearchRepo,
+		mailerRepo:     r.Mailer,
 		contextTimeout: timeout,
 	}
 }

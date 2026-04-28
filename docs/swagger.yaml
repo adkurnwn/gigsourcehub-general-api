@@ -23,6 +23,13 @@ definitions:
       sector_id:
         type: string
     type: object
+  gorm_model.ProvinsiResp:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
   gorm_model.SectorResp:
     properties:
       created_at:
@@ -68,6 +75,8 @@ definitions:
         type: string
       major:
         type: string
+      must_reset_password:
+        type: boolean
       name:
         type: string
       phone_number:
@@ -76,7 +85,13 @@ definitions:
         type: string
       profile_picture:
         type: string
+      province:
+        $ref: '#/definitions/gorm_model.ProvinsiResp'
+      recruitment_status_hex_code:
+        type: string
       recruitment_status_id:
+        type: string
+      recruitment_status_name:
         type: string
       school_university:
         type: string
@@ -212,6 +227,11 @@ definitions:
       system_role_id:
         type: string
     type: object
+  request_model.ForgotPasswordRequest:
+    properties:
+      email:
+        type: string
+    type: object
   request_model.LoginRequest:
     properties:
       email:
@@ -226,6 +246,13 @@ definitions:
       name:
         type: string
       password:
+        type: string
+    type: object
+  request_model.ResetPasswordRequest:
+    properties:
+      password:
+        type: string
+      token:
         type: string
     type: object
   request_model.SearchRequest:
@@ -254,6 +281,13 @@ definitions:
     required:
     - name
     - sector_id
+    type: object
+  request_model.UpdatePasswordRequest:
+    properties:
+      new_password:
+        type: string
+      old_password:
+        type: string
     type: object
   request_model.UpdateProfileRequest:
     properties:
@@ -360,53 +394,6 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 paths:
-  /activity-logs:
-    get:
-      parameters:
-      - description: Page
-        in: query
-        name: page
-        type: integer
-      - description: Limit
-        in: query
-        name: limit
-        type: integer
-      - description: Actor ID
-        in: query
-        name: actor_id
-        type: string
-      - description: Action Type
-        in: query
-        name: action_type
-        type: string
-      - description: Module
-        in: query
-        name: module
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Base'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.Base'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/response.Base'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Base'
-      security:
-      - BearerAuth: []
-      summary: Fetch Activity Logs
-      tags:
-      - Activity Log
   /ai-chat:
     get:
       consumes:
@@ -565,6 +552,36 @@ paths:
       summary: Store Chat Message
       tags:
       - AI Chat
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Request password reset link
+      parameters:
+      - description: Forgot Password Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Forgot password
+      tags:
+      - Auth
   /auth/login:
     post:
       consumes:
@@ -660,6 +677,65 @@ paths:
           schema:
             $ref: '#/definitions/response.Base'
       summary: Register user
+      tags:
+      - Auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset password use token from email
+      parameters:
+      - description: Reset Password Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Reset password
+      tags:
+      - Auth
+  /auth/verify:
+    get:
+      consumes:
+      - application/json
+      description: Verify account use token from email
+      parameters:
+      - description: Verification Token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Verify account
       tags:
       - Auth
   /bookmarks:
@@ -1138,6 +1214,43 @@ paths:
       security:
       - BearerAuth: []
       summary: Update Profile
+      tags:
+      - Profile
+  /profile/password:
+    put:
+      consumes:
+      - application/json
+      description: Change the current user's password. Mandatory if must_reset_password
+        is true.
+      parameters:
+      - description: Password update data
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Password
       tags:
       - Profile
   /profile/picture:
