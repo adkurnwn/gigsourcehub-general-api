@@ -575,9 +575,10 @@ func (u *cvUsecase) GenerateCVLink(ctx context.Context, userID string) response.
 	presignedLink := u.storageRepo.GetPresignedLink(cv.Path, &expireDuration)
 
 	res := gorm_model.CVPrivateResp{
-		ID:   cv.ID,
-		Name: cv.Filename,
-		URL:  presignedLink,
+		ID:        cv.ID,
+		Name:      cv.Filename,
+		URL:       presignedLink,
+		CreatedAt: cv.CreatedAt,
 	}
 
 	return response.Success(res)

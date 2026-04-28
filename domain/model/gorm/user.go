@@ -201,7 +201,5 @@ func (row *User) ToAuthMeResp() AuthMeResp {
 // UserDetailResp bundles the standard user output along with a restricted CV link
 type UserDetailResp struct {
 	UserResp
-	ProvinceName  *string        `json:"province_name,omitempty"`
-	KabupatenName *string        `json:"kabupaten_name,omitempty"`
-	CV            *CVPrivateResp `json:"cv"`
+	CV *CVPrivateResp `json:"cv"`
 }

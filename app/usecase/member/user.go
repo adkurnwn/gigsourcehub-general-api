@@ -121,17 +121,6 @@ func (u *appUsecase) FetchUserDetail(ctx context.Context, id string) response.Ba
 		UserResp: user.ToUserResp(),
 	}
 
-	res.Province = nil
-	if user.KabupatenKota != nil {
-		kabupatenName := user.KabupatenKota.Name
-		res.KabupatenName = &kabupatenName
-
-		if user.KabupatenKota.Provinsi != nil {
-			provinceName := user.KabupatenKota.Provinsi.Name
-			res.ProvinceName = &provinceName
-		}
-	}
-
 	// Fetch CV mapped to user
 	cv, errCv := u.gormDbRepo.GetCVByUserID(ctx, user.ID)
 	if errCv == nil && cv != nil {
@@ -140,9 +129,10 @@ func (u *appUsecase) FetchUserDetail(ctx context.Context, id string) response.Ba
 		presignedLink := u.storageRepo.GetPresignedLink(cv.Path, &expireDuration)
 
 		res.CV = &gorm_model.CVPrivateResp{
-			ID:   cv.ID,
-			Name: cv.Filename,
-			URL:  presignedLink,
+			ID:        cv.ID,
+			Name:      cv.Filename,
+			URL:       presignedLink,
+			CreatedAt: cv.CreatedAt,
 		}
 	}
 
