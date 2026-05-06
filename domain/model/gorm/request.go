@@ -40,6 +40,7 @@ type RequestResp struct {
 	ProjectDuration   *string          `json:"project_duration"`
 	DueDate           *string          `json:"due_date"`
 	AdminUserID       *string          `json:"admin_user_id"`
+	AdminName         *string          `json:"admin_name"`
 	EmployeeUserID    string           `json:"employee_user_id"`
 	RequiredHeadcount int              `json:"required_headcount"`
 	Status            string           `json:"status"`
@@ -63,6 +64,11 @@ func (row *Request) ToRequestResp() RequestResp {
 		fulfillmentStr = &str
 	}
 
+	var adminName *string
+	if row.AdminUser != nil {
+		adminName = &row.AdminUser.Name
+	}
+
 	var subResponses []SubrequestResp
 	if row.Subrequests != nil {
 		for _, sub := range row.Subrequests {
@@ -76,6 +82,7 @@ func (row *Request) ToRequestResp() RequestResp {
 		ProjectDuration:   row.ProjectDuration,
 		DueDate:           dueDateStr,
 		AdminUserID:       row.AdminUserID,
+		AdminName:         adminName,
 		EmployeeUserID:    row.EmployeeUserID,
 		RequiredHeadcount: row.RequiredHeadcount,
 		Status:            row.Status,
