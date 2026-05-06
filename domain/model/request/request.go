@@ -1,10 +1,11 @@
 package request_model
 
 type CreateSubrequestRequest struct {
-	JobRoleID          *string  `json:"job_role_id"`
-	MinYearsExperience int      `json:"min_years_experience" validate:"required,min=0"`
-	TechStack          []string `json:"tech_stack"`
-	Notes              *string  `json:"notes"`
+	JobRoleID *string  `json:"job_role_id"`
+	Level     string   `json:"level" validate:"required,oneof=Junior Middle Senior"`
+	TechStack []string `json:"tech_stack"`
+	Notes     *string  `json:"notes"`
+	Overview  *string  `json:"overview"`
 }
 
 type CreateRequestRequest struct {
@@ -16,10 +17,11 @@ type CreateRequestRequest struct {
 }
 
 type UpdateSubrequestRequest struct {
-	JobRoleID          *string  `json:"job_role_id"`
-	MinYearsExperience int      `json:"min_years_experience" validate:"required,min=0"`
-	TechStack          []string `json:"tech_stack"`
-	Notes              *string  `json:"notes"`
+	JobRoleID *string  `json:"job_role_id"`
+	Level     string   `json:"level" validate:"required,oneof=Junior Middle Senior"`
+	TechStack []string `json:"tech_stack"`
+	Notes     *string  `json:"notes"`
+	Overview  *string  `json:"overview"`
 }
 
 type UpdateRequestRequest struct {

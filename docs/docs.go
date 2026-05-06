@@ -3491,18 +3491,17 @@ const docTemplate = `{
         },
         "request_model.CreateSubrequestRequest": {
             "type": "object",
-            "required": [
-                "min_years_experience"
-            ],
             "properties": {
                 "job_role_id": {
                     "type": "string"
                 },
-                "min_years_experience": {
-                    "type": "integer",
-                    "minimum": 0
+                "level": {
+                    "type": "string"
                 },
                 "notes": {
+                    "type": "string"
+                },
+                "overview": {
                     "type": "string"
                 },
                 "tech_stack": {
@@ -3759,18 +3758,17 @@ const docTemplate = `{
         },
         "request_model.UpdateSubrequestRequest": {
             "type": "object",
-            "required": [
-                "min_years_experience"
-            ],
             "properties": {
                 "job_role_id": {
                     "type": "string"
                 },
-                "min_years_experience": {
-                    "type": "integer",
-                    "minimum": 0
+                "level": {
+                    "type": "string"
                 },
                 "notes": {
+                    "type": "string"
+                },
+                "overview": {
                     "type": "string"
                 },
                 "tech_stack": {
