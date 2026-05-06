@@ -8,10 +8,11 @@ type CreateSubrequestRequest struct {
 }
 
 type CreateRequestRequest struct {
-	ProjectName string                    `json:"project_name" validate:"required"`
-	DueDate     *string                   `json:"due_date"`
-	Urgency     string                    `json:"urgency" validate:"required,oneof=Low Medium High"`
-	Subrequests []CreateSubrequestRequest `json:"subrequests" validate:"required,min=1,dive"`
+	ProjectName     string                    `json:"project_name" validate:"required"`
+	ProjectDuration *string                   `json:"project_duration"`
+	DueDate         *string                   `json:"due_date"`
+	Urgency         string                    `json:"urgency" validate:"required,oneof=Low Medium High"`
+	Subrequests     []CreateSubrequestRequest `json:"subrequests" validate:"required,min=1,dive"`
 }
 
 type UpdateSubrequestRequest struct {
@@ -22,7 +23,8 @@ type UpdateSubrequestRequest struct {
 }
 
 type UpdateRequestRequest struct {
-	ProjectName string  `json:"project_name" validate:"required"`
-	DueDate     *string `json:"due_date"`
-	Urgency     string  `json:"urgency" validate:"required,oneof=Low Medium High"`
+	ProjectName     string  `json:"project_name" validate:"required"`
+	ProjectDuration *string `json:"project_duration"`
+	DueDate         *string `json:"due_date"`
+	Urgency         string  `json:"urgency" validate:"required,oneof=Low Medium High"`
 }

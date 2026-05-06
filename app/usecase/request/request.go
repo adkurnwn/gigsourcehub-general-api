@@ -39,6 +39,7 @@ func (u *appUsecase) CreateByEmployee(ctx context.Context, employeeID string, re
 
 	requestModel := &gorm_model.Request{
 		ProjectName:       req.ProjectName,
+		ProjectDuration:   req.ProjectDuration,
 		DueDate:           dueDate,
 		EmployeeUserID:    employeeID,
 		RequiredHeadcount: len(req.Subrequests),
@@ -196,6 +197,7 @@ func (u *appUsecase) UpdateByEmployee(ctx context.Context, employeeID string, re
 	}
 
 	existingReq.ProjectName = req.ProjectName
+	existingReq.ProjectDuration = req.ProjectDuration
 	existingReq.Urgency = req.Urgency
 	existingReq.DueDate = dueDate
 
