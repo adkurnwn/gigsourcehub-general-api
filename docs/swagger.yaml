@@ -156,6 +156,8 @@ definitions:
     properties:
       due_date:
         type: string
+      project_duration:
+        type: string
       project_name:
         type: string
       subrequests:
@@ -185,17 +187,22 @@ definitions:
     properties:
       job_role_id:
         type: string
-      min_years_experience:
-        minimum: 0
-        type: integer
+      level:
+        enum:
+        - Junior
+        - Middle
+        - Senior
+        type: string
       notes:
+        type: string
+      overview:
         type: string
       tech_stack:
         items:
           type: string
         type: array
     required:
-    - min_years_experience
+    - level
     type: object
   request_model.CreateUserBySuperadminRequest:
     properties:
@@ -237,6 +244,13 @@ definitions:
       email:
         type: string
       password:
+        type: string
+    type: object
+  request_model.PatchUserRecruitmentStatusRequest:
+    properties:
+      candidate_level:
+        type: string
+      recruitment_status_id:
         type: string
     type: object
   request_model.RegisterRequest:
@@ -336,6 +350,8 @@ definitions:
     properties:
       due_date:
         type: string
+      project_duration:
+        type: string
       project_name:
         type: string
       urgency:
@@ -361,17 +377,22 @@ definitions:
     properties:
       job_role_id:
         type: string
-      min_years_experience:
-        minimum: 0
-        type: integer
+      level:
+        enum:
+        - Junior
+        - Middle
+        - Senior
+        type: string
       notes:
+        type: string
+      overview:
         type: string
       tech_stack:
         items:
           type: string
         type: array
     required:
-    - min_years_experience
+    - level
     type: object
   response.Base:
     properties:
@@ -2379,6 +2400,55 @@ paths:
       security:
       - BearerAuth: []
       summary: Fetch User Profile Picture
+      tags:
+      - Users
+  /users/{id}/recruitment-status:
+    patch:
+      consumes:
+      - application/json
+      description: Update a user's recruitment status and candidate level by superadmin
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Recruitment status patch object
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.PatchUserRecruitmentStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Patch User Recruitment Status and Candidate Level
       tags:
       - Users
   /users/candidates:

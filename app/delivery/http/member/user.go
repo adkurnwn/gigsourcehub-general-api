@@ -37,6 +37,9 @@ func (h *routeHandler) handleUserRoute(path string) {
 	// activate user by superadmin
 	userGroup.PATCH("/:id/activate", h.Middleware.Auth(), h.Middleware.AuthSuperadmin(), h.ActivateUserBySuperadmin)
 
+	// patch user recruitment status and candidate level by admin
+	userGroup.PATCH("/:id/recruitment-status", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.PatchUserRecruitmentStatus)
+
 	// get profile picture by id
 	userGroup.GET("/:id/profile-picture", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin"), h.FetchUserThumb)
 }
@@ -301,5 +304,40 @@ func (h *routeHandler) ActivateUserBySuperadmin(c *gin.Context) {
 	}
 
 	res := h.Usecase.ActivateUserBySuperadmin(c.Request.Context(), id)
+	c.JSON(res.Status, res)
+}
+
+// PatchUserRecruitmentStatus
+// @Summary Patch User Recruitment Status and Candidate Level
+// @Description Update a user's recruitment status and candidate level by superadmin
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Param req body request_model.PatchUserRecruitmentStatusRequest true "Recruitment status patch object"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /users/{id}/recruitment-status [patch]
+// @Security BearerAuth
+func (h *routeHandler) PatchUserRecruitmentStatus(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		res := response.Error(http.StatusBadRequest, "Invalid ID parameter")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	var req request_model.PatchUserRecruitmentStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		res := response.Error(http.StatusBadRequest, "Invalid request body")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	res := h.Usecase.PatchUserRecruitmentStatus(c.Request.Context(), id, req)
 	c.JSON(res.Status, res)
 }

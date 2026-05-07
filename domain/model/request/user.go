@@ -32,3 +32,8 @@ type UpdateProfileRequest struct {
 	Summary          *string  `json:"summary"`
 	JobRoleIds       []string `json:"job_role_ids"`
 }
+
+type PatchUserRecruitmentStatusRequest struct {
+	CandidateLevel      *string `json:"candidate_level"`
+	RecruitmentStatusId *string `json:"recruitment_status_id"`
+}
