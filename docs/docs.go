@@ -3211,6 +3211,82 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/{id}/recruitment-status": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update a user's recruitment status and candidate level by superadmin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Patch User Recruitment Status and Candidate Level",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Recruitment status patch object",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.PatchUserRecruitmentStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -3458,6 +3534,9 @@ const docTemplate = `{
                 "due_date": {
                     "type": "string"
                 },
+                "project_duration": {
+                    "type": "string"
+                },
                 "project_name": {
                     "type": "string"
                 },
@@ -3491,12 +3570,20 @@ const docTemplate = `{
         },
         "request_model.CreateSubrequestRequest": {
             "type": "object",
+            "required": [
+                "level"
+            ],
             "properties": {
                 "job_role_id": {
                     "type": "string"
                 },
                 "level": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "Junior",
+                        "Middle",
+                        "Senior"
+                    ]
                 },
                 "notes": {
                     "type": "string"
@@ -3573,6 +3660,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "request_model.PatchUserRecruitmentStatusRequest": {
+            "type": "object",
+            "properties": {
+                "candidate_level": {
+                    "type": "string"
+                },
+                "recruitment_status_id": {
                     "type": "string"
                 }
             }
@@ -3729,6 +3827,9 @@ const docTemplate = `{
                 "due_date": {
                     "type": "string"
                 },
+                "project_duration": {
+                    "type": "string"
+                },
                 "project_name": {
                     "type": "string"
                 },
@@ -3758,12 +3859,20 @@ const docTemplate = `{
         },
         "request_model.UpdateSubrequestRequest": {
             "type": "object",
+            "required": [
+                "level"
+            ],
             "properties": {
                 "job_role_id": {
                     "type": "string"
                 },
                 "level": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "Junior",
+                        "Middle",
+                        "Senior"
+                    ]
                 },
                 "notes": {
                     "type": "string"
