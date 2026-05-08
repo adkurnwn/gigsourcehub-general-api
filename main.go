@@ -17,6 +17,7 @@ import (
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
 	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
 	http_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/system_setting"
+	http_job_vacancy "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_vacancy"
 	delivery_grpc "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/grpc"
 	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
 	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
@@ -38,6 +39,7 @@ import (
 	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
 	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
 	usecase_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/system_setting"
+	usecase_job_vacancy "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_vacancy"
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
 
 	"context"
@@ -251,6 +253,11 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init job vacancy usecase
+	ucJobVacancy := usecase_job_vacancy.NewAppUsecase(usecase_job_vacancy.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// start consumer
 	if mqRepo != nil {
 		cvConsumer := consumer.NewCVParserConsumer(mqRepo, repo)
@@ -309,6 +316,7 @@ func main() {
 	http_aichat.NewAIChatHandler(apiGroup, mdl, ucAIChat)
 	http_activity_log.NewActivityLogHandler(apiGroup, mdl, ucActivityLog)
 	http_system_setting.NewSystemSettingHandler(apiGroup, mdl, ucSystemSetting)
+	http_job_vacancy.NewJobVacancyHandler(apiGroup, mdl, ucJobVacancy)
 
 	// init search (AI)
 	if aiRepo != nil {

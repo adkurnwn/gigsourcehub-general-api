@@ -140,6 +140,45 @@ func (u *appUsecase) FetchByEmployee(ctx context.Context, employeeID string, pag
 	})
 }
 
+func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	offset := (page - 1) * limit
+
+	total, err := u.gormDbRepo.CountAllRequests(ctx)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to count requests")
+	}
+
+	rows, err := u.gormDbRepo.FetchAllRequests(ctx, limit, offset)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch requests")
+	}
+	defer rows.Close()
+
+	var results []interface{}
+	for rows.Next() {
+		var req gorm_model.Request
+		if err := u.gormDbRepo.StructScan(rows, &req); err != nil {
+			logrus.Errorf("Failed to scan request: %v", err)
+			continue
+		}
+
+		fullReq, err := u.gormDbRepo.GetRequestByID(ctx, req.ID)
+		if err == nil {
+			results = append(results, fullReq.ToRequestResp())
+		}
+	}
+
+	return response.Success(response.List{
+		List:  results,
+		Limit: limit,
+		Page:  page,
+		Total: total,
+	})
+}
+
 func (u *appUsecase) GetByID(ctx context.Context, employeeID, requestID string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()

@@ -76,6 +76,8 @@ type GormRepo interface {
 	CreateRequest(ctx context.Context, model *gorm_model.Request) error
 	FetchRequestsByEmployee(ctx context.Context, employeeID string, limit, offset int64) (*sql.Rows, error)
 	CountRequestsByEmployee(ctx context.Context, employeeID string) (int64, error)
+	FetchAllRequests(ctx context.Context, limit, offset int64) (*sql.Rows, error)
+	CountAllRequests(ctx context.Context) (int64, error)
 	GetRequestByID(ctx context.Context, id string) (*gorm_model.Request, error)
 	UpdateRequestByEmployee(ctx context.Context, model *gorm_model.Request) error
 	GetSubrequestByID(ctx context.Context, id string) (*gorm_model.Subrequest, error)
@@ -115,6 +117,12 @@ type GormRepo interface {
 
 	GetUserVerifiedAt(ctx context.Context, userID string) (*time.Time, error)
 	GetUserMustResetPassword(ctx context.Context, userID string) (bool, error)
+
+	FetchJobVacancy(ctx context.Context, options gorm_model.JobVacancyFilter) (*sql.Rows, error)
+	GetJobVacancyByID(ctx context.Context, id string) (*gorm_model.JobVacancy, error)
+	CreateJobVacancy(ctx context.Context, model *gorm_model.JobVacancy) error
+	UpdateJobVacancy(ctx context.Context, model *gorm_model.JobVacancy) error
+	DeleteJobVacancy(ctx context.Context, id string) error
 }
 
 type CacheRepo interface {

@@ -82,6 +82,7 @@ type BookmarkAppUsecase interface {
 }
 
 type RequestAppUsecase interface {
+	FetchAll(ctx context.Context, page, limit int64) response.Base
 	CreateByEmployee(ctx context.Context, employeeID string, req request_model.CreateRequestRequest) response.Base
 	FetchByEmployee(ctx context.Context, employeeID string, page, limit int64) response.Base
 	GetByID(ctx context.Context, employeeID, requestID string) response.Base
@@ -101,4 +102,17 @@ type AIChatAppUsecase interface {
 type ActivityLogAppUsecase interface {
 	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.LogActivityFilter) response.Base
 	ExportData(ctx context.Context, filter gorm_model.LogActivityFilter, format string, actorID string) ([]byte, string, string, error)
+}
+
+type JobVacancyAppUsecase interface {
+	// CMS — Admin & Superadmin
+	FetchAll(ctx context.Context, page, limit int64, filter gorm_model.JobVacancyFilter) response.Base
+	FetchData(ctx context.Context, id string) response.Base
+	Create(ctx context.Context, req request_model.CreateJobVacancyRequest) response.Base
+	Update(ctx context.Context, id string, req request_model.UpdateJobVacancyRequest) response.Base
+	Delete(ctx context.Context, id string) response.Base
+
+	// Public — tanpa auth, hanya PUBLISHED & belum takedown
+	FetchPublic(ctx context.Context, page, limit int64, filter gorm_model.JobVacancyFilter) response.Base
+	FetchPublicByID(ctx context.Context, id string) response.Base
 }

@@ -45,6 +45,32 @@ func (r *gormRepo) CountRequestsByEmployee(ctx context.Context, employeeID strin
 	return total, nil
 }
 
+func (r *gormRepo) FetchAllRequests(ctx context.Context, limit, offset int64) (*sql.Rows, error) {
+	q := r.db.WithContext(ctx).Model(&gorm_model.Request{}).
+		Preload("AdminUser").
+		Preload("Subrequests").
+		Preload("Subrequests.JobRole").
+		Order("created_at DESC").
+		Limit(int(limit)).Offset(int(offset))
+
+	rows, err := q.Rows()
+	if err != nil {
+		logrus.Errorf("FetchAllRequests DB Error: %v\n", err)
+		return nil, err
+	}
+	return rows, nil
+}
+
+func (r *gormRepo) CountAllRequests(ctx context.Context) (int64, error) {
+	var total int64
+	err := r.db.WithContext(ctx).Model(&gorm_model.Request{}).Count(&total).Error
+	if err != nil {
+		logrus.Errorf("CountAllRequests DB Error: %v\n", err)
+		return 0, err
+	}
+	return total, nil
+}
+
 func (r *gormRepo) GetRequestByID(ctx context.Context, id string) (*gorm_model.Request, error) {
 	var request gorm_model.Request
 	err := r.db.WithContext(ctx).

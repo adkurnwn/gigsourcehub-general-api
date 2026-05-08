@@ -35,6 +35,29 @@ func NewRequestHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.
 	reqRoute.PUT("/:id", handler.Update)
 	reqRoute.PUT("/:id/subrequests/:sub_id", handler.UpdateSubrequest)
 	reqRoute.POST("/:id/subrequests", handler.AddSubrequest)
+
+	cmsRoute := r.Group("/admin/requests")
+	cmsRoute.Use(mdl.Auth())
+	cmsRoute.Use(mdl.AuthRole("Admin", "Superadmin"))
+	cmsRoute.GET("", handler.FetchAll)
+}
+
+// FetchAll Requests (Admin/Superadmin)
+// @Summary Fetch All Requests (CMS)
+// @Description Get paginated list of all requests from all employees for Admin/Superadmin
+// @Tags CMS Request
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Limit per page" default(10)
+// @Success 200 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /admin/requests [get]
+// @Security BearerAuth
+func (h *routeHandler) FetchAll(ctx *gin.Context) {
+	pagination := helpers.GetPagination(ctx)
+	result := h.Usecase.FetchAll(ctx.Request.Context(), pagination.Page, pagination.Limit)
+	ctx.JSON(result.Status, result)
 }
 
 // Create Request
