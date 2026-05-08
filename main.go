@@ -2,10 +2,12 @@ package main
 
 import (
 	"github.com/adkurnwn/gigsourcehub-general-api/app/consumer"
-	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
-	http_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/ai_chat"
-	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
+	delivery_grpc "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/grpc"
 	http_activity_log "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/activity_log"
+	http_admin_note "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/admin_note"
+	http_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/ai_chat"
+	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
+	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
 	http_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_role"
 	http_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_title"
 	http_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/kabupaten_kota"
@@ -17,17 +19,16 @@ import (
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
 	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
 	http_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/system_setting"
-	delivery_grpc "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/grpc"
-	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
 	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
 	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
+	mailgunrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/mailgun"
 	rabbitmqrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/rabbitmq"
 	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
-	mailgunrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/mailgun"
-	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
-	usecase_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/ai_chat"
-	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
 	usecase_activity_log "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/activity_log"
+	usecase_admin_note "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/admin_note"
+	usecase_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/ai_chat"
+	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
+	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
 	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
 	usecase_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_title"
 	usecase_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/kabupaten_kota"
@@ -39,6 +40,7 @@ import (
 	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
 	usecase_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/system_setting"
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
+	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
 
 	"context"
 	"fmt"
@@ -222,6 +224,11 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init admin note usecase
+	ucAdminNote := usecase_admin_note.NewAppUsecase(usecase_admin_note.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// init ai chat usecase
 	ucAIChat := usecase_aichat.NewAIChatUsecase(repo, timeoutContext)
 
@@ -306,6 +313,7 @@ func main() {
 	http_provinsi.NewProvinsiHandler(apiGroup, ucProvinsi)
 	http_recruitment_status.NewRecruitmentStatusHandler(apiGroup, mdl, ucRecruitmentStatus)
 	http_bookmark.NewBookmarkHandler(apiGroup, mdl, ucBookmark)
+	http_admin_note.NewAdminNoteHandler(apiGroup, mdl, ucAdminNote)
 	http_aichat.NewAIChatHandler(apiGroup, mdl, ucAIChat)
 	http_activity_log.NewActivityLogHandler(apiGroup, mdl, ucActivityLog)
 	http_system_setting.NewSystemSettingHandler(apiGroup, mdl, ucSystemSetting)

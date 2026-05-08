@@ -114,6 +114,13 @@ definitions:
     required:
     - edited_data
     type: object
+  request_model.CreateAdminNoteRequest:
+    properties:
+      content:
+        type: string
+    required:
+    - content
+    type: object
   request_model.CreateBookmarkRequest:
     properties:
       candidate_id:
@@ -1169,6 +1176,95 @@ paths:
       summary: Get All Kabupaten Kota by Province ID
       tags:
       - Domisili
+  /notes/{id}:
+    get:
+      description: Get all notes for a candidate user (Admin/Employee only)
+      parameters:
+      - description: Candidate User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch Admin Notes
+      tags:
+      - Notes
+    post:
+      consumes:
+      - application/json
+      description: Add a note to a candidate user (Admin/Employee only)
+      parameters:
+      - description: Candidate User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Create Note Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateAdminNoteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Admin Note
+      tags:
+      - Notes
   /profile:
     get:
       consumes:
