@@ -82,6 +82,11 @@ type BookmarkAppUsecase interface {
 	FetchByAdmin(ctx context.Context, adminID string, page, limit int64) response.Base
 }
 
+type AdminNoteAppUsecase interface {
+	Create(ctx context.Context, actorID string, candidateID string, req request_model.CreateAdminNoteRequest) response.Base
+	FetchByCandidate(ctx context.Context, candidateID string) response.Base
+}
+
 type RequestAppUsecase interface {
 	CreateByEmployee(ctx context.Context, employeeID string, req request_model.CreateRequestRequest) response.Base
 	FetchByEmployee(ctx context.Context, employeeID string, page, limit int64) response.Base

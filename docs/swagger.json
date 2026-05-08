@@ -1192,6 +1192,144 @@
                 }
             }
         },
+        "/notes/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all notes for a candidate user (Admin/Employee only)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notes"
+                ],
+                "summary": "Fetch Admin Notes",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Candidate User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add a note to a candidate user (Admin/Employee only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notes"
+                ],
+                "summary": "Create Admin Note",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Candidate User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Create Note Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.CreateAdminNoteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            }
+        },
         "/profile": {
             "get": {
                 "security": [
@@ -3451,6 +3589,17 @@
                 "edited_data": {
                     "type": "object",
                     "additionalProperties": true
+                }
+            }
+        },
+        "request_model.CreateAdminNoteRequest": {
+            "type": "object",
+            "required": [
+                "content"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
                 }
             }
         },
