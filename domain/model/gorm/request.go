@@ -10,6 +10,7 @@ import (
 type Request struct {
 	ID                string         `gorm:"column:id;primarykey;type:uuid;default:uuid_generate_v4()"`
 	ProjectName       string         `gorm:"column:project_name;type:varchar(255);not null"`
+	ProjectDuration   *string        `gorm:"column:project_duration;type:varchar(255)"`
 	DueDate           *time.Time     `gorm:"column:due_date;type:date"`
 	AdminUserID       *string        `gorm:"column:admin_user_id;type:uuid"`
 	AdminUser         *User          `gorm:"foreignKey:AdminUserID"`
@@ -36,8 +37,10 @@ func (m *Request) BeforeCreate(tx *gorm.DB) (err error) {
 type RequestResp struct {
 	ID                string           `json:"id"`
 	ProjectName       string           `json:"project_name"`
+	ProjectDuration   *string          `json:"project_duration"`
 	DueDate           *string          `json:"due_date"`
 	AdminUserID       *string          `json:"admin_user_id"`
+	AdminName         *string          `json:"admin_name"`
 	EmployeeUserID    string           `json:"employee_user_id"`
 	RequiredHeadcount int              `json:"required_headcount"`
 	Status            string           `json:"status"`
@@ -61,6 +64,11 @@ func (row *Request) ToRequestResp() RequestResp {
 		fulfillmentStr = &str
 	}
 
+	var adminName *string
+	if row.AdminUser != nil {
+		adminName = &row.AdminUser.Name
+	}
+
 	var subResponses []SubrequestResp
 	if row.Subrequests != nil {
 		for _, sub := range row.Subrequests {
@@ -71,8 +79,10 @@ func (row *Request) ToRequestResp() RequestResp {
 	return RequestResp{
 		ID:                row.ID,
 		ProjectName:       row.ProjectName,
+		ProjectDuration:   row.ProjectDuration,
 		DueDate:           dueDateStr,
 		AdminUserID:       row.AdminUserID,
+		AdminName:         adminName,
 		EmployeeUserID:    row.EmployeeUserID,
 		RequiredHeadcount: row.RequiredHeadcount,
 		Status:            row.Status,

@@ -39,6 +39,7 @@ func (u *appUsecase) CreateByEmployee(ctx context.Context, employeeID string, re
 
 	requestModel := &gorm_model.Request{
 		ProjectName:       req.ProjectName,
+		ProjectDuration:   req.ProjectDuration,
 		DueDate:           dueDate,
 		EmployeeUserID:    employeeID,
 		RequiredHeadcount: len(req.Subrequests),
@@ -59,11 +60,12 @@ func (u *appUsecase) CreateByEmployee(ctx context.Context, employeeID string, re
 		}
 
 		subReq := gorm_model.Subrequest{
-			MinYearsExperience: sub.MinYearsExperience,
-			JobRoleID:          sub.JobRoleID,
-			TechStack:          techStackJSON,
-			Notes:              sub.Notes,
-			IsFilled:           false, // Default value
+			Level:     &sub.Level,
+			JobRoleID: sub.JobRoleID,
+			TechStack: techStackJSON,
+			Notes:     sub.Notes,
+			Overview:  sub.Overview,
+			IsFilled:  false, // Default value
 		}
 		subrequestModels = append(subrequestModels, subReq)
 	}
@@ -196,6 +198,7 @@ func (u *appUsecase) UpdateByEmployee(ctx context.Context, employeeID string, re
 	}
 
 	existingReq.ProjectName = req.ProjectName
+	existingReq.ProjectDuration = req.ProjectDuration
 	existingReq.Urgency = req.Urgency
 	existingReq.DueDate = dueDate
 
@@ -255,10 +258,11 @@ func (u *appUsecase) UpdateSubrequestByEmployee(ctx context.Context, employeeID 
 		}
 	}
 
-	existingSubReq.MinYearsExperience = req.MinYearsExperience
+	existingSubReq.Level = &req.Level
 	existingSubReq.JobRoleID = req.JobRoleID
 	existingSubReq.TechStack = techStackJSON
 	existingSubReq.Notes = req.Notes
+	existingSubReq.Overview = req.Overview
 
 	// Execute update specific to this Subrequest
 	if err := u.gormDbRepo.UpdateSubrequestByEmployee(ctx, existingSubReq); err != nil {
@@ -303,12 +307,13 @@ func (u *appUsecase) AddSubrequestByEmployee(ctx context.Context, employeeID str
 	}
 
 	subReq := &gorm_model.Subrequest{
-		RequestID:          existingReq.ID,
-		MinYearsExperience: req.MinYearsExperience,
-		JobRoleID:          req.JobRoleID,
-		TechStack:          techStackJSON,
-		Notes:              req.Notes,
-		IsFilled:           false,
+		RequestID: existingReq.ID,
+		Level:     &req.Level,
+		JobRoleID: req.JobRoleID,
+		TechStack: techStackJSON,
+		Notes:     req.Notes,
+		Overview:  req.Overview,
+		IsFilled:  false,
 	}
 
 	// 5. Execute DB Transaction (Insert subrequest + Update master headcount)

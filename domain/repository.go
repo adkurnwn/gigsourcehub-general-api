@@ -73,6 +73,9 @@ type GormRepo interface {
 	FetchBookmarksByAdmin(ctx context.Context, adminID string, limit, offset int64) (*sql.Rows, error)
 	CountBookmarksByAdmin(ctx context.Context, adminID string) (int64, error)
 
+	CreateAdminNote(ctx context.Context, model *gorm_model.AdminNote) error
+	FetchAdminNotesByCandidate(ctx context.Context, candidateID string) ([]gorm_model.AdminNote, error)
+
 	CreateRequest(ctx context.Context, model *gorm_model.Request) error
 	FetchRequestsByEmployee(ctx context.Context, employeeID string, limit, offset int64) (*sql.Rows, error)
 	CountRequestsByEmployee(ctx context.Context, employeeID string) (int64, error)

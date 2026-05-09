@@ -25,6 +25,7 @@ type MemberAppUsecase interface {
 	UploadProfilePicture(ctx context.Context, userID string, file *multipart.FileHeader) response.Base
 	FetchUserThumb(ctx context.Context, id string) response.Base
 	UpdateProfile(ctx context.Context, userID string, req request_model.UpdateProfileRequest) response.Base
+	PatchUserRecruitmentStatus(ctx context.Context, id string, req request_model.PatchUserRecruitmentStatusRequest) response.Base
 
 	VerifyAccount(ctx context.Context, token string) response.Base
 	ForgotPassword(ctx context.Context, req request_model.ForgotPasswordRequest) response.Base
@@ -79,6 +80,11 @@ type BookmarkAppUsecase interface {
 	Create(ctx context.Context, adminID string, req request_model.CreateBookmarkRequest) response.Base
 	Delete(ctx context.Context, adminID string, candidateID string) response.Base
 	FetchByAdmin(ctx context.Context, adminID string, page, limit int64) response.Base
+}
+
+type AdminNoteAppUsecase interface {
+	Create(ctx context.Context, actorID string, candidateID string, req request_model.CreateAdminNoteRequest) response.Base
+	FetchByCandidate(ctx context.Context, candidateID string) response.Base
 }
 
 type RequestAppUsecase interface {
