@@ -115,6 +115,25 @@ type GormRepo interface {
 
 	GetUserVerifiedAt(ctx context.Context, userID string) (*time.Time, error)
 	GetUserMustResetPassword(ctx context.Context, userID string) (bool, error)
+
+	// Chat / Conversation
+	CreateConversation(ctx context.Context, conv *gorm_model.Conversation) error
+	GetConversationByID(ctx context.Context, id string) (*gorm_model.Conversation, error)
+	GetConversationBySubrequestAndCandidate(ctx context.Context, subrequestID, candidateID string) (*gorm_model.Conversation, error)
+	FetchConversationsByUser(ctx context.Context, userID string, limit, offset int64) ([]gorm_model.Conversation, error)
+	CountConversationsByUser(ctx context.Context, userID string) (int64, error)
+
+	// Messages
+	CreateMessage(ctx context.Context, msg *gorm_model.Message) error
+	GetMessageByID(ctx context.Context, id string) (*gorm_model.Message, error)
+	FetchMessagesByConversation(ctx context.Context, conversationID string, limit, offset int64) ([]gorm_model.Message, error)
+	CountMessagesByConversation(ctx context.Context, conversationID string) (int64, error)
+	MarkMessagesAsRead(ctx context.Context, conversationID, readerUserID string) error
+
+	// Chat Authorization helpers
+	IsAdminOfSubrequest(ctx context.Context, adminID, subrequestID string) (bool, error)
+	IsCandidateOnSubrequest(ctx context.Context, candidateID, subrequestID string) (bool, error)
+	GetCandidateRecruitmentStatusName(ctx context.Context, candidateID string) (string, error)
 }
 
 type CacheRepo interface {

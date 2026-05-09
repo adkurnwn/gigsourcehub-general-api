@@ -1,4 +1,4 @@
-h1:04ejaFIFG53gFCG2d1q7nngnQqHZ4miq3MPJnePfY/U=
+h1:iTNgVbVA5IJ8oa9zpvMWVV9vsjQVkHFaM5u15PrCytE=
 20260301081551_init.sql h1:+1bzghZ6e0PhFe8TIjoQdJ7hEp4CLUlBlyfVDOAe8o4=
 20260301081552_add_seeder_prov_kab_kota_indonesia.sql h1:nVsDxVEaww89UrDtE/uSp6OYHxMg+GIUDewzRV7Jsd8=
 20260301081553_add_seeder_reference_data.sql h1:8n9QgkmOPPSGIA7+2alcfi9pexAhMeQRduqZm46SchQ=
@@ -15,5 +15,7 @@ h1:04ejaFIFG53gFCG2d1q7nngnQqHZ4miq3MPJnePfY/U=
 20260417013503_add_title_to_ai_chats.sql h1:CKvaeKdm4jDzA80649d9p4u0iAjY+t55YacpJoQGmco=
 20260418041420_add_summary_user.sql h1:vOS4ZMWaqC0efblsr2yamtMAgBBC84ulKJYD7eHO1I4=
 20260419065728_make_actor_id_nullable.sql h1:ExnufOC6HCOY+tPq/HYq7FsfbKBXZD35/ODCpoK8Vdk=
-20260420142526_add_verification_and_reset_token.sql h1:judkyGMtN//eTRSdhA+pGWzZ4pNod2bkrFU5dbS4eTw=
-20260420153515_add_user_must_reset_password.sql h1:gozK+gfQliYrziPQ7XGiYDbMaVcWXhdRyZ6eO7FS6sw=
+20260420142526_add_verification_and_reset_token.sql h1:BERvwptUkSsEUPvPBKWFd9G/aIXjD+oIW8Hn/lyT4R4=
+20260420153515_add_user_must_reset_password.sql h1:3KYeZ1hSru8gCJAfrqcKKFnGBG60t9kj/7YLnqMOb/Q=
+20260506073519_add_chat_columns.sql h1:W6H013aNEuXF5+f41Qu+dIvewpWhU8DULaVg3K0r8JU=
+20260509082113_add_reply_message.sql h1:jeO2mlvwocVjatYj/RBhcCCnywK9rezmy2WgI6mQK/s=

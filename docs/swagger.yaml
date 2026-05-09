@@ -121,6 +121,16 @@ definitions:
     required:
     - candidate_id
     type: object
+  request_model.CreateConversationRequest:
+    properties:
+      candidate_user_id:
+        type: string
+      subrequest_id:
+        type: string
+    required:
+    - candidate_user_id
+    - subrequest_id
+    type: object
   request_model.CreateJobRoleRequest:
     properties:
       name:
@@ -261,6 +271,15 @@ definitions:
         type: string
     required:
     - query
+    type: object
+  request_model.SendMessageRequest:
+    properties:
+      content:
+        type: string
+      reply_to_message_id:
+        type: string
+    required:
+    - content
     type: object
   request_model.UpdateJobRoleRequest:
     properties:
@@ -857,6 +876,205 @@ paths:
       summary: Delete Bookmark
       tags:
       - Bookmarks
+  /chats:
+    get:
+      description: Get paginated list of conversations for the authenticated user
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: List my conversations
+      tags:
+      - Chat
+    post:
+      consumes:
+      - application/json
+      description: Admin creates a new chat conversation scoped to a subrequest
+      parameters:
+      - description: Create Conversation
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateConversationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create a conversation with a candidate
+      tags:
+      - Chat
+  /chats/{id}:
+    get:
+      description: Get a specific conversation by ID
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get conversation detail
+      tags:
+      - Chat
+  /chats/{id}/messages:
+    get:
+      description: Get paginated messages for a conversation (newest first, default
+        20)
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: List messages in a conversation
+      tags:
+      - Chat
+    post:
+      consumes:
+      - application/json
+      description: Send a message in a conversation
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Send Message
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.SendMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Send a message
+      tags:
+      - Chat
+  /chats/{id}/read:
+    put:
+      description: Mark all unread messages from the other participant as read
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Mark messages as read
+      tags:
+      - Chat
   /cv/confirm:
     post:
       consumes:
@@ -2421,6 +2639,21 @@ paths:
       summary: Fetch Candidates
       tags:
       - Users
+  /ws/chat:
+    get:
+      description: 'Connect via WebSocket. Pass JWT token as query param: /ws/chat?token=<jwt>'
+      parameters:
+      - description: JWT token
+        in: query
+        name: token
+        required: true
+        type: string
+      responses:
+        "101":
+          description: Switching Protocols
+      summary: WebSocket connection for real-time chat
+      tags:
+      - Chat
 securityDefinitions:
   BearerAuth:
     description: 'Insert JWT Token with format: **Bearer {your token}**'
