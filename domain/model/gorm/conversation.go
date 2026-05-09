@@ -42,6 +42,7 @@ type ConversationResp struct {
 	CandidateUserName           string       `json:"candidate_user_name"`
 	CandidateUserProfilePicture *string      `json:"candidate_user_profile_picture"`
 	LastMessage                 *MessageResp `json:"last_message"`
+	UnreadCount                 int64        `json:"unread_count"`
 	CreatedAt                   time.Time    `json:"created_at"`
 	UpdatedAt                   time.Time    `json:"updated_at"`
 }

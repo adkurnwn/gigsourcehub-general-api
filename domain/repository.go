@@ -129,6 +129,8 @@ type GormRepo interface {
 	FetchMessagesByConversation(ctx context.Context, conversationID string, limit, offset int64) ([]gorm_model.Message, error)
 	CountMessagesByConversation(ctx context.Context, conversationID string) (int64, error)
 	MarkMessagesAsRead(ctx context.Context, conversationID, readerUserID string) error
+	CountUnreadMessagesByUser(ctx context.Context, userID string) (int64, error)
+	CountUnreadMessagesByConversation(ctx context.Context, conversationID, userID string) (int64, error)
 
 	// Chat Authorization helpers
 	IsAdminOfSubrequest(ctx context.Context, adminID, subrequestID string) (bool, error)

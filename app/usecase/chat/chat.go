@@ -119,7 +119,10 @@ func (u *appUsecase) FetchMyConversations(ctx context.Context, userID string, pa
 
 	var results []interface{}
 	for _, conv := range conversations {
-		results = append(results, conv.ToConversationResp(userRole))
+		resp := conv.ToConversationResp(userRole)
+		unread, _ := u.gormDbRepo.CountUnreadMessagesByConversation(ctx, conv.ID, userID)
+		resp.UnreadCount = unread
+		results = append(results, resp)
 	}
 
 	var nextCursor *string
@@ -128,12 +131,15 @@ func (u *appUsecase) FetchMyConversations(ctx context.Context, userID string, pa
 		nextCursor = &nextStr
 	}
 
-	return response.Success(response.List{
-		List:   results,
-		Limit:  limit,
-		Page:   page,
-		Total:  total,
-		Cursor: nextCursor,
+	unreadTotal, _ := u.gormDbRepo.CountUnreadMessagesByUser(ctx, userID)
+
+	return response.Success(map[string]interface{}{
+		"list":         results,
+		"limit":        limit,
+		"page":         page,
+		"total":        total,
+		"cursor":       nextCursor,
+		"unread_total": unreadTotal,
 	})
 }
 

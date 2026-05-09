@@ -159,6 +159,31 @@ func (r *gormRepo) MarkMessagesAsRead(ctx context.Context, conversationID, reade
 	return err
 }
 
+func (r *gormRepo) CountUnreadMessagesByUser(ctx context.Context, userID string) (int64, error) {
+	var total int64
+	err := r.db.WithContext(ctx).Model(&gorm_model.Message{}).
+		Joins("JOIN conversations ON conversations.id = messages.conversation_id").
+		Where("(conversations.admin_user_id = ? OR conversations.candidate_user_id = ?) AND messages.sender_user_id != ? AND messages.read_at IS NULL", userID, userID, userID).
+		Count(&total).Error
+	if err != nil {
+		logrus.Errorf("CountUnreadMessagesByUser DB Error: %v", err)
+		return 0, err
+	}
+	return total, nil
+}
+
+func (r *gormRepo) CountUnreadMessagesByConversation(ctx context.Context, conversationID, userID string) (int64, error) {
+	var total int64
+	err := r.db.WithContext(ctx).Model(&gorm_model.Message{}).
+		Where("conversation_id = ? AND sender_user_id != ? AND read_at IS NULL", conversationID, userID).
+		Count(&total).Error
+	if err != nil {
+		logrus.Errorf("CountUnreadMessagesByConversation DB Error: %v", err)
+		return 0, err
+	}
+	return total, nil
+}
+
 func (r *gormRepo) IsAdminOfSubrequest(ctx context.Context, adminID, subrequestID string) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
