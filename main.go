@@ -39,6 +39,8 @@ import (
 	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
 	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
 	usecase_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/system_setting"
+	http_chat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/chat"
+	usecase_chat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/chat"
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
 	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
 
@@ -317,6 +319,15 @@ func main() {
 	http_aichat.NewAIChatHandler(apiGroup, mdl, ucAIChat)
 	http_activity_log.NewActivityLogHandler(apiGroup, mdl, ucActivityLog)
 	http_system_setting.NewSystemSettingHandler(apiGroup, mdl, ucSystemSetting)
+
+	// init chat
+	chatHub := http_chat.NewHub()
+	go chatHub.Run()
+
+	ucChat := usecase_chat.NewAppUsecase(usecase_chat.RepoInjection{
+		GormDbRepo: repo,
+	}, chatHub, timeoutContext)
+	http_chat.NewChatHandler(apiGroup, mdl, ucChat, chatHub)
 
 	// init search (AI)
 	if aiRepo != nil {

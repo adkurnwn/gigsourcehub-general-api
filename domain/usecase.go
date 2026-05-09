@@ -108,3 +108,12 @@ type ActivityLogAppUsecase interface {
 	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.LogActivityFilter) response.Base
 	ExportData(ctx context.Context, filter gorm_model.LogActivityFilter, format string, actorID string) ([]byte, string, string, error)
 }
+
+type ChatAppUsecase interface {
+	CreateConversation(ctx context.Context, adminID string, req request_model.CreateConversationRequest) response.Base
+	FetchMyConversations(ctx context.Context, userID string, page, limit int64) response.Base
+	GetConversation(ctx context.Context, userID string, conversationID string) response.Base
+	SendMessage(ctx context.Context, userID string, conversationID string, req request_model.SendMessageRequest) response.Base
+	FetchMessages(ctx context.Context, userID string, conversationID string, page, limit int64) response.Base
+	MarkAsRead(ctx context.Context, userID string, conversationID string) response.Base
+}
