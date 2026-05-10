@@ -30,3 +30,7 @@ type UpdateRequestRequest struct {
 	DueDate         *string `json:"due_date"`
 	Urgency         string  `json:"urgency" validate:"required,oneof=Low Medium High"`
 }
+
+type RejectRequestRequest struct {
+	RejectedReason string `json:"rejected_reason" validate:"required"`
+}

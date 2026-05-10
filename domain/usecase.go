@@ -90,10 +90,13 @@ type AdminNoteAppUsecase interface {
 type RequestAppUsecase interface {
 	CreateByEmployee(ctx context.Context, employeeID string, req request_model.CreateRequestRequest) response.Base
 	FetchByEmployee(ctx context.Context, employeeID string, page, limit int64) response.Base
+	FetchByAdmin(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base
 	GetByID(ctx context.Context, employeeID, requestID string) response.Base
 	UpdateByEmployee(ctx context.Context, employeeID string, requestID string, req request_model.UpdateRequestRequest) response.Base
 	UpdateSubrequestByEmployee(ctx context.Context, employeeID string, requestID string, subrequestID string, req request_model.UpdateSubrequestRequest) response.Base
 	AddSubrequestByEmployee(ctx context.Context, employeeID string, requestID string, req request_model.CreateSubrequestRequest) response.Base
+	AssignPIC(ctx context.Context, adminID, requestID string) response.Base
+	RejectRequest(ctx context.Context, adminID, requestID string, rejectedReason string) response.Base
 }
 
 type AIChatAppUsecase interface {

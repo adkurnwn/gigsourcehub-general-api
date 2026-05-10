@@ -9,6 +9,19 @@ import (
 	"gorm.io/gorm"
 )
 
+func applyRequestFilter(q *gorm.DB, filter gorm_model.RequestFilter) *gorm.DB {
+	if filter.Status != nil {
+		q = q.Where("status = ?", *filter.Status)
+	}
+	if filter.Urgency != nil {
+		q = q.Where("urgency = ?", *filter.Urgency)
+	}
+	if filter.Search != nil {
+		q = q.Where("project_name ILIKE ?", "%"+*filter.Search+"%")
+	}
+	return q
+}
+
 func (r *gormRepo) CreateRequest(ctx context.Context, model *gorm_model.Request) error {
 	if err := r.db.WithContext(ctx).Create(model).Error; err != nil {
 		logrus.Errorf("CreateRequest DB Error: %v\n", err)
@@ -45,6 +58,35 @@ func (r *gormRepo) CountRequestsByEmployee(ctx context.Context, employeeID strin
 	return total, nil
 }
 
+func (r *gormRepo) FetchRequestsByAdmin(ctx context.Context, filter gorm_model.RequestFilter, limit, offset int64) (*sql.Rows, error) {
+	q := r.db.WithContext(ctx).Model(&gorm_model.Request{}).
+		Preload("AdminUser").
+		Preload("Subrequests").
+		Preload("Subrequests.JobRole").
+		Order("created_at DESC").
+		Limit(int(limit)).Offset(int(offset))
+
+	q = applyRequestFilter(q, filter)
+
+	rows, err := q.Rows()
+	if err != nil {
+		logrus.Errorf("FetchRequestsByAdmin DB Error: %v\n", err)
+		return nil, err
+	}
+	return rows, nil
+}
+
+func (r *gormRepo) CountRequestsByAdmin(ctx context.Context, filter gorm_model.RequestFilter) (int64, error) {
+	var total int64
+	q := r.db.WithContext(ctx).Model(&gorm_model.Request{})
+	q = applyRequestFilter(q, filter)
+	if err := q.Count(&total).Error; err != nil {
+		logrus.Errorf("CountRequestsByAdmin DB Error: %v\n", err)
+		return 0, err
+	}
+	return total, nil
+}
+
 func (r *gormRepo) GetRequestByID(ctx context.Context, id string) (*gorm_model.Request, error) {
 	var request gorm_model.Request
 	err := r.db.WithContext(ctx).
@@ -63,6 +105,24 @@ func (r *gormRepo) GetRequestByID(ctx context.Context, id string) (*gorm_model.R
 func (r *gormRepo) UpdateRequestByEmployee(ctx context.Context, model *gorm_model.Request) error {
 	if err := r.db.WithContext(ctx).Model(&gorm_model.Request{}).Where("id = ?", model.ID).Updates(model).Error; err != nil {
 		logrus.Errorf("UpdateRequestByEmployee DB Error: %v\n", err)
+		return err
+	}
+	return nil
+}
+
+func (r *gormRepo) UpdateRequestByAdmin(ctx context.Context, model *gorm_model.Request) error {
+	if err := r.db.WithContext(ctx).Model(&gorm_model.Request{}).Where("id = ?", model.ID).Updates(model).Error; err != nil {
+		logrus.Errorf("UpdateRequestByAdmin DB Error: %v\n", err)
+		return err
+	}
+	return nil
+}
+
+func (r *gormRepo) UpdateRequestAdminUser(ctx context.Context, requestID string, adminUserID string) error {
+	if err := r.db.WithContext(ctx).Model(&gorm_model.Request{}).
+		Where("id = ?", requestID).
+		Update("admin_user_id", adminUserID).Error; err != nil {
+		logrus.Errorf("UpdateRequestAdminUser DB Error: %v\n", err)
 		return err
 	}
 	return nil

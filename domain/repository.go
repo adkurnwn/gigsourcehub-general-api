@@ -79,8 +79,12 @@ type GormRepo interface {
 	CreateRequest(ctx context.Context, model *gorm_model.Request) error
 	FetchRequestsByEmployee(ctx context.Context, employeeID string, limit, offset int64) (*sql.Rows, error)
 	CountRequestsByEmployee(ctx context.Context, employeeID string) (int64, error)
+	FetchRequestsByAdmin(ctx context.Context, filter gorm_model.RequestFilter, limit, offset int64) (*sql.Rows, error)
+	CountRequestsByAdmin(ctx context.Context, filter gorm_model.RequestFilter) (int64, error)
 	GetRequestByID(ctx context.Context, id string) (*gorm_model.Request, error)
 	UpdateRequestByEmployee(ctx context.Context, model *gorm_model.Request) error
+	UpdateRequestByAdmin(ctx context.Context, model *gorm_model.Request) error
+	UpdateRequestAdminUser(ctx context.Context, requestID string, adminUserID string) error
 	GetSubrequestByID(ctx context.Context, id string) (*gorm_model.Subrequest, error)
 	CreateSubrequestByEmployee(ctx context.Context, model *gorm_model.Subrequest) error
 	UpdateSubrequestByEmployee(ctx context.Context, model *gorm_model.Subrequest) error

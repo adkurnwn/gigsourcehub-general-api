@@ -279,6 +279,13 @@ definitions:
       password:
         type: string
     type: object
+  request_model.RejectRequestRequest:
+    properties:
+      rejected_reason:
+        type: string
+    required:
+    - rejected_reason
+    type: object
   request_model.ResetPasswordRequest:
     properties:
       password:
@@ -441,6 +448,165 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 paths:
+  /admin/requests:
+    get:
+      description: Get paginated list of all requests for admin dashboard, with optional
+        filters
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by request status
+        in: query
+        name: status
+        type: string
+      - description: Filter by request urgency
+        in: query
+        name: urgency
+        type: string
+      - description: Search by project name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch all requests
+      tags:
+      - Admin Request
+  /admin/requests/{id}/reject:
+    patch:
+      consumes:
+      - application/json
+      description: Reject the request and record a reason for the employee
+      parameters:
+      - description: Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Reject payload
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.RejectRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Reject a Request
+      tags:
+      - Admin Request
+  /admin/requests/{id}/validate:
+    patch:
+      description: Assign the authenticated admin as PIC for a request
+      parameters:
+      - description: Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Assign request PIC
+      tags:
+      - Admin Request
   /ai-chat:
     get:
       consumes:
@@ -1874,7 +2040,7 @@ paths:
       - Employee Request
   /requests/{id}:
     get:
-      description: Fetch an employee's request and its associated subrequests
+      description: Fetch a request and its associated subrequests (employee or admin)
       parameters:
       - description: Request ID
         in: path
