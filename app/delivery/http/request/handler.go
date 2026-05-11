@@ -40,6 +40,8 @@ func NewRequestHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.
 	adminRoute.Use(mdl.AuthAdmin())
 
 	adminRoute.GET("", handler.FetchAllForAdmin)
+	adminRoute.GET("/pending", handler.FetchPendingForAdmin)
+	adminRoute.GET("/my-requests", handler.FetchMyRequestsForAdmin)
 	adminRoute.PATCH("/:id/validate", handler.AssignPIC)
 	adminRoute.PATCH("/:id/reject", handler.RejectRequest)
 }
@@ -143,6 +145,52 @@ func (h *routeHandler) FetchAllForAdmin(ctx *gin.Context) {
 	}
 
 	result := h.Usecase.FetchByAdmin(ctx.Request.Context(), pagination.Page, pagination.Limit, filter)
+	ctx.JSON(result.Status, result)
+}
+
+// Fetch Pending Requests (Admin)
+// @Summary Fetch pending requests
+// @Description Get paginated list of requests whose status is PENDING for admin dashboard
+// @Tags Admin Request
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Limit per page" default(10)
+// @Success 200 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /admin/requests/pending [get]
+// @Security BearerAuth
+func (h *routeHandler) FetchPendingForAdmin(ctx *gin.Context) {
+	pagination := helpers.GetPagination(ctx)
+
+	result := h.Usecase.FetchPendingForAdmin(ctx.Request.Context(), pagination.Page, pagination.Limit)
+	ctx.JSON(result.Status, result)
+}
+
+// Fetch My Requests (Admin)
+// @Summary Fetch my assigned requests
+// @Description Get paginated list of requests assigned to the authenticated admin
+// @Tags Admin Request
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Limit per page" default(10)
+// @Success 200 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /admin/requests/my-requests [get]
+// @Security BearerAuth
+func (h *routeHandler) FetchMyRequestsForAdmin(ctx *gin.Context) {
+	userClaim, exists := ctx.Get("token_data")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, response.Error(http.StatusUnauthorized, "User ID not found in context"))
+		return
+	}
+	adminID := userClaim.(domain.JWTClaimUser).UserID
+	pagination := helpers.GetPagination(ctx)
+
+	result := h.Usecase.FetchMyRequestsForAdmin(ctx.Request.Context(), adminID, pagination.Page, pagination.Limit)
 	ctx.JSON(result.Status, result)
 }
 

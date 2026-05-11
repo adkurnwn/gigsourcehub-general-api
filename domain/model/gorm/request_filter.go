@@ -5,4 +5,5 @@ type RequestFilter struct {
 	Status  *string
 	Urgency *string
 	Search  *string
+	AdminUserID *string
 }

@@ -159,6 +159,19 @@ func (u *appUsecase) FetchByEmployee(ctx context.Context, employeeID string, pag
 }
 
 func (u *appUsecase) FetchByAdmin(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base {
+	return u.fetchByAdminWithFilter(ctx, page, limit, filter)
+}
+
+func (u *appUsecase) FetchPendingForAdmin(ctx context.Context, page, limit int64) response.Base {
+	status := "PENDING"
+	return u.fetchByAdminWithFilter(ctx, page, limit, gorm_model.RequestFilter{Status: &status})
+}
+
+func (u *appUsecase) FetchMyRequestsForAdmin(ctx context.Context, adminID string, page, limit int64) response.Base {
+	return u.fetchByAdminWithFilter(ctx, page, limit, gorm_model.RequestFilter{AdminUserID: &adminID})
+}
+
+func (u *appUsecase) fetchByAdminWithFilter(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 

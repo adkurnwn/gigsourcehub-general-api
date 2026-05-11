@@ -19,6 +19,9 @@ func applyRequestFilter(q *gorm.DB, filter gorm_model.RequestFilter) *gorm.DB {
 	if filter.Search != nil {
 		q = q.Where("project_name ILIKE ?", "%"+*filter.Search+"%")
 	}
+	if filter.AdminUserID != nil {
+		q = q.Where("admin_user_id = ?", *filter.AdminUserID)
+	}
 	return q
 }
 
