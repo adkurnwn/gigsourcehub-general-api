@@ -88,6 +88,7 @@ type GormRepo interface {
 	GetSubrequestByID(ctx context.Context, id string) (*gorm_model.Subrequest, error)
 	CreateSubrequestByEmployee(ctx context.Context, model *gorm_model.Subrequest) error
 	UpdateSubrequestByEmployee(ctx context.Context, model *gorm_model.Subrequest) error
+	AssignCandidateToSubrequest(ctx context.Context, model *gorm_model.SubrequestCandidate, recruitmentStatusID string) error
 
 	GetDB() *gorm.DB
 

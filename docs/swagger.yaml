@@ -106,6 +106,13 @@ definitions:
       years_experience:
         type: integer
     type: object
+  request_model.AssignCandidateToSubrequestRequest:
+    properties:
+      candidate_user_id:
+        type: string
+    required:
+    - candidate_user_id
+    type: object
   request_model.ConfirmCVRequest:
     properties:
       edited_data:
@@ -605,6 +612,46 @@ paths:
       security:
       - BearerAuth: []
       summary: Assign request PIC
+      tags:
+      - Admin Request
+  /admin/requests/{request_id}/subrequests/{sub_id}/assign:
+    post:
+      consumes:
+      - application/json
+      description: Creates a subrequest-candidate pivot row and marks the candidate's
+        recruitment status as Assigned
+      parameters:
+      - description: Request ID
+        in: path
+        name: request_id
+        required: true
+        type: string
+      - description: Subrequest ID
+        in: path
+        name: sub_id
+        required: true
+        type: string
+      - description: Assignment Data
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.AssignCandidateToSubrequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Assign a candidate to a subrequest
       tags:
       - Admin Request
   /admin/requests/my-requests:

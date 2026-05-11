@@ -3,6 +3,7 @@ package gormrepo
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	"github.com/sirupsen/logrus"
@@ -164,6 +165,37 @@ func (r *gormRepo) CreateSubrequestByEmployee(ctx context.Context, model *gorm_m
 
 	if err != nil {
 		logrus.Errorf("CreateSubrequestByEmployee DB Error: %v\n", err)
+	}
+	return err
+}
+
+func (r *gormRepo) AssignCandidateToSubrequest(ctx context.Context, model *gorm_model.SubrequestCandidate, recruitmentStatusID string) error {
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var existingCount int64
+		if err := tx.Model(&gorm_model.SubrequestCandidate{}).
+			Where("subrequest_id = ? AND candidate_user_id = ? AND deleted_at IS NULL", model.SubrequestID, model.CandidateUserID).
+			Count(&existingCount).Error; err != nil {
+			return err
+		}
+		if existingCount > 0 {
+			return errors.New("candidate already assigned to this subrequest")
+		}
+
+		if err := tx.Create(model).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&gorm_model.User{}).
+			Where("id = ?", model.CandidateUserID).
+			Update("recruitment_status_id", recruitmentStatusID).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		logrus.Errorf("AssignCandidateToSubrequest DB Error: %v\n", err)
 	}
 	return err
 }

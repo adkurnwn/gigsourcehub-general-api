@@ -97,6 +97,7 @@ type RequestAppUsecase interface {
 	UpdateByEmployee(ctx context.Context, employeeID string, requestID string, req request_model.UpdateRequestRequest) response.Base
 	UpdateSubrequestByEmployee(ctx context.Context, employeeID string, requestID string, subrequestID string, req request_model.UpdateSubrequestRequest) response.Base
 	AddSubrequestByEmployee(ctx context.Context, employeeID string, requestID string, req request_model.CreateSubrequestRequest) response.Base
+	AssignCandidateToSubrequest(ctx context.Context, adminID string, requestID string, subrequestID string, req request_model.AssignCandidateToSubrequestRequest) response.Base
 	AssignPIC(ctx context.Context, adminID, requestID string) response.Base
 	RejectRequest(ctx context.Context, adminID, requestID string, rejectedReason string) response.Base
 }

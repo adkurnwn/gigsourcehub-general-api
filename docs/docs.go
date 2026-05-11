@@ -394,6 +394,71 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/requests/{request_id}/subrequests/{sub_id}/assign": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a subrequest-candidate pivot row and marks the candidate's recruitment status as Assigned",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Request"
+                ],
+                "summary": "Assign a candidate to a subrequest",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Request ID",
+                        "name": "request_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Subrequest ID",
+                        "name": "sub_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Assignment Data",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.AssignCandidateToSubrequestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Base"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/ai-chat": {
             "get": {
                 "security": [
@@ -4292,6 +4357,17 @@ const docTemplate = `{
                 },
                 "years_experience": {
                     "type": "integer"
+                }
+            }
+        },
+        "request_model.AssignCandidateToSubrequestRequest": {
+            "type": "object",
+            "required": [
+                "candidate_user_id"
+            ],
+            "properties": {
+                "candidate_user_id": {
+                    "type": "string"
                 }
             }
         },

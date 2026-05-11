@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
@@ -455,6 +456,73 @@ func (u *appUsecase) AddSubrequestByEmployee(ctx context.Context, employeeID str
 	if err := u.gormDbRepo.CreateSubrequestByEmployee(ctx, subReq); err != nil {
 		logrus.Errorf("AddSubrequestByEmployee DB Error: %v", err)
 		return response.Error(http.StatusInternalServerError, "Failed to append subrequest")
+	}
+
+	return response.Success(nil)
+}
+
+func (u *appUsecase) AssignCandidateToSubrequest(ctx context.Context, adminID string, requestID string, subrequestID string, req request_model.AssignCandidateToSubrequestRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	if req.CandidateUserID == "" {
+		return response.Error(http.StatusBadRequest, "candidate_user_id is required")
+	}
+
+	existingReq, err := u.gormDbRepo.GetRequestByID(ctx, requestID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(http.StatusNotFound, "Request not found")
+		}
+		return response.Error(http.StatusInternalServerError, "Failed to fetch parent request")
+	}
+
+	if existingReq.AdminUserID == nil || *existingReq.AdminUserID != adminID {
+		return response.Error(http.StatusForbidden, "You do not have permission to assign candidates to this request")
+	}
+
+	existingSubReq, err := u.gormDbRepo.GetSubrequestByID(ctx, subrequestID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(http.StatusNotFound, "Subrequest not found")
+		}
+		return response.Error(http.StatusInternalServerError, "Failed to fetch subrequest")
+	}
+
+	if existingSubReq.RequestID != requestID {
+		return response.Error(http.StatusBadRequest, "Subrequest does not belong to the targeted Request ID")
+	}
+
+	candidate, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: req.CandidateUserID},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch candidate")
+	}
+	if candidate == nil {
+		return response.Error(http.StatusNotFound, "Candidate not found")
+	}
+	if candidate.SystemRole == nil || candidate.SystemRole.Name != "Candidate" {
+		return response.Error(http.StatusBadRequest, "User is not a candidate")
+	}
+
+	var assignedStatus gorm_model.RecruitmentStatus
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).Where("name = ?", "Assigned").First(&assignedStatus).Error; err != nil {
+		return response.Error(http.StatusInternalServerError, "Assigned recruitment status not found")
+	}
+
+	assignment := &gorm_model.SubrequestCandidate{
+		SubrequestID:    subrequestID,
+		CandidateUserID: candidate.ID,
+		Name:            candidate.Name,
+	}
+
+	if err := u.gormDbRepo.AssignCandidateToSubrequest(ctx, assignment, assignedStatus.ID); err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "already assigned") {
+			return response.Error(http.StatusConflict, "Candidate is already assigned to this subrequest")
+		}
+		logrus.Errorf("AssignCandidateToSubrequest DB Error: %v", err)
+		return response.Error(http.StatusInternalServerError, "Failed to assign candidate to subrequest")
 	}
 
 	return response.Success(nil)

@@ -44,6 +44,7 @@ func NewRequestHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.
 	adminRoute.GET("/my-requests", handler.FetchMyRequestsForAdmin)
 	adminRoute.PATCH("/:id/validate", handler.AssignPIC)
 	adminRoute.PATCH("/:id/reject", handler.RejectRequest)
+	adminRoute.POST("/:request_id/subrequests/:sub_id/assign", handler.AssignCandidateToSubrequest)
 }
 
 // Create Request
@@ -398,5 +399,39 @@ func (h *routeHandler) AddSubrequest(ctx *gin.Context) {
 	userID := userClaim.(domain.JWTClaimUser).UserID
 
 	result := h.Usecase.AddSubrequestByEmployee(ctx.Request.Context(), userID, requestID, body)
+	ctx.JSON(result.Status, result)
+}
+
+// Assign Candidate To Subrequest
+// @Summary Assign a candidate to a subrequest
+// @Description Creates a subrequest-candidate pivot row and marks the candidate's recruitment status as Assigned
+// @Tags Admin Request
+// @Accept json
+// @Produce json
+// @Param request_id path string true "Request ID"
+// @Param sub_id path string true "Subrequest ID"
+// @Param req body request_model.AssignCandidateToSubrequestRequest true "Assignment Data"
+// @Success 200 {object} response.Base{data=nil}
+// @Router /admin/requests/{request_id}/subrequests/{sub_id}/assign [post]
+// @Security BearerAuth
+func (h *routeHandler) AssignCandidateToSubrequest(ctx *gin.Context) {
+	requestID := ctx.Param("request_id")
+	subrequestID := ctx.Param("sub_id")
+
+	var body request_model.AssignCandidateToSubrequestRequest
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		log.Println("BindJSON error:", err)
+		ctx.JSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "Invalid assignment payload"))
+		return
+	}
+
+	userClaim, exists := ctx.Get("token_data")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, response.Error(http.StatusUnauthorized, "User ID not found in context"))
+		return
+	}
+	adminID := userClaim.(domain.JWTClaimUser).UserID
+
+	result := h.Usecase.AssignCandidateToSubrequest(ctx.Request.Context(), adminID, requestID, subrequestID, body)
 	ctx.JSON(result.Status, result)
 }
