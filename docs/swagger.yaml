@@ -1393,6 +1393,43 @@ paths:
       summary: Mark messages as read
       tags:
       - Chat
+  /chats/start:
+    post:
+      consumes:
+      - application/json
+      description: Admin creates or reuses a conversation and marks the candidate
+        recruitment status as Contacted
+      parameters:
+      - description: Create Conversation
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateConversationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Start a chat with an assigned candidate
+      tags:
+      - Chat
   /cv/confirm:
     post:
       consumes:

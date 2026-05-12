@@ -40,6 +40,7 @@ func NewChatHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.Cha
 	// Admin-only: create conversation
 	adminAPI := r.Group("/chats", mdl.Auth(), mdl.AuthAdmin())
 	adminAPI.POST("", handler.CreateConversation)
+	adminAPI.POST("/start", handler.StartConversation)
 
 	// Admin + Candidate: shared endpoints
 	chatAPI := r.Group("/chats", mdl.Auth(), mdl.AuthRole("Admin", "Candidate"))
@@ -81,6 +82,37 @@ func (h *routeHandler) CreateConversation(c *gin.Context) {
 	}
 
 	res := h.Usecase.CreateConversation(c.Request.Context(), tokenData.UserID, req)
+	c.JSON(res.Status, res)
+}
+
+// StartConversation godoc
+// @Security BearerAuth
+// @Summary Start a chat with an assigned candidate
+// @Description Admin creates or reuses a conversation and marks the candidate recruitment status as Contacted
+// @Tags Chat
+// @Accept json
+// @Produce json
+// @Param request body request_model.CreateConversationRequest true "Create Conversation"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Router /chats/start [post]
+func (h *routeHandler) StartConversation(c *gin.Context) {
+	claims, ok := c.Get("token_data")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, response.Error(http.StatusUnauthorized, "Unauthorized"))
+		return
+	}
+	tokenData := claims.(domain.JWTClaimUser)
+
+	var req request_model.CreateConversationRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "Invalid request body"))
+		return
+	}
+
+	res := h.Usecase.StartConversation(c.Request.Context(), tokenData.UserID, req)
 	c.JSON(res.Status, res)
 }
 

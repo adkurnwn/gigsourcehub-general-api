@@ -9,6 +9,7 @@ import (
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 // excludedStatuses lists recruitment statuses that block conversation creation.
@@ -19,6 +20,14 @@ var excludedStatuses = map[string]bool{
 }
 
 func (u *appUsecase) CreateConversation(ctx context.Context, adminID string, req request_model.CreateConversationRequest) response.Base {
+	return u.createConversation(ctx, adminID, req, false)
+}
+
+func (u *appUsecase) StartConversation(ctx context.Context, adminID string, req request_model.CreateConversationRequest) response.Base {
+	return u.createConversation(ctx, adminID, req, true)
+}
+
+func (u *appUsecase) createConversation(ctx context.Context, adminID string, req request_model.CreateConversationRequest, markContacted bool) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -73,6 +82,11 @@ func (u *appUsecase) CreateConversation(ctx context.Context, adminID string, req
 	// 5. Check if conversation already exists for this subrequest + candidate
 	existing, _ := u.gormDbRepo.GetConversationBySubrequestAndCandidate(ctx, req.SubrequestID, req.CandidateUserID)
 	if existing != nil {
+		if markContacted {
+			if err := u.markCandidateContacted(ctx, req.CandidateUserID); err != nil {
+				return response.Error(http.StatusInternalServerError, "Failed to update candidate status")
+			}
+		}
 		return response.Success(existing.ToConversationResp(userRole))
 	}
 
@@ -82,7 +96,17 @@ func (u *appUsecase) CreateConversation(ctx context.Context, adminID string, req
 		CandidateUserID: req.CandidateUserID,
 		SubrequestID:    req.SubrequestID,
 	}
-	if err := u.gormDbRepo.CreateConversation(ctx, &conv); err != nil {
+	if markContacted {
+		var contactedStatus gorm_model.RecruitmentStatus
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).Where("name = ?", "Contacted").First(&contactedStatus).Error; err != nil {
+			return response.Error(http.StatusInternalServerError, "Contacted recruitment status not found")
+		}
+
+		if err := u.gormDbRepo.StartConversation(ctx, &conv, contactedStatus.ID); err != nil {
+			logrus.Error("StartConversation error: ", err)
+			return response.Error(http.StatusInternalServerError, "Failed to start conversation")
+		}
+	} else if err := u.gormDbRepo.CreateConversation(ctx, &conv); err != nil {
 		logrus.Error("CreateConversation error: ", err)
 		return response.Error(http.StatusInternalServerError, "Failed to create conversation")
 	}
@@ -94,6 +118,38 @@ func (u *appUsecase) CreateConversation(ctx context.Context, adminID string, req
 	}
 
 	return response.Success(created.ToConversationResp(userRole))
+}
+
+func (u *appUsecase) markCandidateContacted(ctx context.Context, candidateID string) error {
+	statusName, err := u.gormDbRepo.GetCandidateRecruitmentStatusName(ctx, candidateID)
+	if err != nil {
+		return err
+	}
+
+	if statusName == "Contacted" {
+		return nil
+	}
+	if statusName != "Assigned" {
+		return nil
+	}
+
+	var contactedStatus gorm_model.RecruitmentStatus
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).Where("name = ?", "Contacted").First(&contactedStatus).Error; err != nil {
+		return err
+	}
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: candidateID},
+	})
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return gorm.ErrRecordNotFound
+	}
+
+	user.RecruitmentStatusId = &contactedStatus.ID
+	return u.gormDbRepo.UpdateUser(ctx, user)
 }
 
 func (u *appUsecase) FetchMyConversations(ctx context.Context, userID string, page, limit int64) response.Base {

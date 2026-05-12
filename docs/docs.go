@@ -1274,6 +1274,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/chats/start": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin creates or reuses a conversation and marks the candidate recruitment status as Contacted",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Start a chat with an assigned candidate",
+                "parameters": [
+                    {
+                        "description": "Create Conversation",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_model.CreateConversationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Base"
+                        }
+                    }
+                }
+            }
+        },
         "/chats/{id}": {
             "get": {
                 "security": [
