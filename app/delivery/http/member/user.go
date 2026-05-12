@@ -40,6 +40,12 @@ func (h *routeHandler) handleUserRoute(path string) {
 	// patch user recruitment status and candidate level by admin
 	userGroup.PATCH("/:id/recruitment-status", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.PatchUserRecruitmentStatus)
 
+	// cancel recruitment process for candidate by admin
+	userGroup.PATCH("/:id/cancel-recruitment", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.CancelRecruitment)
+
+	// get active subrequest for candidate by admin/superadmin
+	userGroup.GET("/:id/active-subrequest", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin"), h.GetActiveSubrequest)
+
 	// get profile picture by id
 	userGroup.GET("/:id/profile-picture", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin"), h.FetchUserThumb)
 }
@@ -339,5 +345,59 @@ func (h *routeHandler) PatchUserRecruitmentStatus(c *gin.Context) {
 	}
 
 	res := h.Usecase.PatchUserRecruitmentStatus(c.Request.Context(), id, req)
+	c.JSON(res.Status, res)
+}
+
+// CancelRecruitment
+// @Summary Cancel Recruitment Process
+// @Description Cancel a candidate recruitment process and set status to Available
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /users/{id}/cancel-recruitment [patch]
+// @Security BearerAuth
+func (h *routeHandler) CancelRecruitment(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		res := response.Error(http.StatusBadRequest, "Invalid ID parameter")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	res := h.Usecase.CancelRecruitment(c.Request.Context(), id)
+	c.JSON(res.Status, res)
+}
+
+// GetActiveSubrequest
+// @Summary Get Active Subrequest
+// @Description Fetch the active subrequest (project name and job role) for a candidate
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /users/{id}/active-subrequest [get]
+// @Security BearerAuth
+func (h *routeHandler) GetActiveSubrequest(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		res := response.Error(http.StatusBadRequest, "Invalid ID parameter")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	res := h.Usecase.GetActiveSubrequest(c.Request.Context(), id)
 	c.JSON(res.Status, res)
 }

@@ -2918,6 +2918,49 @@ paths:
       summary: Activate User By Superadmin
       tags:
       - Users
+  /users/{id}/active-subrequest:
+    get:
+      consumes:
+      - application/json
+      description: Fetch the active subrequest (project name and job role) for a candidate
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Active Subrequest
+      tags:
+      - Users
   /users/{id}/block:
     patch:
       consumes:
@@ -2959,6 +3002,49 @@ paths:
       security:
       - BearerAuth: []
       summary: Block User By Superadmin
+      tags:
+      - Users
+  /users/{id}/cancel-recruitment:
+    patch:
+      consumes:
+      - application/json
+      description: Cancel a candidate recruitment process and set status to Available
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Cancel Recruitment Process
       tags:
       - Users
   /users/{id}/disable:

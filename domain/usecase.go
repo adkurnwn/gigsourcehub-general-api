@@ -26,6 +26,8 @@ type MemberAppUsecase interface {
 	FetchUserThumb(ctx context.Context, id string) response.Base
 	UpdateProfile(ctx context.Context, userID string, req request_model.UpdateProfileRequest) response.Base
 	PatchUserRecruitmentStatus(ctx context.Context, id string, req request_model.PatchUserRecruitmentStatusRequest) response.Base
+	CancelRecruitment(ctx context.Context, id string) response.Base
+	GetActiveSubrequest(ctx context.Context, id string) response.Base
 
 	VerifyAccount(ctx context.Context, token string) response.Base
 	ForgotPassword(ctx context.Context, req request_model.ForgotPasswordRequest) response.Base

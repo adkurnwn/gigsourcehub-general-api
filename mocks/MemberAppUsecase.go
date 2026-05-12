@@ -598,6 +598,100 @@ func (_c *MemberAppUsecase_UploadProfilePicture_Call) RunAndReturn(run func(cont
 	return _c
 }
 
+// CancelRecruitment provides a mock function with given fields: ctx, id
+func (_m *MemberAppUsecase) CancelRecruitment(ctx context.Context, id string) response.Base {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CancelRecruitment")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string) response.Base); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_CancelRecruitment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelRecruitment'
+type MemberAppUsecase_CancelRecruitment_Call struct {
+	*mock.Call
+}
+
+// CancelRecruitment is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *MemberAppUsecase_Expecter) CancelRecruitment(ctx interface{}, id interface{}) *MemberAppUsecase_CancelRecruitment_Call {
+	return &MemberAppUsecase_CancelRecruitment_Call{Call: _e.mock.On("CancelRecruitment", ctx, id)}
+}
+
+func (_c *MemberAppUsecase_CancelRecruitment_Call) Run(run func(ctx context.Context, id string)) *MemberAppUsecase_CancelRecruitment_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_CancelRecruitment_Call) Return(_a0 response.Base) *MemberAppUsecase_CancelRecruitment_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_CancelRecruitment_Call) RunAndReturn(run func(context.Context, string) response.Base) *MemberAppUsecase_CancelRecruitment_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetActiveSubrequest provides a mock function with given fields: ctx, id
+func (_m *MemberAppUsecase) GetActiveSubrequest(ctx context.Context, id string) response.Base {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetActiveSubrequest")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string) response.Base); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_GetActiveSubrequest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetActiveSubrequest'
+type MemberAppUsecase_GetActiveSubrequest_Call struct {
+	*mock.Call
+}
+
+// GetActiveSubrequest is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *MemberAppUsecase_Expecter) GetActiveSubrequest(ctx interface{}, id interface{}) *MemberAppUsecase_GetActiveSubrequest_Call {
+	return &MemberAppUsecase_GetActiveSubrequest_Call{Call: _e.mock.On("GetActiveSubrequest", ctx, id)}
+}
+
+func (_c *MemberAppUsecase_GetActiveSubrequest_Call) Run(run func(ctx context.Context, id string)) *MemberAppUsecase_GetActiveSubrequest_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_GetActiveSubrequest_Call) Return(_a0 response.Base) *MemberAppUsecase_GetActiveSubrequest_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_GetActiveSubrequest_Call) RunAndReturn(run func(context.Context, string) response.Base) *MemberAppUsecase_GetActiveSubrequest_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMemberAppUsecase creates a new instance of MemberAppUsecase. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMemberAppUsecase(t interface {

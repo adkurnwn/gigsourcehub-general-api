@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	"github.com/sirupsen/logrus"
@@ -198,4 +199,74 @@ func (r *gormRepo) AssignCandidateToSubrequest(ctx context.Context, model *gorm_
 		logrus.Errorf("AssignCandidateToSubrequest DB Error: %v\n", err)
 	}
 	return err
+}
+
+func (r *gormRepo) CountActiveSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) (int64, error) {
+	var total int64
+	err := r.db.WithContext(ctx).Model(&gorm_model.SubrequestCandidate{}).
+		Where("candidate_user_id = ? AND deleted_at IS NULL", candidateID).
+		Count(&total).Error
+	if err != nil {
+		logrus.Errorf("CountActiveSubrequestCandidatesByCandidateID DB Error: %v", err)
+		return 0, err
+	}
+	return total, nil
+}
+
+func (r *gormRepo) SoftDeleteSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) error {
+	now := time.Now()
+	err := r.db.WithContext(ctx).Model(&gorm_model.SubrequestCandidate{}).
+		Where("candidate_user_id = ? AND deleted_at IS NULL", candidateID).
+		Update("deleted_at", now).Error
+	if err != nil {
+		logrus.Errorf("SoftDeleteSubrequestCandidatesByCandidateID DB Error: %v", err)
+	}
+	return err
+}
+
+func (r *gormRepo) CancelRecruitmentByCandidateID(ctx context.Context, candidateID, availableStatusID string) error {
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		now := time.Now()
+		if err := tx.Model(&gorm_model.SubrequestCandidate{}).
+			Where("candidate_user_id = ? AND deleted_at IS NULL", candidateID).
+			Update("deleted_at", now).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&gorm_model.User{}).
+			Where("id = ?", candidateID).
+			Update("recruitment_status_id", availableStatusID).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		logrus.Errorf("CancelRecruitmentByCandidateID DB Error: %v", err)
+	}
+	return err
+}
+
+func (r *gormRepo) GetActiveSubrequestByCandidateID(ctx context.Context, candidateID string) (*gorm_model.ActiveSubrequestInfo, error) {
+	var info gorm_model.ActiveSubrequestInfo
+	err := r.db.WithContext(ctx).
+		Table("subrequest_candidates").
+		Select("subrequest_candidates.subrequest_id, subrequests.request_id, requests.project_name, job_roles.name as job_role").
+		Joins("JOIN subrequests ON subrequests.id = subrequest_candidates.subrequest_id").
+		Joins("JOIN requests ON requests.id = subrequests.request_id").
+		Joins("LEFT JOIN job_roles ON job_roles.id = subrequests.job_role_id").
+		Where("subrequest_candidates.candidate_user_id = ? AND subrequest_candidates.deleted_at IS NULL AND subrequests.deleted_at IS NULL AND requests.deleted_at IS NULL", candidateID).
+		Order("subrequest_candidates.created_at DESC").
+		Limit(1).
+		Take(&info).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		logrus.Errorf("GetActiveSubrequestByCandidateID DB Error: %v", err)
+		return nil, err
+	}
+
+	return &info, nil
 }

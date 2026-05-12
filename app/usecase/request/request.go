@@ -506,6 +506,22 @@ func (u *appUsecase) AssignCandidateToSubrequest(ctx context.Context, adminID st
 		return response.Error(http.StatusBadRequest, "User is not a candidate")
 	}
 
+	statusName, err := u.gormDbRepo.GetCandidateRecruitmentStatusName(ctx, candidate.ID)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to check recruitment status")
+	}
+
+	activeAssignments, err := u.gormDbRepo.CountActiveSubrequestCandidatesByCandidateID(ctx, candidate.ID)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to check candidate assignments")
+	}
+	if statusName != "Available" {
+		return response.Error(http.StatusConflict, "Candidate recruitment status must be Available to assign")
+	}
+	if activeAssignments > 0 {
+		return response.Error(http.StatusConflict, "Candidate is still in a recruitment process")
+	}
+
 	var assignedStatus gorm_model.RecruitmentStatus
 	if err := u.gormDbRepo.GetDB().WithContext(ctx).Where("name = ?", "Assigned").First(&assignedStatus).Error; err != nil {
 		return response.Error(http.StatusInternalServerError, "Assigned recruitment status not found")

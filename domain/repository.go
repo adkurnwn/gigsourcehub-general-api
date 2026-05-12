@@ -89,6 +89,10 @@ type GormRepo interface {
 	CreateSubrequestByEmployee(ctx context.Context, model *gorm_model.Subrequest) error
 	UpdateSubrequestByEmployee(ctx context.Context, model *gorm_model.Subrequest) error
 	AssignCandidateToSubrequest(ctx context.Context, model *gorm_model.SubrequestCandidate, recruitmentStatusID string) error
+	CountActiveSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) (int64, error)
+	SoftDeleteSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) error
+	CancelRecruitmentByCandidateID(ctx context.Context, candidateID, availableStatusID string) error
+	GetActiveSubrequestByCandidateID(ctx context.Context, candidateID string) (*gorm_model.ActiveSubrequestInfo, error)
 
 	GetDB() *gorm.DB
 
