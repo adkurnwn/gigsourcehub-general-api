@@ -689,3 +689,60 @@ func (u *appUsecase) PatchUserRecruitmentStatus(ctx context.Context, id string, 
 	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, req, true)
 	return response.Success(user.ToUserResp())
 }
+
+func (u *appUsecase) CancelRecruitment(ctx context.Context, id string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+	if user.SystemRole == nil || user.SystemRole.Name != "Candidate" {
+		return response.Error(http.StatusBadRequest, "User is not a candidate")
+	}
+
+	var availableStatus gorm_model.RecruitmentStatus
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).Where("name = ?", "Available").First(&availableStatus).Error; err != nil {
+		return response.Error(http.StatusInternalServerError, "Available recruitment status not found")
+	}
+
+	if err := u.gormDbRepo.CancelRecruitmentByCandidateID(ctx, user.ID, availableStatus.ID); err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to cancel recruitment")
+	}
+
+	return response.SuccessAction("User", user.Email, "recruitment canceled")
+}
+
+func (u *appUsecase) GetActiveSubrequest(ctx context.Context, id string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+	if user.SystemRole == nil || user.SystemRole.Name != "Candidate" {
+		return response.Error(http.StatusBadRequest, "User is not a candidate")
+	}
+
+	info, err := u.gormDbRepo.GetActiveSubrequestByCandidateID(ctx, user.ID)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch active subrequest")
+	}
+	if info == nil {
+		return response.Error(http.StatusNotFound, "Active subrequest not found")
+	}
+
+	return response.Success(info)
+}

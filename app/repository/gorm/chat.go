@@ -17,6 +17,24 @@ func (r *gormRepo) CreateConversation(ctx context.Context, conv *gorm_model.Conv
 	return nil
 }
 
+func (r *gormRepo) StartConversation(ctx context.Context, conv *gorm_model.Conversation, contactedStatusID string) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(conv).Error; err != nil {
+			logrus.Errorf("StartConversation create DB Error: %v", err)
+			return err
+		}
+
+		if err := tx.Model(&gorm_model.User{}).
+			Where("id = ?", conv.CandidateUserID).
+			Update("recruitment_status_id", contactedStatusID).Error; err != nil {
+			logrus.Errorf("StartConversation update status DB Error: %v", err)
+			return err
+		}
+
+		return nil
+	})
+}
+
 func (r *gormRepo) GetConversationByID(ctx context.Context, id string) (*gorm_model.Conversation, error) {
 	var conv gorm_model.Conversation
 	err := r.db.WithContext(ctx).

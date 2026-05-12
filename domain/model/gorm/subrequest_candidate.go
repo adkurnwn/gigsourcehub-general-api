@@ -19,6 +19,13 @@ type SubrequestCandidate struct {
 	DeletedAt       gorm.DeletedAt `gorm:"column:deleted_at;index"`
 }
 
+type ActiveSubrequestInfo struct {
+	SubrequestID string `gorm:"column:subrequest_id" json:"subrequest_id"`
+	RequestID    string `gorm:"column:request_id" json:"request_id"`
+	ProjectName  string `gorm:"column:project_name" json:"project_name"`
+	JobRole      string `gorm:"column:job_role" json:"job_role"`
+}
+
 func (m *SubrequestCandidate) BeforeCreate(tx *gorm.DB) (err error) {
 	if m.ID == "" {
 		m.ID = uuid.NewString()

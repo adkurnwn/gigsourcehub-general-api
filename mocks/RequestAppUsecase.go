@@ -7,6 +7,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
+	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 
 	response "github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
@@ -69,6 +70,152 @@ func (_c *RequestAppUsecase_CreateByEmployee_Call) Return(_a0 response.Base) *Re
 }
 
 func (_c *RequestAppUsecase_CreateByEmployee_Call) RunAndReturn(run func(context.Context, string, request_model.CreateRequestRequest) response.Base) *RequestAppUsecase_CreateByEmployee_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FetchByAdmin provides a mock function with given fields: ctx, page, limit, filter
+func (_m *RequestAppUsecase) FetchByAdmin(ctx context.Context, page int64, limit int64, filter gorm_model.RequestFilter) response.Base {
+	ret := _m.Called(ctx, page, limit, filter)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchByAdmin")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, gorm_model.RequestFilter) response.Base); ok {
+		r0 = rf(ctx, page, limit, filter)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// RequestAppUsecase_FetchByAdmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchByAdmin'
+type RequestAppUsecase_FetchByAdmin_Call struct {
+	*mock.Call
+}
+
+// FetchByAdmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - page int64
+//   - limit int64
+//   - filter gorm_model.RequestFilter
+func (_e *RequestAppUsecase_Expecter) FetchByAdmin(ctx interface{}, page interface{}, limit interface{}, filter interface{}) *RequestAppUsecase_FetchByAdmin_Call {
+	return &RequestAppUsecase_FetchByAdmin_Call{Call: _e.mock.On("FetchByAdmin", ctx, page, limit, filter)}
+}
+
+func (_c *RequestAppUsecase_FetchByAdmin_Call) Run(run func(ctx context.Context, page int64, limit int64, filter gorm_model.RequestFilter)) *RequestAppUsecase_FetchByAdmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int64), args[2].(int64), args[3].(gorm_model.RequestFilter))
+	})
+	return _c
+}
+
+func (_c *RequestAppUsecase_FetchByAdmin_Call) Return(_a0 response.Base) *RequestAppUsecase_FetchByAdmin_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *RequestAppUsecase_FetchByAdmin_Call) RunAndReturn(run func(context.Context, int64, int64, gorm_model.RequestFilter) response.Base) *RequestAppUsecase_FetchByAdmin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FetchPendingForAdmin provides a mock function with given fields: ctx, page, limit
+func (_m *RequestAppUsecase) FetchPendingForAdmin(ctx context.Context, page int64, limit int64) response.Base {
+	ret := _m.Called(ctx, page, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchPendingForAdmin")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, int64, int64) response.Base); ok {
+		r0 = rf(ctx, page, limit)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// RequestAppUsecase_FetchPendingForAdmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchPendingForAdmin'
+type RequestAppUsecase_FetchPendingForAdmin_Call struct {
+	*mock.Call
+}
+
+// FetchPendingForAdmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - page int64
+//   - limit int64
+func (_e *RequestAppUsecase_Expecter) FetchPendingForAdmin(ctx interface{}, page interface{}, limit interface{}) *RequestAppUsecase_FetchPendingForAdmin_Call {
+	return &RequestAppUsecase_FetchPendingForAdmin_Call{Call: _e.mock.On("FetchPendingForAdmin", ctx, page, limit)}
+}
+
+func (_c *RequestAppUsecase_FetchPendingForAdmin_Call) Run(run func(ctx context.Context, page int64, limit int64)) *RequestAppUsecase_FetchPendingForAdmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int64), args[2].(int64))
+	})
+	return _c
+}
+
+func (_c *RequestAppUsecase_FetchPendingForAdmin_Call) Return(_a0 response.Base) *RequestAppUsecase_FetchPendingForAdmin_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *RequestAppUsecase_FetchPendingForAdmin_Call) RunAndReturn(run func(context.Context, int64, int64) response.Base) *RequestAppUsecase_FetchPendingForAdmin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FetchMyRequestsForAdmin provides a mock function with given fields: ctx, adminID, page, limit
+func (_m *RequestAppUsecase) FetchMyRequestsForAdmin(ctx context.Context, adminID string, page int64, limit int64) response.Base {
+	ret := _m.Called(ctx, adminID, page, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchMyRequestsForAdmin")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string, int64, int64) response.Base); ok {
+		r0 = rf(ctx, adminID, page, limit)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// RequestAppUsecase_FetchMyRequestsForAdmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchMyRequestsForAdmin'
+type RequestAppUsecase_FetchMyRequestsForAdmin_Call struct {
+	*mock.Call
+}
+
+// FetchMyRequestsForAdmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - adminID string
+//   - page int64
+//   - limit int64
+func (_e *RequestAppUsecase_Expecter) FetchMyRequestsForAdmin(ctx interface{}, adminID interface{}, page interface{}, limit interface{}) *RequestAppUsecase_FetchMyRequestsForAdmin_Call {
+	return &RequestAppUsecase_FetchMyRequestsForAdmin_Call{Call: _e.mock.On("FetchMyRequestsForAdmin", ctx, adminID, page, limit)}
+}
+
+func (_c *RequestAppUsecase_FetchMyRequestsForAdmin_Call) Run(run func(ctx context.Context, adminID string, page int64, limit int64)) *RequestAppUsecase_FetchMyRequestsForAdmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(int64), args[3].(int64))
+	})
+	return _c
+}
+
+func (_c *RequestAppUsecase_FetchMyRequestsForAdmin_Call) Return(_a0 response.Base) *RequestAppUsecase_FetchMyRequestsForAdmin_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *RequestAppUsecase_FetchMyRequestsForAdmin_Call) RunAndReturn(run func(context.Context, string, int64, int64) response.Base) *RequestAppUsecase_FetchMyRequestsForAdmin_Call {
 	_c.Call.Return(run)
 	return _c
 }

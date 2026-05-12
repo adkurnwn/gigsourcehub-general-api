@@ -2058,6 +2058,217 @@ func (_c *GormRepo_UpdateUser_Call) RunAndReturn(run func(context.Context, *gorm
 	return _c
 }
 
+// CountActiveSubrequestCandidatesByCandidateID provides a mock function with given fields: ctx, candidateID
+func (_m *GormRepo) CountActiveSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) (int64, error) {
+	ret := _m.Called(ctx, candidateID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountActiveSubrequestCandidatesByCandidateID")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (int64, error)); ok {
+		return rf(ctx, candidateID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) int64); ok {
+		r0 = rf(ctx, candidateID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, candidateID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_CountActiveSubrequestCandidatesByCandidateID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CountActiveSubrequestCandidatesByCandidateID'
+type GormRepo_CountActiveSubrequestCandidatesByCandidateID_Call struct {
+	*mock.Call
+}
+
+// CountActiveSubrequestCandidatesByCandidateID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - candidateID string
+func (_e *GormRepo_Expecter) CountActiveSubrequestCandidatesByCandidateID(ctx interface{}, candidateID interface{}) *GormRepo_CountActiveSubrequestCandidatesByCandidateID_Call {
+	return &GormRepo_CountActiveSubrequestCandidatesByCandidateID_Call{Call: _e.mock.On("CountActiveSubrequestCandidatesByCandidateID", ctx, candidateID)}
+}
+
+func (_c *GormRepo_CountActiveSubrequestCandidatesByCandidateID_Call) Run(run func(ctx context.Context, candidateID string)) *GormRepo_CountActiveSubrequestCandidatesByCandidateID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_CountActiveSubrequestCandidatesByCandidateID_Call) Return(_a0 int64, _a1 error) *GormRepo_CountActiveSubrequestCandidatesByCandidateID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_CountActiveSubrequestCandidatesByCandidateID_Call) RunAndReturn(run func(context.Context, string) (int64, error)) *GormRepo_CountActiveSubrequestCandidatesByCandidateID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SoftDeleteSubrequestCandidatesByCandidateID provides a mock function with given fields: ctx, candidateID
+func (_m *GormRepo) SoftDeleteSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) error {
+	ret := _m.Called(ctx, candidateID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SoftDeleteSubrequestCandidatesByCandidateID")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, candidateID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_SoftDeleteSubrequestCandidatesByCandidateID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SoftDeleteSubrequestCandidatesByCandidateID'
+type GormRepo_SoftDeleteSubrequestCandidatesByCandidateID_Call struct {
+	*mock.Call
+}
+
+// SoftDeleteSubrequestCandidatesByCandidateID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - candidateID string
+func (_e *GormRepo_Expecter) SoftDeleteSubrequestCandidatesByCandidateID(ctx interface{}, candidateID interface{}) *GormRepo_SoftDeleteSubrequestCandidatesByCandidateID_Call {
+	return &GormRepo_SoftDeleteSubrequestCandidatesByCandidateID_Call{Call: _e.mock.On("SoftDeleteSubrequestCandidatesByCandidateID", ctx, candidateID)}
+}
+
+func (_c *GormRepo_SoftDeleteSubrequestCandidatesByCandidateID_Call) Run(run func(ctx context.Context, candidateID string)) *GormRepo_SoftDeleteSubrequestCandidatesByCandidateID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_SoftDeleteSubrequestCandidatesByCandidateID_Call) Return(_a0 error) *GormRepo_SoftDeleteSubrequestCandidatesByCandidateID_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_SoftDeleteSubrequestCandidatesByCandidateID_Call) RunAndReturn(run func(context.Context, string) error) *GormRepo_SoftDeleteSubrequestCandidatesByCandidateID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CancelRecruitmentByCandidateID provides a mock function with given fields: ctx, candidateID, availableStatusID
+func (_m *GormRepo) CancelRecruitmentByCandidateID(ctx context.Context, candidateID string, availableStatusID string) error {
+	ret := _m.Called(ctx, candidateID, availableStatusID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CancelRecruitmentByCandidateID")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, candidateID, availableStatusID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_CancelRecruitmentByCandidateID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelRecruitmentByCandidateID'
+type GormRepo_CancelRecruitmentByCandidateID_Call struct {
+	*mock.Call
+}
+
+// CancelRecruitmentByCandidateID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - candidateID string
+//   - availableStatusID string
+func (_e *GormRepo_Expecter) CancelRecruitmentByCandidateID(ctx interface{}, candidateID interface{}, availableStatusID interface{}) *GormRepo_CancelRecruitmentByCandidateID_Call {
+	return &GormRepo_CancelRecruitmentByCandidateID_Call{Call: _e.mock.On("CancelRecruitmentByCandidateID", ctx, candidateID, availableStatusID)}
+}
+
+func (_c *GormRepo_CancelRecruitmentByCandidateID_Call) Run(run func(ctx context.Context, candidateID string, availableStatusID string)) *GormRepo_CancelRecruitmentByCandidateID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_CancelRecruitmentByCandidateID_Call) Return(_a0 error) *GormRepo_CancelRecruitmentByCandidateID_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_CancelRecruitmentByCandidateID_Call) RunAndReturn(run func(context.Context, string, string) error) *GormRepo_CancelRecruitmentByCandidateID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetActiveSubrequestByCandidateID provides a mock function with given fields: ctx, candidateID
+func (_m *GormRepo) GetActiveSubrequestByCandidateID(ctx context.Context, candidateID string) (*gorm_model.ActiveSubrequestInfo, error) {
+	ret := _m.Called(ctx, candidateID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetActiveSubrequestByCandidateID")
+	}
+
+	var r0 *gorm_model.ActiveSubrequestInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*gorm_model.ActiveSubrequestInfo, error)); ok {
+		return rf(ctx, candidateID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *gorm_model.ActiveSubrequestInfo); ok {
+		r0 = rf(ctx, candidateID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*gorm_model.ActiveSubrequestInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, candidateID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GormRepo_GetActiveSubrequestByCandidateID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetActiveSubrequestByCandidateID'
+type GormRepo_GetActiveSubrequestByCandidateID_Call struct {
+	*mock.Call
+}
+
+// GetActiveSubrequestByCandidateID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - candidateID string
+func (_e *GormRepo_Expecter) GetActiveSubrequestByCandidateID(ctx interface{}, candidateID interface{}) *GormRepo_GetActiveSubrequestByCandidateID_Call {
+	return &GormRepo_GetActiveSubrequestByCandidateID_Call{Call: _e.mock.On("GetActiveSubrequestByCandidateID", ctx, candidateID)}
+}
+
+func (_c *GormRepo_GetActiveSubrequestByCandidateID_Call) Run(run func(ctx context.Context, candidateID string)) *GormRepo_GetActiveSubrequestByCandidateID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_GetActiveSubrequestByCandidateID_Call) Return(_a0 *gorm_model.ActiveSubrequestInfo, _a1 error) *GormRepo_GetActiveSubrequestByCandidateID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GormRepo_GetActiveSubrequestByCandidateID_Call) RunAndReturn(run func(context.Context, string) (*gorm_model.ActiveSubrequestInfo, error)) *GormRepo_GetActiveSubrequestByCandidateID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewGormRepo creates a new instance of GormRepo. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewGormRepo(t interface {

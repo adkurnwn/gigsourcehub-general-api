@@ -79,11 +79,20 @@ type GormRepo interface {
 	CreateRequest(ctx context.Context, model *gorm_model.Request) error
 	FetchRequestsByEmployee(ctx context.Context, employeeID string, limit, offset int64) (*sql.Rows, error)
 	CountRequestsByEmployee(ctx context.Context, employeeID string) (int64, error)
+	FetchRequestsByAdmin(ctx context.Context, filter gorm_model.RequestFilter, limit, offset int64) (*sql.Rows, error)
+	CountRequestsByAdmin(ctx context.Context, filter gorm_model.RequestFilter) (int64, error)
 	GetRequestByID(ctx context.Context, id string) (*gorm_model.Request, error)
 	UpdateRequestByEmployee(ctx context.Context, model *gorm_model.Request) error
+	UpdateRequestByAdmin(ctx context.Context, model *gorm_model.Request) error
+	UpdateRequestAdminUser(ctx context.Context, requestID string, adminUserID string) error
 	GetSubrequestByID(ctx context.Context, id string) (*gorm_model.Subrequest, error)
 	CreateSubrequestByEmployee(ctx context.Context, model *gorm_model.Subrequest) error
 	UpdateSubrequestByEmployee(ctx context.Context, model *gorm_model.Subrequest) error
+	AssignCandidateToSubrequest(ctx context.Context, model *gorm_model.SubrequestCandidate, recruitmentStatusID string) error
+	CountActiveSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) (int64, error)
+	SoftDeleteSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) error
+	CancelRecruitmentByCandidateID(ctx context.Context, candidateID, availableStatusID string) error
+	GetActiveSubrequestByCandidateID(ctx context.Context, candidateID string) (*gorm_model.ActiveSubrequestInfo, error)
 
 	GetDB() *gorm.DB
 
@@ -121,6 +130,7 @@ type GormRepo interface {
 
 	// Chat / Conversation
 	CreateConversation(ctx context.Context, conv *gorm_model.Conversation) error
+	StartConversation(ctx context.Context, conv *gorm_model.Conversation, contactedStatusID string) error
 	GetConversationByID(ctx context.Context, id string) (*gorm_model.Conversation, error)
 	GetConversationBySubrequestAndCandidate(ctx context.Context, subrequestID, candidateID string) (*gorm_model.Conversation, error)
 	FetchConversationsByUser(ctx context.Context, userID string, limit, offset int64) ([]gorm_model.Conversation, error)

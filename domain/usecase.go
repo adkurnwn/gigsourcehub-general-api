@@ -26,6 +26,8 @@ type MemberAppUsecase interface {
 	FetchUserThumb(ctx context.Context, id string) response.Base
 	UpdateProfile(ctx context.Context, userID string, req request_model.UpdateProfileRequest) response.Base
 	PatchUserRecruitmentStatus(ctx context.Context, id string, req request_model.PatchUserRecruitmentStatusRequest) response.Base
+	CancelRecruitment(ctx context.Context, id string) response.Base
+	GetActiveSubrequest(ctx context.Context, id string) response.Base
 
 	VerifyAccount(ctx context.Context, token string) response.Base
 	ForgotPassword(ctx context.Context, req request_model.ForgotPasswordRequest) response.Base
@@ -90,10 +92,16 @@ type AdminNoteAppUsecase interface {
 type RequestAppUsecase interface {
 	CreateByEmployee(ctx context.Context, employeeID string, req request_model.CreateRequestRequest) response.Base
 	FetchByEmployee(ctx context.Context, employeeID string, page, limit int64) response.Base
+	FetchByAdmin(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base
+	FetchPendingForAdmin(ctx context.Context, page, limit int64) response.Base
+	FetchMyRequestsForAdmin(ctx context.Context, adminID string, page, limit int64) response.Base
 	GetByID(ctx context.Context, employeeID, requestID string) response.Base
 	UpdateByEmployee(ctx context.Context, employeeID string, requestID string, req request_model.UpdateRequestRequest) response.Base
 	UpdateSubrequestByEmployee(ctx context.Context, employeeID string, requestID string, subrequestID string, req request_model.UpdateSubrequestRequest) response.Base
 	AddSubrequestByEmployee(ctx context.Context, employeeID string, requestID string, req request_model.CreateSubrequestRequest) response.Base
+	AssignCandidateToSubrequest(ctx context.Context, adminID string, requestID string, subrequestID string, req request_model.AssignCandidateToSubrequestRequest) response.Base
+	AssignPIC(ctx context.Context, adminID, requestID string) response.Base
+	RejectRequest(ctx context.Context, adminID, requestID string, rejectedReason string) response.Base
 }
 
 type AIChatAppUsecase interface {
@@ -111,6 +119,7 @@ type ActivityLogAppUsecase interface {
 
 type ChatAppUsecase interface {
 	CreateConversation(ctx context.Context, adminID string, req request_model.CreateConversationRequest) response.Base
+	StartConversation(ctx context.Context, adminID string, req request_model.CreateConversationRequest) response.Base
 	FetchMyConversations(ctx context.Context, userID string, page, limit int64) response.Base
 	GetConversation(ctx context.Context, userID string, conversationID string) response.Base
 	SendMessage(ctx context.Context, userID string, conversationID string, req request_model.SendMessageRequest) response.Base
