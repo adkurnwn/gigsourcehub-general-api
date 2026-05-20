@@ -24,7 +24,7 @@ func NewBookmarkHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain
 		Middleware: mdl,
 	}
 
-	api := r.Group("/bookmarks", mdl.Auth(), mdl.AuthAdmin())
+	api := r.Group("/bookmarks", mdl.Auth(), mdl.AuthRole("Admin", "Employee"))
 	api.POST("", handler.Create)
 	api.DELETE("/:candidate_id", handler.Delete)
 	api.GET("", handler.FetchByAdmin)
