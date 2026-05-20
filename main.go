@@ -30,6 +30,8 @@ import (
 	httpdelivery_request "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/request"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
 	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
+	http_company_profile "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/company_profile"
+	http_faq "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/faq"
 	http_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/system_setting"
 	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
 	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
@@ -41,7 +43,9 @@ import (
 	usecase_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/ai_chat"
 	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
 	usecase_chat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/chat"
+	usecase_company_profile "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/company_profile"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
+	usecase_faq "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/faq"
 	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
 	usecase_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_title"
 	usecase_job_vacancy "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_vacancy"
@@ -267,6 +271,16 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init faq usecase
+	ucFAQ := usecase_faq.NewAppUsecase(usecase_faq.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init company profile usecase
+	ucCompanyProfile := usecase_company_profile.NewAppUsecase(usecase_company_profile.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// start consumer
 	if mqRepo != nil {
 		cvConsumer := consumer.NewCVParserConsumer(mqRepo, repo)
@@ -327,6 +341,8 @@ func main() {
 	http_activity_log.NewActivityLogHandler(apiGroup, mdl, ucActivityLog)
 	http_system_setting.NewSystemSettingHandler(apiGroup, mdl, ucSystemSetting)
 	http_job_vacancy.NewJobVacancyHandler(apiGroup, mdl, ucJobVacancy)
+	http_faq.NewFAQHandler(apiGroup, mdl, ucFAQ)
+	http_company_profile.NewCompanyProfileHandler(apiGroup, mdl, ucCompanyProfile)
 
 	// init chat
 	chatHub := http_chat.NewHub()

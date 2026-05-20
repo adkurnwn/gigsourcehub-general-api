@@ -22,3 +22,40 @@ func (m *FAQ) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	return
 }
+
+// --- Filter ---
+
+var FAQAllowedSort = []string{"question", "created_at", "updated_at"}
+
+type FAQFilter struct {
+	DefaultFilter
+	Search *string
+}
+
+func (f *FAQFilter) Query(q *gorm.DB) {
+	f.DefaultFilter.DefaultQuery(q)
+
+	if f.Search != nil && *f.Search != "" {
+		q.Where("question ILIKE ?", "%"+*f.Search+"%")
+	}
+}
+
+// --- Response ---
+
+type FAQResp struct {
+	ID        string    `json:"id"`
+	Question  string    `json:"question"`
+	Answer    string    `json:"answer"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (row *FAQ) ToFAQResp() FAQResp {
+	return FAQResp{
+		ID:        row.ID,
+		Question:  row.Question,
+		Answer:    row.Answer,
+		CreatedAt: row.CreatedAt,
+		UpdatedAt: row.UpdatedAt,
+	}
+}
