@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
@@ -98,6 +99,24 @@ func (u *appUsecase) verifyEmployee(ctx context.Context, userID string) (bool, *
 	return false, user, nil
 }
 
+// verifyAdmin checks if the user has the "Admin" system role
+func (u *appUsecase) verifyAdmin(ctx context.Context, userID string) (bool, *gorm_model.User, error) {
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: userID},
+	})
+	if err != nil {
+		return false, nil, err
+	}
+	if user == nil {
+		return false, nil, nil
+	}
+
+	if user.SystemRole != nil && user.SystemRole.Name == "Admin" {
+		return true, user, nil
+	}
+	return false, user, nil
+}
+
 func (u *appUsecase) FetchByEmployee(ctx context.Context, employeeID string, page, limit int64) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
@@ -141,17 +160,34 @@ func (u *appUsecase) FetchByEmployee(ctx context.Context, employeeID string, pag
 }
 
 func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64) response.Base {
+	return u.fetchByAdminWithFilter(ctx, page, limit, gorm_model.RequestFilter{})
+}
+
+func (u *appUsecase) FetchByAdmin(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base {
+	return u.fetchByAdminWithFilter(ctx, page, limit, filter)
+}
+
+func (u *appUsecase) FetchPendingForAdmin(ctx context.Context, page, limit int64) response.Base {
+	status := "PENDING"
+	return u.fetchByAdminWithFilter(ctx, page, limit, gorm_model.RequestFilter{Status: &status})
+}
+
+func (u *appUsecase) FetchMyRequestsForAdmin(ctx context.Context, adminID string, page, limit int64) response.Base {
+	return u.fetchByAdminWithFilter(ctx, page, limit, gorm_model.RequestFilter{AdminUserID: &adminID})
+}
+
+func (u *appUsecase) fetchByAdminWithFilter(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
 	offset := (page - 1) * limit
 
-	total, err := u.gormDbRepo.CountAllRequests(ctx)
+	total, err := u.gormDbRepo.CountRequestsByAdmin(ctx, filter)
 	if err != nil {
 		return response.Error(http.StatusInternalServerError, "Failed to count requests")
 	}
 
-	rows, err := u.gormDbRepo.FetchAllRequests(ctx, limit, offset)
+	rows, err := u.gormDbRepo.FetchRequestsByAdmin(ctx, filter, limit, offset)
 	if err != nil {
 		return response.Error(http.StatusInternalServerError, "Failed to fetch requests")
 	}
@@ -192,8 +228,14 @@ func (u *appUsecase) GetByID(ctx context.Context, employeeID, requestID string) 
 		return response.Error(http.StatusInternalServerError, "Failed to fetch request")
 	}
 
-	// Make sure the employee who made the request is the one retrieving it
-	if req.EmployeeUserID != employeeID {
+	isAdmin, _, err := u.verifyAdmin(ctx, employeeID)
+	if err != nil {
+		logrus.Errorf("Failed to verify admin role: %v", err)
+		return response.Error(http.StatusInternalServerError, "Failed to verify user")
+	}
+
+	// Make sure the employee who made the request is the one retrieving it, unless admin
+	if !isAdmin && req.EmployeeUserID != employeeID {
 		return response.Error(http.StatusForbidden, "You do not have permission to view this request")
 	}
 
@@ -245,6 +287,65 @@ func (u *appUsecase) UpdateByEmployee(ctx context.Context, employeeID string, re
 	if err := u.gormDbRepo.UpdateRequestByEmployee(ctx, existingReq); err != nil {
 		logrus.Errorf("UpdateByEmployee DB Error: %v", err)
 		return response.Error(http.StatusInternalServerError, "Failed to update request")
+	}
+
+	return response.Success(nil)
+}
+
+func (u *appUsecase) AssignPIC(ctx context.Context, adminID, requestID string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	existingReq, err := u.gormDbRepo.GetRequestByID(ctx, requestID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(http.StatusNotFound, "Request not found")
+		}
+		return response.Error(http.StatusInternalServerError, "Failed to fetch request")
+	}
+
+	if existingReq.AdminUserID != nil && *existingReq.AdminUserID != adminID {
+		return response.Error(http.StatusConflict, "Request already assigned to another admin")
+	}
+
+	// Set admin user and change status to ACCEPTED when assigning PIC
+	existingReq.AdminUserID = &adminID
+	existingReq.Status = "ACCEPTED"
+
+	if err := u.gormDbRepo.UpdateRequestByAdmin(ctx, existingReq); err != nil {
+		logrus.Errorf("AssignPIC DB Error: %v", err)
+		return response.Error(http.StatusInternalServerError, "Failed to assign PIC")
+	}
+
+	return response.Success(nil)
+}
+
+func (u *appUsecase) RejectRequest(ctx context.Context, adminID, requestID string, rejectedReason string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	existingReq, err := u.gormDbRepo.GetRequestByID(ctx, requestID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(http.StatusNotFound, "Request not found")
+		}
+		return response.Error(http.StatusInternalServerError, "Failed to fetch request")
+	}
+
+	if existingReq.Status != "PENDING" {
+		return response.Error(http.StatusConflict, "Only PENDING requests can be rejected")
+	}
+
+	if rejectedReason == "" {
+		return response.Error(http.StatusBadRequest, "rejected_reason is required")
+	}
+
+	existingReq.Status = "REJECTED"
+	existingReq.RejectedReason = &rejectedReason
+
+	if err := u.gormDbRepo.UpdateRequestByAdmin(ctx, existingReq); err != nil {
+		logrus.Errorf("RejectRequest DB Error: %v", err)
+		return response.Error(http.StatusInternalServerError, "Failed to reject request")
 	}
 
 	return response.Success(nil)
@@ -359,6 +460,89 @@ func (u *appUsecase) AddSubrequestByEmployee(ctx context.Context, employeeID str
 	if err := u.gormDbRepo.CreateSubrequestByEmployee(ctx, subReq); err != nil {
 		logrus.Errorf("AddSubrequestByEmployee DB Error: %v", err)
 		return response.Error(http.StatusInternalServerError, "Failed to append subrequest")
+	}
+
+	return response.Success(nil)
+}
+
+func (u *appUsecase) AssignCandidateToSubrequest(ctx context.Context, adminID string, requestID string, subrequestID string, req request_model.AssignCandidateToSubrequestRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	if req.CandidateUserID == "" {
+		return response.Error(http.StatusBadRequest, "candidate_user_id is required")
+	}
+
+	existingReq, err := u.gormDbRepo.GetRequestByID(ctx, requestID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(http.StatusNotFound, "Request not found")
+		}
+		return response.Error(http.StatusInternalServerError, "Failed to fetch parent request")
+	}
+
+	if existingReq.AdminUserID == nil || *existingReq.AdminUserID != adminID {
+		return response.Error(http.StatusForbidden, "You do not have permission to assign candidates to this request")
+	}
+
+	existingSubReq, err := u.gormDbRepo.GetSubrequestByID(ctx, subrequestID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(http.StatusNotFound, "Subrequest not found")
+		}
+		return response.Error(http.StatusInternalServerError, "Failed to fetch subrequest")
+	}
+
+	if existingSubReq.RequestID != requestID {
+		return response.Error(http.StatusBadRequest, "Subrequest does not belong to the targeted Request ID")
+	}
+
+	candidate, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: req.CandidateUserID},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch candidate")
+	}
+	if candidate == nil {
+		return response.Error(http.StatusNotFound, "Candidate not found")
+	}
+	if candidate.SystemRole == nil || candidate.SystemRole.Name != "Candidate" {
+		return response.Error(http.StatusBadRequest, "User is not a candidate")
+	}
+
+	statusName, err := u.gormDbRepo.GetCandidateRecruitmentStatusName(ctx, candidate.ID)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to check recruitment status")
+	}
+
+	activeAssignments, err := u.gormDbRepo.CountActiveSubrequestCandidatesByCandidateID(ctx, candidate.ID)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to check candidate assignments")
+	}
+	if statusName != "Available" {
+		return response.Error(http.StatusConflict, "Candidate recruitment status must be Available to assign")
+	}
+	if activeAssignments > 0 {
+		return response.Error(http.StatusConflict, "Candidate is still in a recruitment process")
+	}
+
+	var assignedStatus gorm_model.RecruitmentStatus
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).Where("name = ?", "Assigned").First(&assignedStatus).Error; err != nil {
+		return response.Error(http.StatusInternalServerError, "Assigned recruitment status not found")
+	}
+
+	assignment := &gorm_model.SubrequestCandidate{
+		SubrequestID:    subrequestID,
+		CandidateUserID: candidate.ID,
+		Name:            candidate.Name,
+	}
+
+	if err := u.gormDbRepo.AssignCandidateToSubrequest(ctx, assignment, assignedStatus.ID); err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "already assigned") {
+			return response.Error(http.StatusConflict, "Candidate is already assigned to this subrequest")
+		}
+		logrus.Errorf("AssignCandidateToSubrequest DB Error: %v", err)
+		return response.Error(http.StatusInternalServerError, "Failed to assign candidate to subrequest")
 	}
 
 	return response.Success(nil)

@@ -73,16 +73,26 @@ type GormRepo interface {
 	FetchBookmarksByAdmin(ctx context.Context, adminID string, limit, offset int64) (*sql.Rows, error)
 	CountBookmarksByAdmin(ctx context.Context, adminID string) (int64, error)
 
+	CreateAdminNote(ctx context.Context, model *gorm_model.AdminNote) error
+	FetchAdminNotesByCandidate(ctx context.Context, candidateID string) ([]gorm_model.AdminNote, error)
+
 	CreateRequest(ctx context.Context, model *gorm_model.Request) error
 	FetchRequestsByEmployee(ctx context.Context, employeeID string, limit, offset int64) (*sql.Rows, error)
 	CountRequestsByEmployee(ctx context.Context, employeeID string) (int64, error)
-	FetchAllRequests(ctx context.Context, limit, offset int64) (*sql.Rows, error)
-	CountAllRequests(ctx context.Context) (int64, error)
+	FetchRequestsByAdmin(ctx context.Context, filter gorm_model.RequestFilter, limit, offset int64) (*sql.Rows, error)
+	CountRequestsByAdmin(ctx context.Context, filter gorm_model.RequestFilter) (int64, error)
 	GetRequestByID(ctx context.Context, id string) (*gorm_model.Request, error)
 	UpdateRequestByEmployee(ctx context.Context, model *gorm_model.Request) error
+	UpdateRequestByAdmin(ctx context.Context, model *gorm_model.Request) error
+	UpdateRequestAdminUser(ctx context.Context, requestID string, adminUserID string) error
 	GetSubrequestByID(ctx context.Context, id string) (*gorm_model.Subrequest, error)
 	CreateSubrequestByEmployee(ctx context.Context, model *gorm_model.Subrequest) error
 	UpdateSubrequestByEmployee(ctx context.Context, model *gorm_model.Subrequest) error
+	AssignCandidateToSubrequest(ctx context.Context, model *gorm_model.SubrequestCandidate, recruitmentStatusID string) error
+	CountActiveSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) (int64, error)
+	SoftDeleteSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) error
+	CancelRecruitmentByCandidateID(ctx context.Context, candidateID, availableStatusID string) error
+	GetActiveSubrequestByCandidateID(ctx context.Context, candidateID string) (*gorm_model.ActiveSubrequestInfo, error)
 
 	GetDB() *gorm.DB
 
@@ -123,6 +133,28 @@ type GormRepo interface {
 	CreateJobVacancy(ctx context.Context, model *gorm_model.JobVacancy) error
 	UpdateJobVacancy(ctx context.Context, model *gorm_model.JobVacancy) error
 	DeleteJobVacancy(ctx context.Context, id string) error
+
+	// Chat / Conversation
+	CreateConversation(ctx context.Context, conv *gorm_model.Conversation) error
+	StartConversation(ctx context.Context, conv *gorm_model.Conversation, contactedStatusID string) error
+	GetConversationByID(ctx context.Context, id string) (*gorm_model.Conversation, error)
+	GetConversationBySubrequestAndCandidate(ctx context.Context, subrequestID, candidateID string) (*gorm_model.Conversation, error)
+	FetchConversationsByUser(ctx context.Context, userID string, limit, offset int64) ([]gorm_model.Conversation, error)
+	CountConversationsByUser(ctx context.Context, userID string) (int64, error)
+
+	// Messages
+	CreateMessage(ctx context.Context, msg *gorm_model.Message) error
+	GetMessageByID(ctx context.Context, id string) (*gorm_model.Message, error)
+	FetchMessagesByConversation(ctx context.Context, conversationID string, limit, offset int64) ([]gorm_model.Message, error)
+	CountMessagesByConversation(ctx context.Context, conversationID string) (int64, error)
+	MarkMessagesAsRead(ctx context.Context, conversationID, readerUserID string) error
+	CountUnreadMessagesByUser(ctx context.Context, userID string) (int64, error)
+	CountUnreadMessagesByConversation(ctx context.Context, conversationID, userID string) (int64, error)
+
+	// Chat Authorization helpers
+	IsAdminOfSubrequest(ctx context.Context, adminID, subrequestID string) (bool, error)
+	IsCandidateOnSubrequest(ctx context.Context, candidateID, subrequestID string) (bool, error)
+	GetCandidateRecruitmentStatusName(ctx context.Context, candidateID string) (string, error)
 }
 
 type CacheRepo interface {

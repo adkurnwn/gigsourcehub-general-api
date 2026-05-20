@@ -648,3 +648,101 @@ func (u *appUsecase) UpdatePassword(ctx context.Context, userID string, req requ
 	helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Password", user.Email, nil, true)
 	return response.SuccessAction("User", user.Email, "password updated")
 }
+
+func (u *appUsecase) PatchUserRecruitmentStatus(ctx context.Context, id string, req request_model.PatchUserRecruitmentStatusRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+
+	// Validate recruitment status ID if provided
+	if req.RecruitmentStatusId != nil && *req.RecruitmentStatusId != "" {
+		var recruitmentStatus gorm_model.RecruitmentStatus
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&recruitmentStatus, "id = ?", *req.RecruitmentStatusId).Error; err != nil {
+			return response.Error(http.StatusBadRequest, "Invalid recruitment status ID")
+		}
+	}
+
+	// Update candidate level if provided
+	if req.CandidateLevel != nil {
+		user.CandidateLevel = req.CandidateLevel
+	}
+
+	// Update recruitment status ID if provided
+	if req.RecruitmentStatusId != nil {
+		user.RecruitmentStatusId = req.RecruitmentStatusId
+	}
+
+	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, req, false)
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, req, true)
+	return response.Success(user.ToUserResp())
+}
+
+func (u *appUsecase) CancelRecruitment(ctx context.Context, id string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+	if user.SystemRole == nil || user.SystemRole.Name != "Candidate" {
+		return response.Error(http.StatusBadRequest, "User is not a candidate")
+	}
+
+	var availableStatus gorm_model.RecruitmentStatus
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).Where("name = ?", "Available").First(&availableStatus).Error; err != nil {
+		return response.Error(http.StatusInternalServerError, "Available recruitment status not found")
+	}
+
+	if err := u.gormDbRepo.CancelRecruitmentByCandidateID(ctx, user.ID, availableStatus.ID); err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to cancel recruitment")
+	}
+
+	return response.SuccessAction("User", user.Email, "recruitment canceled")
+}
+
+func (u *appUsecase) GetActiveSubrequest(ctx context.Context, id string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+	if user.SystemRole == nil || user.SystemRole.Name != "Candidate" {
+		return response.Error(http.StatusBadRequest, "User is not a candidate")
+	}
+
+	info, err := u.gormDbRepo.GetActiveSubrequestByCandidateID(ctx, user.ID)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch active subrequest")
+	}
+	if info == nil {
+		return response.Error(http.StatusNotFound, "Active subrequest not found")
+	}
+
+	return response.Success(info)
+}

@@ -106,6 +106,13 @@ definitions:
       years_experience:
         type: integer
     type: object
+  request_model.AssignCandidateToSubrequestRequest:
+    properties:
+      candidate_user_id:
+        type: string
+    required:
+    - candidate_user_id
+    type: object
   request_model.ConfirmCVRequest:
     properties:
       edited_data:
@@ -114,12 +121,29 @@ definitions:
     required:
     - edited_data
     type: object
+  request_model.CreateAdminNoteRequest:
+    properties:
+      content:
+        type: string
+    required:
+    - content
+    type: object
   request_model.CreateBookmarkRequest:
     properties:
       candidate_id:
         type: string
     required:
     - candidate_id
+    type: object
+  request_model.CreateConversationRequest:
+    properties:
+      candidate_user_id:
+        type: string
+      subrequest_id:
+        type: string
+    required:
+    - candidate_user_id
+    - subrequest_id
     type: object
   request_model.CreateJobRoleRequest:
     properties:
@@ -272,6 +296,13 @@ definitions:
       password:
         type: string
     type: object
+  request_model.PatchUserRecruitmentStatusRequest:
+    properties:
+      candidate_level:
+        type: string
+      recruitment_status_id:
+        type: string
+    type: object
   request_model.RegisterRequest:
     properties:
       email:
@@ -280,6 +311,13 @@ definitions:
         type: string
       password:
         type: string
+    type: object
+  request_model.RejectRequestRequest:
+    properties:
+      rejected_reason:
+        type: string
+    required:
+    - rejected_reason
     type: object
   request_model.ResetPasswordRequest:
     properties:
@@ -294,6 +332,15 @@ definitions:
         type: string
     required:
     - query
+    type: object
+  request_model.SendMessageRequest:
+    properties:
+      content:
+        type: string
+      reply_to_message_id:
+        type: string
+    required:
+    - content
     type: object
   request_model.UpdateJobRoleRequest:
     properties:
@@ -462,7 +509,206 @@ info:
 paths:
   /admin/requests:
     get:
-      description: Get paginated list of all requests from all employees for Admin/Superadmin
+      description: Get paginated list of all requests for admin dashboard, with optional
+        filters
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by request status
+        in: query
+        name: status
+        type: string
+      - description: Filter by request urgency
+        in: query
+        name: urgency
+        type: string
+      - description: Search by project name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch all requests
+      tags:
+      - Admin Request
+  /admin/requests/{id}/reject:
+    patch:
+      consumes:
+      - application/json
+      description: Reject the request and record a reason for the employee
+      parameters:
+      - description: Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Reject payload
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.RejectRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Reject a Request
+      tags:
+      - Admin Request
+  /admin/requests/{id}/validate:
+    patch:
+      description: Assign the authenticated admin as PIC for a request
+      parameters:
+      - description: Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Assign request PIC
+      tags:
+      - Admin Request
+  /admin/requests/{request_id}/subrequests/{sub_id}/assign:
+    post:
+      consumes:
+      - application/json
+      description: Creates a subrequest-candidate pivot row and marks the candidate's
+        recruitment status as Assigned
+      parameters:
+      - description: Request ID
+        in: path
+        name: request_id
+        required: true
+        type: string
+      - description: Subrequest ID
+        in: path
+        name: sub_id
+        required: true
+        type: string
+      - description: Assignment Data
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.AssignCandidateToSubrequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Base'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Assign a candidate to a subrequest
+      tags:
+      - Admin Request
+  /admin/requests/my-requests:
+    get:
+      description: Get paginated list of requests assigned to the authenticated admin
       parameters:
       - default: 1
         description: Page number
@@ -485,15 +731,58 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Base'
       security:
       - BearerAuth: []
-      summary: Fetch All Requests (CMS)
+      summary: Fetch my assigned requests
       tags:
-      - CMS Request
+      - Admin Request
+  /admin/requests/pending:
+    get:
+      description: Get paginated list of requests whose status is PENDING for admin
+        dashboard
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch pending requests
+      tags:
+      - Admin Request
   /ai-chat:
     get:
       consumes:
@@ -957,6 +1246,242 @@ paths:
       summary: Delete Bookmark
       tags:
       - Bookmarks
+  /chats:
+    get:
+      description: Get paginated list of conversations for the authenticated user
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: List my conversations
+      tags:
+      - Chat
+    post:
+      consumes:
+      - application/json
+      description: Admin creates a new chat conversation scoped to a subrequest
+      parameters:
+      - description: Create Conversation
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateConversationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create a conversation with a candidate
+      tags:
+      - Chat
+  /chats/{id}:
+    get:
+      description: Get a specific conversation by ID
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get conversation detail
+      tags:
+      - Chat
+  /chats/{id}/messages:
+    get:
+      description: Get paginated messages for a conversation (newest first, default
+        20)
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: List messages in a conversation
+      tags:
+      - Chat
+    post:
+      consumes:
+      - application/json
+      description: Send a message in a conversation
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Send Message
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.SendMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Send a message
+      tags:
+      - Chat
+  /chats/{id}/read:
+    put:
+      description: Mark all unread messages from the other participant as read
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Mark messages as read
+      tags:
+      - Chat
+  /chats/start:
+    post:
+      consumes:
+      - application/json
+      description: Admin creates or reuses a conversation and marks the candidate
+        recruitment status as Contacted
+      parameters:
+      - description: Create Conversation
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateConversationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Start a chat with an assigned candidate
+      tags:
+      - Chat
   /cv/confirm:
     post:
       consumes:
@@ -1441,6 +1966,95 @@ paths:
       summary: Get All Kabupaten Kota by Province ID
       tags:
       - Domisili
+  /notes/{id}:
+    get:
+      description: Get all notes for a candidate user (Admin/Employee only)
+      parameters:
+      - description: Candidate User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch Admin Notes
+      tags:
+      - Notes
+    post:
+      consumes:
+      - application/json
+      description: Add a note to a candidate user (Admin/Employee only)
+      parameters:
+      - description: Candidate User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Create Note Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateAdminNoteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Admin Note
+      tags:
+      - Notes
   /profile:
     get:
       consumes:
@@ -1898,7 +2512,7 @@ paths:
       - Employee Request
   /requests/{id}:
     get:
-      description: Fetch an employee's request and its associated subrequests
+      description: Fetch a request and its associated subrequests (employee or admin)
       parameters:
       - description: Request ID
         in: path
@@ -2615,6 +3229,49 @@ paths:
       summary: Activate User By Superadmin
       tags:
       - Users
+  /users/{id}/active-subrequest:
+    get:
+      consumes:
+      - application/json
+      description: Fetch the active subrequest (project name and job role) for a candidate
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Active Subrequest
+      tags:
+      - Users
   /users/{id}/block:
     patch:
       consumes:
@@ -2656,6 +3313,49 @@ paths:
       security:
       - BearerAuth: []
       summary: Block User By Superadmin
+      tags:
+      - Users
+  /users/{id}/cancel-recruitment:
+    patch:
+      consumes:
+      - application/json
+      description: Cancel a candidate recruitment process and set status to Available
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Cancel Recruitment Process
       tags:
       - Users
   /users/{id}/disable:
@@ -2740,6 +3440,55 @@ paths:
       summary: Fetch User Profile Picture
       tags:
       - Users
+  /users/{id}/recruitment-status:
+    patch:
+      consumes:
+      - application/json
+      description: Update a user's recruitment status and candidate level by superadmin
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Recruitment status patch object
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.PatchUserRecruitmentStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Patch User Recruitment Status and Candidate Level
+      tags:
+      - Users
   /users/candidates:
     get:
       consumes:
@@ -2780,6 +3529,21 @@ paths:
       summary: Fetch Candidates
       tags:
       - Users
+  /ws/chat:
+    get:
+      description: 'Connect via WebSocket. Pass JWT token as query param: /ws/chat?token=<jwt>'
+      parameters:
+      - description: JWT token
+        in: query
+        name: token
+        required: true
+        type: string
+      responses:
+        "101":
+          description: Switching Protocols
+      summary: WebSocket connection for real-time chat
+      tags:
+      - Chat
 securityDefinitions:
   BearerAuth:
     description: 'Insert JWT Token with format: **Bearer {your token}**'

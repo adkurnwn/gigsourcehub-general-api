@@ -1,47 +1,6 @@
 package main
 
 import (
-	"github.com/adkurnwn/gigsourcehub-general-api/app/consumer"
-	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
-	http_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/ai_chat"
-	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
-	http_activity_log "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/activity_log"
-	http_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_role"
-	http_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_title"
-	http_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/kabupaten_kota"
-	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
-	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
-	http_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/provinsi"
-	http_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/recruitment_status"
-	httpdelivery_request "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/request"
-	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
-	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
-	http_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/system_setting"
-	http_job_vacancy "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_vacancy"
-	delivery_grpc "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/grpc"
-	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
-	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
-	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
-	rabbitmqrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/rabbitmq"
-	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
-	mailgunrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/mailgun"
-	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
-	usecase_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/ai_chat"
-	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
-	usecase_activity_log "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/activity_log"
-	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
-	usecase_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_title"
-	usecase_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/kabupaten_kota"
-	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
-	usecase_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/provinsi"
-	usecase_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/recruitment_status"
-	usecase_request "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/request"
-	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
-	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
-	usecase_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/system_setting"
-	usecase_job_vacancy "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_vacancy"
-	"github.com/adkurnwn/gigsourcehub-general-api/docs"
-
 	"context"
 	"fmt"
 	"io"
@@ -51,6 +10,51 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/adkurnwn/gigsourcehub-general-api/app/consumer"
+	delivery_grpc "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/grpc"
+	http_activity_log "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/activity_log"
+	http_admin_note "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/admin_note"
+	http_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/ai_chat"
+	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
+	http_chat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/chat"
+	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
+	http_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_role"
+	http_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_title"
+	http_job_vacancy "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_vacancy"
+	http_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/kabupaten_kota"
+	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
+	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
+	http_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/provinsi"
+	http_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/recruitment_status"
+	httpdelivery_request "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/request"
+	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
+	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
+	http_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/system_setting"
+	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
+	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
+	mailgunrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/mailgun"
+	rabbitmqrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/rabbitmq"
+	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
+	usecase_activity_log "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/activity_log"
+	usecase_admin_note "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/admin_note"
+	usecase_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/ai_chat"
+	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
+	usecase_chat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/chat"
+	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
+	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
+	usecase_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_title"
+	usecase_job_vacancy "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_vacancy"
+	usecase_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/kabupaten_kota"
+	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
+	usecase_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/provinsi"
+	usecase_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/recruitment_status"
+	usecase_request "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/request"
+	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
+	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
+	usecase_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/system_setting"
+	"github.com/adkurnwn/gigsourcehub-general-api/docs"
+	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
 
 	"google.golang.org/grpc"
 
@@ -224,6 +228,11 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init admin note usecase
+	ucAdminNote := usecase_admin_note.NewAppUsecase(usecase_admin_note.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// init ai chat usecase
 	ucAIChat := usecase_aichat.NewAIChatUsecase(repo, timeoutContext)
 
@@ -313,10 +322,20 @@ func main() {
 	http_provinsi.NewProvinsiHandler(apiGroup, ucProvinsi)
 	http_recruitment_status.NewRecruitmentStatusHandler(apiGroup, mdl, ucRecruitmentStatus)
 	http_bookmark.NewBookmarkHandler(apiGroup, mdl, ucBookmark)
+	http_admin_note.NewAdminNoteHandler(apiGroup, mdl, ucAdminNote)
 	http_aichat.NewAIChatHandler(apiGroup, mdl, ucAIChat)
 	http_activity_log.NewActivityLogHandler(apiGroup, mdl, ucActivityLog)
 	http_system_setting.NewSystemSettingHandler(apiGroup, mdl, ucSystemSetting)
 	http_job_vacancy.NewJobVacancyHandler(apiGroup, mdl, ucJobVacancy)
+
+	// init chat
+	chatHub := http_chat.NewHub()
+	go chatHub.Run()
+
+	ucChat := usecase_chat.NewAppUsecase(usecase_chat.RepoInjection{
+		GormDbRepo: repo,
+	}, chatHub, timeoutContext)
+	http_chat.NewChatHandler(apiGroup, mdl, ucChat, chatHub)
 
 	// init search (AI)
 	if aiRepo != nil {

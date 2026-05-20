@@ -980,6 +980,10 @@ table "conversations" {
     type = uuid
     null = false
   }
+  column "subrequest_id" {
+    type = uuid
+    null = false
+  }
   column "created_at" {
     type = timestamptz
     null = false
@@ -1022,6 +1026,17 @@ table "conversations" {
     on_update   = NO_ACTION
     on_delete   = CASCADE
   }
+
+  foreign_key "conversations_subrequest_fk" {
+    columns     = [column.subrequest_id]
+    ref_columns = [table.subrequests.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  index "idx_conversations_subrequest_id" {
+    columns = [column.subrequest_id]
+  }
 }
 
 table "messages" {
@@ -1041,6 +1056,14 @@ table "messages" {
   column "sender_user_id" {
     type = uuid
     null = false
+  }
+  column "reply_to_message_id" {
+    type = uuid
+    null = true
+  }
+  column "read_at" {
+    type = timestamptz
+    null = true
   }
   column "created_at" {
     type = timestamptz
@@ -1071,6 +1094,10 @@ table "messages" {
     columns = [column.sender_user_id]
   }
 
+  index "idx_messages_reply_to_message_id" {
+    columns = [column.reply_to_message_id]
+  }
+
   foreign_key "messages_conversation_fk" {
     columns     = [column.conversation_id]
     ref_columns = [table.conversations.column.id]
@@ -1083,6 +1110,13 @@ table "messages" {
     ref_columns = [table.users.column.id]
     on_update   = NO_ACTION
     on_delete   = CASCADE
+  }
+
+  foreign_key "messages_reply_to_message_fk" {
+    columns     = [column.reply_to_message_id]
+    ref_columns = [table.messages.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
   }
 }
 
