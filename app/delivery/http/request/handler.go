@@ -26,25 +26,16 @@ func NewRequestHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.
 		Middleware: mdl,
 	}
 
-	reqRoute := r.Group("/requests", mdl.Auth())
+	reqRoute := r.Group("/requests")
+	reqRoute.Use(mdl.Auth())
+	reqRoute.Use(mdl.AuthEmployee())
 
-	reqRoute.POST("", mdl.AuthEmployee(), handler.Create)
-	reqRoute.GET("", mdl.AuthEmployee(), handler.Fetch)
-	reqRoute.GET("/:id", mdl.AuthRole("Employee", "Admin"), handler.GetDetails)
-	reqRoute.PUT("/:id", mdl.AuthEmployee(), handler.Update)
-	reqRoute.PUT("/:id/subrequests/:sub_id", mdl.AuthEmployee(), handler.UpdateSubrequest)
-	reqRoute.POST("/:id/subrequests", mdl.AuthEmployee(), handler.AddSubrequest)
-
-	adminRoute := r.Group("/admin/requests")
-	adminRoute.Use(mdl.Auth())
-	adminRoute.Use(mdl.AuthAdmin())
-
-	adminRoute.GET("", handler.FetchAllForAdmin)
-	adminRoute.GET("/pending", handler.FetchPendingForAdmin)
-	adminRoute.GET("/my-requests", handler.FetchMyRequestsForAdmin)
-	adminRoute.PATCH("/:id/validate", handler.AssignPIC)
-	adminRoute.PATCH("/:id/reject", handler.RejectRequest)
-	adminRoute.POST("/:request_id/subrequests/:sub_id/assign", handler.AssignCandidateToSubrequest)
+	reqRoute.POST("", handler.Create)
+	reqRoute.GET("", handler.Fetch)
+	reqRoute.GET("/:id", handler.GetDetails)
+	reqRoute.PUT("/:id", handler.Update)
+	reqRoute.PUT("/:id/subrequests/:sub_id", handler.UpdateSubrequest)
+	reqRoute.POST("/:id/subrequests", handler.AddSubrequest)
 }
 
 // Create Request

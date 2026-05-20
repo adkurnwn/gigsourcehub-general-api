@@ -165,6 +165,32 @@ definitions:
     - name
     - sector_id
     type: object
+  request_model.CreateJobVacancyRequest:
+    properties:
+      description:
+        type: string
+      fulfillment_date:
+        description: 'format: "2006-01-02"'
+        type: string
+      name:
+        type: string
+      overview:
+        type: string
+      schema:
+        description: ONSITE | REMOTE | HYBRID
+        type: string
+      status:
+        description: DRAFT | ARCHIVED | PUBLISHED
+        type: string
+      subrequest_id:
+        type: string
+      takedown_date:
+        description: 'format: "2006-01-02"'
+        type: string
+    required:
+    - name
+    - subrequest_id
+    type: object
   request_model.CreateRecruitmentStatusRequest:
     properties:
       hex_code:
@@ -335,6 +361,32 @@ definitions:
     required:
     - name
     - sector_id
+    type: object
+  request_model.UpdateJobVacancyRequest:
+    properties:
+      description:
+        type: string
+      fulfillment_date:
+        description: 'format: "2006-01-02"'
+        type: string
+      name:
+        type: string
+      overview:
+        type: string
+      schema:
+        description: ONSITE | REMOTE | HYBRID
+        type: string
+      status:
+        description: DRAFT | ARCHIVED | PUBLISHED
+        type: string
+      subrequest_id:
+        type: string
+      takedown_date:
+        description: 'format: "2006-01-02"'
+        type: string
+    required:
+    - name
+    - subrequest_id
     type: object
   request_model.UpdatePasswordRequest:
     properties:
@@ -1692,6 +1744,199 @@ paths:
       summary: Update Job Title
       tags:
       - Job Title (Jabatan)
+  /job-vacancies:
+    get:
+      consumes:
+      - application/json
+      description: Get all job vacancies with pagination (Admin & Superadmin)
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by Subrequest ID
+        in: query
+        name: subrequest_id
+        type: string
+      - description: Filter by status (DRAFT|ARCHIVED|PUBLISHED)
+        in: query
+        name: status
+        type: string
+      - description: Filter by schema (ONSITE|REMOTE|HYBRID)
+        in: query
+        name: schema
+        type: string
+      - description: Search by name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Job Vacancies
+      tags:
+      - Job Vacancy
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateJobVacancyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Job Vacancy
+      tags:
+      - Job Vacancy
+  /job-vacancies/{id}:
+    delete:
+      parameters:
+      - description: Job Vacancy ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Job Vacancy
+      tags:
+      - Job Vacancy
+    get:
+      consumes:
+      - application/json
+      description: Get job vacancy detail by ID (Admin & Superadmin)
+      parameters:
+      - description: Job Vacancy ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Job Vacancy By ID
+      tags:
+      - Job Vacancy
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Job Vacancy ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateJobVacancyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Job Vacancy
+      tags:
+      - Job Vacancy
   /kabupaten:
     get:
       consumes:
@@ -1973,6 +2218,72 @@ paths:
       summary: Get All Provinsi
       tags:
       - Domisili
+  /public/job-vacancies:
+    get:
+      consumes:
+      - application/json
+      description: Get all published and active job vacancies (no authentication required)
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by schema (ONSITE|REMOTE|HYBRID)
+        in: query
+        name: schema
+        type: string
+      - description: Search by name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Get Public Job Vacancies
+      tags:
+      - Job Vacancy Public
+  /public/job-vacancies/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a published and active job vacancy by ID (no authentication
+        required)
+      parameters:
+      - description: Job Vacancy ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Get Public Job Vacancy By ID
+      tags:
+      - Job Vacancy Public
   /recruitment-statuses:
     get:
       consumes:

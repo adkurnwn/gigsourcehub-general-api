@@ -1,15 +1,27 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"net/url"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/adkurnwn/gigsourcehub-general-api/app/consumer"
 	delivery_grpc "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/grpc"
 	http_activity_log "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/activity_log"
 	http_admin_note "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/admin_note"
 	http_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/ai_chat"
 	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
+	http_chat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/chat"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
 	http_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_role"
 	http_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_title"
+	http_job_vacancy "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_vacancy"
 	http_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/kabupaten_kota"
 	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
@@ -28,9 +40,11 @@ import (
 	usecase_admin_note "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/admin_note"
 	usecase_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/ai_chat"
 	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
+	usecase_chat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/chat"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
 	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
 	usecase_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_title"
+	usecase_job_vacancy "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_vacancy"
 	usecase_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/kabupaten_kota"
 	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
 	usecase_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/provinsi"
@@ -39,20 +53,8 @@ import (
 	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
 	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
 	usecase_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/system_setting"
-	http_chat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/chat"
-	usecase_chat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/chat"
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
 	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
-
-	"context"
-	"fmt"
-	"io"
-	"net"
-	"net/http"
-	"net/url"
-	"os"
-	"strconv"
-	"time"
 
 	"google.golang.org/grpc"
 
@@ -260,6 +262,11 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init job vacancy usecase
+	ucJobVacancy := usecase_job_vacancy.NewAppUsecase(usecase_job_vacancy.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// start consumer
 	if mqRepo != nil {
 		cvConsumer := consumer.NewCVParserConsumer(mqRepo, repo)
@@ -319,6 +326,7 @@ func main() {
 	http_aichat.NewAIChatHandler(apiGroup, mdl, ucAIChat)
 	http_activity_log.NewActivityLogHandler(apiGroup, mdl, ucActivityLog)
 	http_system_setting.NewSystemSettingHandler(apiGroup, mdl, ucSystemSetting)
+	http_job_vacancy.NewJobVacancyHandler(apiGroup, mdl, ucJobVacancy)
 
 	// init chat
 	chatHub := http_chat.NewHub()

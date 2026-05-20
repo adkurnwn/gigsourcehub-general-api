@@ -159,6 +159,10 @@ func (u *appUsecase) FetchByEmployee(ctx context.Context, employeeID string, pag
 	})
 }
 
+func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64) response.Base {
+	return u.fetchByAdminWithFilter(ctx, page, limit, gorm_model.RequestFilter{})
+}
+
 func (u *appUsecase) FetchByAdmin(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base {
 	return u.fetchByAdminWithFilter(ctx, page, limit, filter)
 }

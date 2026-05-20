@@ -128,6 +128,12 @@ type GormRepo interface {
 	GetUserVerifiedAt(ctx context.Context, userID string) (*time.Time, error)
 	GetUserMustResetPassword(ctx context.Context, userID string) (bool, error)
 
+	FetchJobVacancy(ctx context.Context, options gorm_model.JobVacancyFilter) (*sql.Rows, error)
+	GetJobVacancyByID(ctx context.Context, id string) (*gorm_model.JobVacancy, error)
+	CreateJobVacancy(ctx context.Context, model *gorm_model.JobVacancy) error
+	UpdateJobVacancy(ctx context.Context, model *gorm_model.JobVacancy) error
+	DeleteJobVacancy(ctx context.Context, id string) error
+
 	// Chat / Conversation
 	CreateConversation(ctx context.Context, conv *gorm_model.Conversation) error
 	StartConversation(ctx context.Context, conv *gorm_model.Conversation, contactedStatusID string) error
