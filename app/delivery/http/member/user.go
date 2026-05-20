@@ -14,13 +14,13 @@ func (h *routeHandler) handleUserRoute(path string) {
 	userGroup := h.Route.Group(path)
 
 	// candidates list: Admin & Superadmin
-	userGroup.GET("/candidates", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin"), h.FetchCandidates)
+	userGroup.GET("/candidates", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin", "Employee"), h.FetchCandidates)
 
 	// users list: Superadmin
 	userGroup.GET("", h.Middleware.Auth(), h.Middleware.AuthSuperadmin(), h.FetchAllUsers)
 
 	// user detail: Admin & Superadmin
-	userGroup.GET("/:id", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin"), h.FetchUserDetail)
+	userGroup.GET("/:id", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin", "Employee"), h.FetchUserDetail)
 
 	// create user by superadmin
 	userGroup.POST("", h.Middleware.Auth(), h.Middleware.AuthSuperadmin(), h.CreateUserBySuperadmin)
