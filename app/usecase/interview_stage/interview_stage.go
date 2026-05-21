@@ -97,9 +97,16 @@ func (u *appUsecase) Create(ctx context.Context, req request_model.CreateIntervi
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
+	isActive := true
+	if req.IsActive != nil {
+		isActive = *req.IsActive
+	}
+
 	newInterviewStage := gorm_model.InterviewStage{
-		ID:   uuid.New().String(),
-		Name: req.Name,
+		ID:       uuid.New().String(),
+		Name:     req.Name,
+		HexCode:  req.HexCode,
+		IsActive: isActive,
 	}
 
 	if err := u.gormDbRepo.CreateInterviewStage(ctx, &newInterviewStage); err != nil {
@@ -136,6 +143,10 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 	}
 
 	existingInterviewStage.Name = req.Name
+	existingInterviewStage.HexCode = req.HexCode
+	if req.IsActive != nil {
+		existingInterviewStage.IsActive = *req.IsActive
+	}
 
 	if err := u.gormDbRepo.UpdateInterviewStage(ctx, &existingInterviewStage); err != nil {
 		logrus.Error("InterviewStage Update error:", err)

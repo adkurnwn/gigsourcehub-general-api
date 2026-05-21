@@ -5276,6 +5276,12 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "hex_code": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 }
@@ -5584,6 +5590,12 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "hex_code": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 }

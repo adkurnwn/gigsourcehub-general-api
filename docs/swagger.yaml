@@ -147,6 +147,10 @@ definitions:
     type: object
   request_model.CreateInterviewStageRequest:
     properties:
+      hex_code:
+        type: string
+      is_active:
+        type: boolean
       name:
         type: string
     required:
@@ -351,6 +355,10 @@ definitions:
     type: object
   request_model.UpdateInterviewStageRequest:
     properties:
+      hex_code:
+        type: string
+      is_active:
+        type: boolean
       name:
         type: string
     required:

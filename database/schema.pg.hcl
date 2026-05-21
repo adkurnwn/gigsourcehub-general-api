@@ -665,6 +665,11 @@ enum "interview_status" {
   values = ["SCHEDULED", "CANCELLED", "RESCHEDULED", "NO_SHOW"]
 }
 
+enum "subrequest_level" {
+  schema = schema.public
+  values = ["Junior", "Middle", "Senior"]
+}
+
 table "requests" {
   schema = schema.public
 
@@ -706,6 +711,10 @@ table "requests" {
   }
   column "rejected_reason" {
     type = text
+    null = true
+  }
+  column "project_duration" {
+    type = varchar(255)
     null = true
   }
   column "created_at" {
@@ -762,10 +771,6 @@ table "subrequests" {
     type = uuid
     null = false
   }
-  column "min_years_experience" {
-    type = int
-    null = true
-  }
   column "job_role_id" {
     type = uuid
     null = true
@@ -785,6 +790,10 @@ table "subrequests" {
   }
   column "overview" {
     type = text
+    null = true
+  }
+  column "level" {
+    type = enum.subrequest_level
     null = true
   }
   column "created_at" {
@@ -852,6 +861,15 @@ table "interview_stages" {
   column "deleted_at" {
     type = timestamptz
     null = true
+  }
+  column "hex_code" {
+    type = varchar(10)
+    null = true
+  }
+  column "is_active" {
+    type    = boolean
+    default = true
+    null    = false
   }
 
   primary_key {
