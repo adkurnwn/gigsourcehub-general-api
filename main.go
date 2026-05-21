@@ -19,6 +19,7 @@ import (
 	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
 	http_chat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/chat"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
+	http_interview_stage "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/interview_stage"
 	http_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_role"
 	http_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_title"
 	http_job_vacancy "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_vacancy"
@@ -42,6 +43,7 @@ import (
 	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
 	usecase_chat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/chat"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
+	usecase_interview_stage "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/interview_stage"
 	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
 	usecase_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_title"
 	usecase_job_vacancy "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_vacancy"
@@ -213,6 +215,11 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init interview stage usecase
+	ucInterviewStage := usecase_interview_stage.NewAppUsecase(usecase_interview_stage.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// init kabupaten kota usecase
 	ucKabupatenKota := usecase_kabupaten_kota.NewAppUsecase(usecase_kabupaten_kota.RepoInjection{
 		GormDbRepo: repo,
@@ -327,6 +334,7 @@ func main() {
 	http_activity_log.NewActivityLogHandler(apiGroup, mdl, ucActivityLog)
 	http_system_setting.NewSystemSettingHandler(apiGroup, mdl, ucSystemSetting)
 	http_job_vacancy.NewJobVacancyHandler(apiGroup, mdl, ucJobVacancy)
+	http_interview_stage.NewInterviewStageHandler(apiGroup, mdl, ucInterviewStage)
 
 	// init chat
 	chatHub := http_chat.NewHub()
