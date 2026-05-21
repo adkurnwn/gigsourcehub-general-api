@@ -40,6 +40,7 @@ func (r *gormRepo) GetConversationByID(ctx context.Context, id string) (*gorm_mo
 	err := r.db.WithContext(ctx).
 		Preload("AdminUser").
 		Preload("CandidateUser").
+		Preload("CandidateUser.RecruitmentStatus").
 		Where("id = ?", id).
 		First(&conv).Error
 	if err != nil {
@@ -53,7 +54,22 @@ func (r *gormRepo) GetConversationBySubrequestAndCandidate(ctx context.Context, 
 	err := r.db.WithContext(ctx).
 		Preload("AdminUser").
 		Preload("CandidateUser").
+		Preload("CandidateUser.RecruitmentStatus").
 		Where("subrequest_id = ? AND candidate_user_id = ?", subrequestID, candidateID).
+		First(&conv).Error
+	if err != nil {
+		return nil, err
+	}
+	return &conv, nil
+}
+
+func (r *gormRepo) GetActiveConversationByCandidateID(ctx context.Context, candidateID string) (*gorm_model.Conversation, error) {
+	var conv gorm_model.Conversation
+	err := r.db.WithContext(ctx).
+		Preload("AdminUser").
+		Preload("CandidateUser").
+		Preload("CandidateUser.RecruitmentStatus").
+		Where("candidate_user_id = ?", candidateID).
 		First(&conv).Error
 	if err != nil {
 		return nil, err
@@ -66,6 +82,7 @@ func (r *gormRepo) FetchConversationsByUser(ctx context.Context, userID string, 
 	err := r.db.WithContext(ctx).
 		Preload("AdminUser").
 		Preload("CandidateUser").
+		Preload("CandidateUser.RecruitmentStatus").
 		Where("admin_user_id = ? OR candidate_user_id = ?", userID, userID).
 		Order("updated_at DESC").
 		Limit(int(limit)).Offset(int(offset)).
@@ -101,6 +118,14 @@ func (r *gormRepo) CountConversationsByUser(ctx context.Context, userID string) 
 		return 0, err
 	}
 	return total, nil
+}
+
+func (r *gormRepo) DeleteConversationsByCandidateID(ctx context.Context, candidateID string) error {
+	if err := r.db.WithContext(ctx).Where("candidate_user_id = ?", candidateID).Delete(&gorm_model.Conversation{}).Error; err != nil {
+		logrus.Errorf("DeleteConversationsByCandidateID DB Error: %v", err)
+		return err
+	}
+	return nil
 }
 
 func (r *gormRepo) CreateMessage(ctx context.Context, msg *gorm_model.Message) error {

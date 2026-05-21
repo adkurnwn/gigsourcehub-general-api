@@ -139,8 +139,10 @@ type GormRepo interface {
 	StartConversation(ctx context.Context, conv *gorm_model.Conversation, contactedStatusID string) error
 	GetConversationByID(ctx context.Context, id string) (*gorm_model.Conversation, error)
 	GetConversationBySubrequestAndCandidate(ctx context.Context, subrequestID, candidateID string) (*gorm_model.Conversation, error)
+	GetActiveConversationByCandidateID(ctx context.Context, candidateID string) (*gorm_model.Conversation, error)
 	FetchConversationsByUser(ctx context.Context, userID string, limit, offset int64) ([]gorm_model.Conversation, error)
 	CountConversationsByUser(ctx context.Context, userID string) (int64, error)
+	DeleteConversationsByCandidateID(ctx context.Context, candidateID string) error
 
 	// Messages
 	CreateMessage(ctx context.Context, msg *gorm_model.Message) error
