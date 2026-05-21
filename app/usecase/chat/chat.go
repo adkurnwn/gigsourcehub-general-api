@@ -69,25 +69,22 @@ func (u *appUsecase) createConversation(ctx context.Context, adminID string, req
 	if !isCandidate {
 		return response.Error(http.StatusBadRequest, "Candidate is not assigned to this subrequest")
 	}
+	
 
-	// 4. Check recruitment status
-	statusName, err := u.gormDbRepo.GetCandidateRecruitmentStatusName(ctx, req.CandidateUserID)
-	if err != nil {
-		return response.Error(http.StatusInternalServerError, "Failed to check recruitment status")
-	}
-	if excludedStatuses[statusName] {
-		return response.Error(http.StatusBadRequest, "Cannot start conversation: candidate status is "+statusName)
-	}
-
-	// 5. Check if conversation already exists for this subrequest + candidate
-	existing, _ := u.gormDbRepo.GetConversationBySubrequestAndCandidate(ctx, req.SubrequestID, req.CandidateUserID)
-	if existing != nil {
-		if markContacted {
-			if err := u.markCandidateContacted(ctx, req.CandidateUserID); err != nil {
-				return response.Error(http.StatusInternalServerError, "Failed to update candidate status")
+	// 5. Check if candidate already has a conversation
+	activeConv, err := u.gormDbRepo.GetActiveConversationByCandidateID(ctx, req.CandidateUserID)
+	if err == nil && activeConv != nil {
+		// If it's for the same subrequest, return it (idempotency)
+		if activeConv.SubrequestID == req.SubrequestID {
+			if markContacted {
+				if err := u.markCandidateContacted(ctx, req.CandidateUserID); err != nil {
+					return response.Error(http.StatusInternalServerError, "Failed to update candidate status")
+				}
 			}
+			return response.Success(activeConv.ToConversationResp(userRole))
 		}
-		return response.Success(existing.ToConversationResp(userRole))
+		// If it's for a different subrequest, they are not allowed to start a new one
+		return response.Error(http.StatusBadRequest, "Candidate already has a conversation")
 	}
 
 	// 6. Create new conversation

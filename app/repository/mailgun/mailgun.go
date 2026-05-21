@@ -87,3 +87,29 @@ func (r *mailgunRepo) SendResetPasswordEmail(to, name, token string) error {
 	_, _, err := r.mg.Send(ctx, mgMessage)
 	return err
 }
+
+func (r *mailgunRepo) SendCancelRecruitmentEmail(to, name string) error {
+	subject := "Update on Your Recruitment Process - GigSourceHub"
+
+	body := fmt.Sprintf(`
+		Hi %s,
+
+		We wanted to update you regarding your recent recruitment process. 
+		Unfortunately, your application will not be moving forward at this time.
+		
+		Please note that your chat history with our HR team will be automatically deleted in 12 hours.
+
+		Thank you for your interest and time.
+
+		Best regards,
+		GigSourceHub Team
+	`, name)
+
+	mgMessage := r.mg.NewMessage(fmt.Sprintf("%s <%s>", r.fromName, r.from), subject, body, to)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	_, _, err := r.mg.Send(ctx, mgMessage)
+	return err
+}

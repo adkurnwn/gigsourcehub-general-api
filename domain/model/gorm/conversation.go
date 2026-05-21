@@ -39,12 +39,13 @@ type ConversationResp struct {
 	AdminUserName               string       `json:"admin_user_name,omitempty"`
 	AdminUserProfilePicture     *string      `json:"admin_user_profile_picture,omitempty"`
 	CandidateUserID             string       `json:"candidate_user_id"`
-	CandidateUserName           string       `json:"candidate_user_name"`
-	CandidateUserProfilePicture *string      `json:"candidate_user_profile_picture"`
-	LastMessage                 *MessageResp `json:"last_message"`
-	UnreadCount                 int64        `json:"unread_count"`
-	CreatedAt                   time.Time    `json:"created_at"`
-	UpdatedAt                   time.Time    `json:"updated_at"`
+	CandidateUserName                    string       `json:"candidate_user_name"`
+	CandidateUserProfilePicture          *string      `json:"candidate_user_profile_picture"`
+	CandidateUserRecruitmentStatusName   string       `json:"candidate_user_recruitment_status_name,omitempty"`
+	LastMessage                          *MessageResp `json:"last_message"`
+	UnreadCount                          int64        `json:"unread_count"`
+	CreatedAt                            time.Time    `json:"created_at"`
+	UpdatedAt                            time.Time    `json:"updated_at"`
 }
 
 func (row *Conversation) ToConversationResp(requesterRole string) ConversationResp {
@@ -67,6 +68,9 @@ func (row *Conversation) ToConversationResp(requesterRole string) ConversationRe
 	if row.CandidateUser != nil {
 		resp.CandidateUserName = row.CandidateUser.Name
 		resp.CandidateUserProfilePicture = buildProfilePictureURL(row.CandidateUser.ProfilePicture)
+		if row.CandidateUser.RecruitmentStatus != nil {
+			resp.CandidateUserRecruitmentStatusName = row.CandidateUser.RecruitmentStatus.Name
+		}
 	}
 	if row.LastMessage != nil {
 		msgResp := row.LastMessage.ToMessageResp(requesterRole)
