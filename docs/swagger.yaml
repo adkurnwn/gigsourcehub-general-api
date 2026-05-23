@@ -145,6 +145,34 @@ definitions:
     - candidate_user_id
     - subrequest_id
     type: object
+  request_model.CreateInterviewRequest:
+    properties:
+      candidate_user_id:
+        type: string
+      description:
+        type: string
+      meeting_link:
+        type: string
+      meeting_location:
+        type: string
+      method:
+        description: Online | Offline
+        type: string
+      scheduled_at:
+        description: RFC3339
+        type: string
+      stage_id:
+        type: string
+      subrequest_id:
+        type: string
+      title:
+        type: string
+    required:
+    - method
+    - scheduled_at
+    - stage_id
+    - title
+    type: object
   request_model.CreateInterviewStageRequest:
     properties:
       hex_code:
@@ -307,6 +335,18 @@ definitions:
       password:
         type: string
     type: object
+  request_model.PatchInterviewStageRequest:
+    properties:
+      interview_id:
+        type: string
+      stage_id:
+        type: string
+      status:
+        type: string
+    required:
+    - interview_id
+    - stage_id
+    type: object
   request_model.PatchUserRecruitmentStatusRequest:
     properties:
       candidate_level:
@@ -352,6 +392,30 @@ definitions:
         type: string
     required:
     - content
+    type: object
+  request_model.UpdateInterviewRequest:
+    properties:
+      description:
+        type: string
+      meeting_link:
+        type: string
+      meeting_location:
+        type: string
+      method:
+        description: Online | Offline
+        type: string
+      scheduled_at:
+        description: RFC3339
+        type: string
+      stage_id:
+        type: string
+      title:
+        type: string
+    required:
+    - method
+    - scheduled_at
+    - stage_id
+    - title
     type: object
   request_model.UpdateInterviewStageRequest:
     properties:
@@ -1776,6 +1840,255 @@ paths:
       summary: Update Interview Stage
       tags:
       - Interview Stage
+  /interviews:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by candidate user id
+        in: query
+        name: candidate_user_id
+        type: string
+      - description: Filter by subrequest id
+        in: query
+        name: subrequest_id
+        type: string
+      - description: Filter by stage id
+        in: query
+        name: stage_id
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Interviews
+      tags:
+      - Interview
+  /interviews/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Interview ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Interview By ID
+      tags:
+      - Interview
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Interview ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Create Interview
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateInterviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Interview
+      tags:
+      - Interview
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Interview ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Interview
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateInterviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Interview
+      tags:
+      - Interview
+  /interviews/scheduled:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Scheduled Interviews (Admin)
+      tags:
+      - Interview
+  /interviews/stage:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Patch Stage
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.PatchInterviewStageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Patch Interview Stage
+      tags:
+      - Interview
   /job-titles:
     get:
       consumes:
