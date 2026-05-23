@@ -112,6 +112,12 @@ func (m *appMiddleware) Auth() gin.HandlerFunc {
 			return
 		}
 
+		if status == "Inactive" {
+			response := response.Error(http.StatusForbidden, "Your account is inactive.")
+			c.AbortWithStatusJSON(http.StatusForbidden, response)
+			return
+		}
+
 		// Real-time verification check
 		verifiedAt, errVerified := m.repo.GetUserVerifiedAt(c.Request.Context(), claims.UserID)
 		if errVerified != nil {

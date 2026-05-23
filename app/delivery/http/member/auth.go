@@ -21,6 +21,7 @@ func (h *routeHandler) handleAuthRoute(prefixPath string) {
 	api.POST("/reset-password", h.ResetPassword)
 
 	api.GET("/me", h.Middleware.Auth(), h.GetMe)
+	api.POST("/logout", h.Middleware.Auth(), h.Logout)
 }
 
 // Verify Account
@@ -172,5 +173,26 @@ func (r *routeHandler) GetMe(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	response := r.Usecase.GetMe(ctx, c.MustGet("token_data").(domain.JWTClaimUser))
+	c.JSON(response.Status, response)
+}
+
+// Logout User
+//
+//	@Summary		Logout user
+//	@Description	Logout current user session
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	response.Base
+//	@Failure		400	{object}	response.Base
+//	@Failure		401	{object}	response.Base
+//	@Failure		500	{object}	response.Base
+//	@Router			/auth/logout [post]
+//
+//	@Security		BearerAuth
+func (r *routeHandler) Logout(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	response := r.Usecase.Logout(ctx, c.MustGet("token_data").(domain.JWTClaimUser))
 	c.JSON(response.Status, response)
 }
