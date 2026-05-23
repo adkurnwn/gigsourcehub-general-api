@@ -662,7 +662,7 @@ enum "request_status" {
 
 enum "interview_status" {
   schema = schema.public
-  values = ["SCHEDULED", "CANCELLED", "RESCHEDULED", "NO_SHOW"]
+  values = ["SCHEDULED", "CANCELLED", "RESCHEDULED", "NO_SHOW", "COMPLETED"]
 }
 
 enum "interview_method" {
