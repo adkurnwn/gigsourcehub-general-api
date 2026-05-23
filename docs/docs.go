@@ -2384,13 +2384,6 @@ const docTemplate = `{
                 "summary": "Create Interview",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Interview ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
                         "description": "Create Interview",
                         "name": "request",
                         "in": "body",

@@ -12,8 +12,8 @@ import (
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
-	"github.com/sirupsen/logrus"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
