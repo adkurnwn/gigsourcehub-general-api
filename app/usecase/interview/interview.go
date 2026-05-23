@@ -13,6 +13,7 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/sirupsen/logrus"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -80,6 +81,7 @@ func (u *appUsecase) fetchList(ctx context.Context, page, limit int64, filter go
 	dbFetch := u.gormDbRepo.GetDB().WithContext(ctx).
 		Preload("Stage").
 		Preload("Subrequest").
+		Preload("Subrequest.Request").
 		Preload("Subrequest.JobRole").
 		Preload("CandidateUser")
 	filter.Query(dbFetch)
@@ -124,13 +126,9 @@ func (u *appUsecase) FetchData(ctx context.Context, id string) response.Base {
 	return response.Success(interview.ToInterviewResp())
 }
 
-func (u *appUsecase) Create(ctx context.Context, adminID string, id string, req request_model.CreateInterviewRequest) response.Base {
+func (u *appUsecase) Create(ctx context.Context, adminID string, req request_model.CreateInterviewRequest) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
-
-	if id == "" {
-		return response.Error(http.StatusBadRequest, "Invalid interview id")
-	}
 
 	scheduledAt, err := parseScheduledAt(req.ScheduledAt)
 	if err != nil {
@@ -140,43 +138,6 @@ func (u *appUsecase) Create(ctx context.Context, adminID string, id string, req 
 	method, ok := normalizeInterviewMethod(req.Method)
 	if !ok {
 		return response.Error(http.StatusBadRequest, "Invalid method value. Allowed: Online, Offline")
-	}
-
-	existing, err := u.gormDbRepo.GetInterviewByID(ctx, id)
-	if err == nil && existing != nil {
-		if authRes := u.ensureAdminOfSubrequest(ctx, adminID, existing.SubrequestID); authRes.Status != http.StatusOK {
-			return authRes
-		}
-
-		existing.StageID = req.StageID
-		existing.Title = req.Title
-		existing.Description = req.Description
-		existing.ScheduledAt = scheduledAt
-		existing.Method = &method
-		existing.MeetingLocation = req.MeetingLocation
-		existing.MeetingLink = req.MeetingLink
-		existing.AdminUserID = &adminID
-		if existing.Status == "" {
-			existing.Status = "SCHEDULED"
-		}
-
-		if err := u.gormDbRepo.UpdateInterview(ctx, existing); err != nil {
-			logrus.Error("Interview Create/Update error:", err)
-			helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Interview", id, req, false)
-			return response.Error(http.StatusInternalServerError, "Failed to update Interview")
-		}
-
-		helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Interview", id, req, true)
-		updated, err := u.gormDbRepo.GetInterviewByID(ctx, id)
-		if err == nil {
-			return response.Success(updated.ToInterviewResp())
-		}
-		return response.Success(existing.ToInterviewResp())
-	}
-
-	if err != nil && err != gorm.ErrRecordNotFound {
-		logrus.Error("Interview Create fetch error:", err)
-		return response.Error(http.StatusInternalServerError, "Failed to check Interview data")
 	}
 
 	if req.CandidateUserID == nil || *req.CandidateUserID == "" || req.SubrequestID == nil || *req.SubrequestID == "" {
@@ -190,6 +151,8 @@ func (u *appUsecase) Create(ctx context.Context, adminID string, id string, req 
 	if candRes := u.ensureCandidateOnSubrequest(ctx, *req.CandidateUserID, *req.SubrequestID); candRes.Status != http.StatusOK {
 		return candRes
 	}
+
+	id := uuid.NewString()
 
 	newInterview := gorm_model.Interview{
 		ID:              id,

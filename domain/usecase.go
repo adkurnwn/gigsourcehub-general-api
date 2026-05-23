@@ -80,7 +80,7 @@ type InterviewAppUsecase interface {
 	FetchAll(ctx context.Context, page, limit int64, cursor string, filter gorm_model.InterviewFilter) response.Base
 	FetchScheduled(ctx context.Context, adminID string, page, limit int64, cursor string) response.Base
 	FetchData(ctx context.Context, id string) response.Base
-	Create(ctx context.Context, adminID string, id string, req request_model.CreateInterviewRequest) response.Base
+	Create(ctx context.Context, adminID string, req request_model.CreateInterviewRequest) response.Base
 	Update(ctx context.Context, adminID string, id string, req request_model.UpdateInterviewRequest) response.Base
 	PatchStage(ctx context.Context, adminID string, req request_model.PatchInterviewStageRequest) response.Base
 	PatchStatus(ctx context.Context, adminID string, req request_model.PatchInterviewStatusRequest) response.Base

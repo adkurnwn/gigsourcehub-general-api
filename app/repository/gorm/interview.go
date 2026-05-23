@@ -12,6 +12,7 @@ func (r *gormRepo) GetInterviewByID(ctx context.Context, id string) (*gorm_model
 	err := r.db.WithContext(ctx).
 		Preload("Stage").
 		Preload("Subrequest").
+		Preload("Subrequest.Request").
 		Preload("Subrequest.JobRole").
 		Preload("CandidateUser").
 		Where("id = ?", id).

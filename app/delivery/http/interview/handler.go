@@ -29,7 +29,7 @@ func NewInterviewHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domai
 	api.GET("", handler.FetchAll)
 	api.GET("/scheduled", handler.FetchScheduled)
 	api.GET("/:id", handler.FetchData)
-	api.POST("/:id", handler.Create)
+	api.POST("", handler.Create)
 	api.PUT("/:id", handler.Update)
 	api.PATCH("/stage", handler.PatchStage)
 	api.PATCH("/status", handler.PatchStatus)
@@ -142,7 +142,6 @@ func (h *routeHandler) FetchData(c *gin.Context) {
 // @Tags Interview
 // @Accept json
 // @Produce json
-// @Param id path string true "Interview ID"
 // @Param request body request_model.CreateInterviewRequest true "Create Interview"
 // @Success 200 {object} response.Base
 // @Failure 400 {object} response.Base
@@ -158,11 +157,7 @@ func (h *routeHandler) Create(c *gin.Context) {
 	}
 
 	tokenData := claims.(domain.JWTClaimUser)
-	id := c.Param("id")
-	if id == "" {
-		c.JSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "Invalid id parameter"))
-		return
-	}
+	// server will generate interview ID
 
 	var req request_model.CreateInterviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -170,7 +165,7 @@ func (h *routeHandler) Create(c *gin.Context) {
 		return
 	}
 
-	res := h.Usecase.Create(c.Request.Context(), tokenData.UserID, id, req)
+	res := h.Usecase.Create(c.Request.Context(), tokenData.UserID, req)
 	c.JSON(res.Status, res)
 }
 
