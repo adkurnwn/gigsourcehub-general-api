@@ -716,6 +716,24 @@ func (u *appUsecase) CancelRecruitment(ctx context.Context, id string) response.
 		return response.Error(http.StatusInternalServerError, "Failed to cancel recruitment")
 	}
 
+	// Send Email asynchronously
+	go func(email, name string) {
+		if err := u.mailerRepo.SendCancelRecruitmentEmail(email, name); err != nil {
+			logrus.Errorf("Failed to send cancel recruitment email to %s: %v", email, err)
+		}
+	}(user.Email, user.Name)
+
+	// Schedule chat deletion in 12 hours
+	candidateID := user.ID
+	time.AfterFunc(12*time.Hour, func() {
+		bgCtx := context.Background()
+		if err := u.gormDbRepo.DeleteConversationsByCandidateID(bgCtx, candidateID); err != nil {
+			logrus.Errorf("Failed to delete conversations for candidate %s after 12 hours: %v", candidateID, err)
+		} else {
+			logrus.Infof("Successfully deleted conversations for candidate %s after 12 hours", candidateID)
+		}
+	})
+
 	return response.SuccessAction("User", user.Email, "recruitment canceled")
 }
 

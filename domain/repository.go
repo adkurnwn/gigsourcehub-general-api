@@ -63,6 +63,11 @@ type GormRepo interface {
 	UpdateRecruitmentStatus(ctx context.Context, model *gorm_model.RecruitmentStatus) error
 	DeleteRecruitmentStatus(ctx context.Context, id string) error
 
+	FetchInterviewStage(ctx context.Context, options gorm_model.InterviewStageFilter) (*sql.Rows, error)
+	CreateInterviewStage(ctx context.Context, model *gorm_model.InterviewStage) error
+	UpdateInterviewStage(ctx context.Context, model *gorm_model.InterviewStage) error
+	DeleteInterviewStage(ctx context.Context, id string) error
+
 	FetchKabupatenKota(ctx context.Context, options gorm_model.KabupatenKotaFilter) (*sql.Rows, error)
 	FetchProvinsi(ctx context.Context, options gorm_model.ProvinsiFilter) (*sql.Rows, error)
 	FetchSystemRole(ctx context.Context, options gorm_model.SystemRoleFilter) (*sql.Rows, error)
@@ -139,8 +144,10 @@ type GormRepo interface {
 	StartConversation(ctx context.Context, conv *gorm_model.Conversation, contactedStatusID string) error
 	GetConversationByID(ctx context.Context, id string) (*gorm_model.Conversation, error)
 	GetConversationBySubrequestAndCandidate(ctx context.Context, subrequestID, candidateID string) (*gorm_model.Conversation, error)
+	GetActiveConversationByCandidateID(ctx context.Context, candidateID string) (*gorm_model.Conversation, error)
 	FetchConversationsByUser(ctx context.Context, userID string, limit, offset int64) ([]gorm_model.Conversation, error)
 	CountConversationsByUser(ctx context.Context, userID string) (int64, error)
+	DeleteConversationsByCandidateID(ctx context.Context, candidateID string) error
 
 	// Messages
 	CreateMessage(ctx context.Context, msg *gorm_model.Message) error

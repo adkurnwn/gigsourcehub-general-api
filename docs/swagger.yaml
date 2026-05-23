@@ -155,6 +155,17 @@ definitions:
     - answer
     - question
     type: object
+  request_model.CreateInterviewStageRequest:
+    properties:
+      hex_code:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+    required:
+    - name
+    type: object
   request_model.CreateJobRoleRequest:
     properties:
       name:
@@ -383,6 +394,17 @@ definitions:
     required:
     - answer
     - question
+    type: object
+  request_model.UpdateInterviewStageRequest:
+    properties:
+      hex_code:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+    required:
+    - name
     type: object
   request_model.UpdateJobRoleRequest:
     properties:
@@ -2154,6 +2176,169 @@ paths:
       summary: Reject FAQ Approval Request
       tags:
       - FAQ Approvals
+  /interview-stages:
+    get:
+      consumes:
+      - application/json
+      description: Get All Interview Stages
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      - description: Search by name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Interview Stages
+      tags:
+      - Interview Stage
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateInterviewStageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Interview Stage
+      tags:
+      - Interview Stage
+  /interview-stages/{id}:
+    delete:
+      parameters:
+      - description: Interview Stage ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Interview Stage
+      tags:
+      - Interview Stage
+    get:
+      consumes:
+      - application/json
+      description: Get Interview Stage By ID
+      parameters:
+      - description: Interview Stage ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Interview Stage By ID
+      tags:
+      - Interview Stage
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Interview Stage ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateInterviewStageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Interview Stage
+      tags:
+      - Interview Stage
   /job-titles:
     get:
       consumes:
