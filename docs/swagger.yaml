@@ -145,6 +145,27 @@ definitions:
     - candidate_user_id
     - subrequest_id
     type: object
+  request_model.CreateFAQRequest:
+    properties:
+      answer:
+        type: string
+      question:
+        type: string
+    required:
+    - answer
+    - question
+    type: object
+  request_model.CreateInterviewStageRequest:
+    properties:
+      hex_code:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+    required:
+    - name
+    type: object
   request_model.CreateJobRoleRequest:
     properties:
       name:
@@ -326,6 +347,11 @@ definitions:
       token:
         type: string
     type: object
+  request_model.ReviewApprovalRequest:
+    properties:
+      rejected_reason:
+        type: string
+    type: object
   request_model.SearchRequest:
     properties:
       query:
@@ -341,6 +367,44 @@ definitions:
         type: string
     required:
     - content
+    type: object
+  request_model.UpdateCompanyProfileRequest:
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      facebook_url:
+        type: string
+      instagram_url:
+        type: string
+      linkedin_url:
+        type: string
+      phone:
+        type: string
+      twitter_url:
+        type: string
+    type: object
+  request_model.UpdateFAQRequest:
+    properties:
+      answer:
+        type: string
+      question:
+        type: string
+    required:
+    - answer
+    - question
+    type: object
+  request_model.UpdateInterviewStageRequest:
+    properties:
+      hex_code:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+    required:
+    - name
     type: object
   request_model.UpdateJobRoleRequest:
     properties:
@@ -1482,6 +1546,225 @@ paths:
       summary: Start a chat with an assigned candidate
       tags:
       - Chat
+  /company-profile:
+    get:
+      consumes:
+      - application/json
+      description: Get company profile data (Admin & Superadmin)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Company Profile
+      tags:
+      - Company Profile
+    put:
+      consumes:
+      - application/json
+      description: Admin creates a company profile update approval request
+      parameters:
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateCompanyProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Company Profile (Admin)
+      tags:
+      - Company Profile
+  /company-profile/approvals:
+    get:
+      consumes:
+      - application/json
+      description: Get all pending company profile approval requests (Superadmin)
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Company Profile Pending Approvals
+      tags:
+      - Company Profile Approvals
+  /company-profile/approvals/{id}:
+    delete:
+      description: Admin cancels a pending company profile update approval
+      parameters:
+      - description: Approval Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Cancel Pending Company Profile Approval
+      tags:
+      - Company Profile
+  /company-profile/approvals/{id}/approve:
+    post:
+      consumes:
+      - application/json
+      description: Superadmin approves a company profile update request
+      parameters:
+      - description: Approval Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Approve Company Profile Update
+      tags:
+      - Company Profile Approvals
+  /company-profile/approvals/{id}/reject:
+    post:
+      consumes:
+      - application/json
+      description: Superadmin rejects a company profile update request
+      parameters:
+      - description: Approval Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Rejection Reason
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.ReviewApprovalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Reject Company Profile Update
+      tags:
+      - Company Profile Approvals
   /cv/confirm:
     post:
       consumes:
@@ -1591,6 +1874,471 @@ paths:
       summary: Upload CV
       tags:
       - CV
+  /faqs:
+    get:
+      consumes:
+      - application/json
+      description: Get all FAQs with pagination (Admin & Superadmin)
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Search by question
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All FAQs (CMS)
+      tags:
+      - FAQ
+    post:
+      consumes:
+      - application/json
+      description: Admin creates a new FAQ approval request
+      parameters:
+      - description: Create FAQ Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateFAQRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create FAQ (Admin)
+      tags:
+      - FAQ
+  /faqs/{id}:
+    delete:
+      description: Admin directly deletes a FAQ (no approval needed)
+      parameters:
+      - description: FAQ ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete FAQ (Admin)
+      tags:
+      - FAQ
+    get:
+      consumes:
+      - application/json
+      description: Get FAQ detail by ID (Admin & Superadmin)
+      parameters:
+      - description: FAQ ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get FAQ By ID (CMS)
+      tags:
+      - FAQ
+    put:
+      consumes:
+      - application/json
+      description: Admin creates a FAQ update approval request
+      parameters:
+      - description: FAQ ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update FAQ Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateFAQRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update FAQ (Admin)
+      tags:
+      - FAQ
+  /faqs/approvals:
+    get:
+      consumes:
+      - application/json
+      description: Get all FAQ approval requests with pagination (Superadmin)
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get FAQ Approval Requests
+      tags:
+      - FAQ Approvals
+  /faqs/approvals/{id}/approve:
+    post:
+      consumes:
+      - application/json
+      description: Superadmin approves a FAQ approval request
+      parameters:
+      - description: Approval Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Approve FAQ Approval Request
+      tags:
+      - FAQ Approvals
+  /faqs/approvals/{id}/reject:
+    post:
+      consumes:
+      - application/json
+      description: Superadmin rejects a FAQ approval request
+      parameters:
+      - description: Approval Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Rejection Reason
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.ReviewApprovalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Reject FAQ Approval Request
+      tags:
+      - FAQ Approvals
+  /interview-stages:
+    get:
+      consumes:
+      - application/json
+      description: Get All Interview Stages
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      - description: Search by name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Interview Stages
+      tags:
+      - Interview Stage
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateInterviewStageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Interview Stage
+      tags:
+      - Interview Stage
+  /interview-stages/{id}:
+    delete:
+      parameters:
+      - description: Interview Stage ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Interview Stage
+      tags:
+      - Interview Stage
+    get:
+      consumes:
+      - application/json
+      description: Get Interview Stage By ID
+      parameters:
+      - description: Interview Stage ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Interview Stage By ID
+      tags:
+      - Interview Stage
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Interview Stage ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateInterviewStageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Interview Stage
+      tags:
+      - Interview Stage
   /job-titles:
     get:
       consumes:
@@ -2218,6 +2966,86 @@ paths:
       summary: Get All Provinsi
       tags:
       - Domisili
+  /public/company-profile:
+    get:
+      consumes:
+      - application/json
+      description: Get company profile data (no authentication required)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Get Public Company Profile
+      tags:
+      - Company Profile Public
+  /public/faqs:
+    get:
+      consumes:
+      - application/json
+      description: Get all approved FAQs (no authentication required)
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Search by question
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Get Public FAQs
+      tags:
+      - FAQ Public
+  /public/faqs/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a single approved FAQ by ID (no authentication required)
+      parameters:
+      - description: FAQ ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Get Public FAQ By ID
+      tags:
+      - FAQ Public
   /public/job-vacancies:
     get:
       consumes:

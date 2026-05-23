@@ -63,6 +63,11 @@ type GormRepo interface {
 	UpdateRecruitmentStatus(ctx context.Context, model *gorm_model.RecruitmentStatus) error
 	DeleteRecruitmentStatus(ctx context.Context, id string) error
 
+	FetchInterviewStage(ctx context.Context, options gorm_model.InterviewStageFilter) (*sql.Rows, error)
+	CreateInterviewStage(ctx context.Context, model *gorm_model.InterviewStage) error
+	UpdateInterviewStage(ctx context.Context, model *gorm_model.InterviewStage) error
+	DeleteInterviewStage(ctx context.Context, id string) error
+
 	FetchKabupatenKota(ctx context.Context, options gorm_model.KabupatenKotaFilter) (*sql.Rows, error)
 	FetchProvinsi(ctx context.Context, options gorm_model.ProvinsiFilter) (*sql.Rows, error)
 	FetchSystemRole(ctx context.Context, options gorm_model.SystemRoleFilter) (*sql.Rows, error)
@@ -157,6 +162,27 @@ type GormRepo interface {
 	IsAdminOfSubrequest(ctx context.Context, adminID, subrequestID string) (bool, error)
 	IsCandidateOnSubrequest(ctx context.Context, candidateID, subrequestID string) (bool, error)
 	GetCandidateRecruitmentStatusName(ctx context.Context, candidateID string) (string, error)
+
+	// FAQ
+	FetchFAQ(ctx context.Context, options gorm_model.FAQFilter) ([]gorm_model.FAQ, error)
+	CountFAQ(ctx context.Context, options gorm_model.FAQFilter) (int64, error)
+	GetFAQByID(ctx context.Context, id string) (*gorm_model.FAQ, error)
+	CreateFAQ(ctx context.Context, model *gorm_model.FAQ) error
+	UpdateFAQ(ctx context.Context, model *gorm_model.FAQ) error
+	DeleteFAQ(ctx context.Context, id string) error
+
+	// Company Profile
+	GetCompanyProfile(ctx context.Context) (*gorm_model.CompanyProfile, error)
+	UpdateCompanyProfile(ctx context.Context, model *gorm_model.CompanyProfile) error
+
+	// Approval Request
+	CreateApprovalRequest(ctx context.Context, model *gorm_model.ApprovalRequest) error
+	GetApprovalRequestByID(ctx context.Context, id string) (*gorm_model.ApprovalRequest, error)
+	FetchApprovalRequests(ctx context.Context, options gorm_model.ApprovalRequestFilter) ([]gorm_model.ApprovalRequest, error)
+	CountApprovalRequests(ctx context.Context, options gorm_model.ApprovalRequestFilter) (int64, error)
+	UpdateApprovalRequest(ctx context.Context, model *gorm_model.ApprovalRequest) error
+	GetPendingApprovalByRecord(ctx context.Context, tableName, recordID string) (*gorm_model.ApprovalRequest, error)
+	DeleteApprovalRequest(ctx context.Context, id string) error
 }
 
 type CacheRepo interface {
