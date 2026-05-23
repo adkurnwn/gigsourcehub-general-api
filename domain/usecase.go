@@ -148,3 +148,40 @@ type ChatAppUsecase interface {
 	FetchMessages(ctx context.Context, userID string, conversationID string, page, limit int64) response.Base
 	MarkAsRead(ctx context.Context, userID string, conversationID string) response.Base
 }
+
+type FAQAppUsecase interface {
+	// Admin & Superadmin — CMS
+	FetchAll(ctx context.Context, page, limit int64, search *string) response.Base
+	FetchData(ctx context.Context, id string) response.Base
+
+	// Admin only
+	Create(ctx context.Context, adminID string, req request_model.CreateFAQRequest) response.Base
+	Update(ctx context.Context, adminID string, id string, req request_model.UpdateFAQRequest) response.Base
+	Delete(ctx context.Context, id string) response.Base
+
+	// Superadmin — Approvals
+	FetchApprovals(ctx context.Context, page, limit int64) response.Base
+	ApproveRequest(ctx context.Context, superadminID string, approvalID string) response.Base
+	RejectRequest(ctx context.Context, superadminID string, approvalID string, req request_model.ReviewApprovalRequest) response.Base
+
+	// Public — no auth
+	FetchPublic(ctx context.Context, page, limit int64, search *string) response.Base
+	FetchPublicByID(ctx context.Context, id string) response.Base
+}
+
+type CompanyProfileAppUsecase interface {
+	// Admin & Superadmin — CMS
+	Get(ctx context.Context) response.Base
+
+	// Admin only
+	AdminUpdate(ctx context.Context, adminID string, req request_model.UpdateCompanyProfileRequest) response.Base
+	CancelPendingApproval(ctx context.Context, approvalID string) response.Base
+
+	// Superadmin — Approvals
+	FetchPendingApprovals(ctx context.Context, page, limit int64) response.Base
+	ApproveRequest(ctx context.Context, superadminID string, approvalID string) response.Base
+	RejectRequest(ctx context.Context, superadminID string, approvalID string, req request_model.ReviewApprovalRequest) response.Base
+
+	// Public — no auth
+	GetPublic(ctx context.Context) response.Base
+}
