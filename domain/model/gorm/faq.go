@@ -43,19 +43,26 @@ func (f *FAQFilter) Query(q *gorm.DB) {
 // --- Response ---
 
 type FAQResp struct {
-	ID        string    `json:"id"`
-	Question  string    `json:"question"`
-	Answer    string    `json:"answer"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID          string     `json:"id"`
+	Question    string     `json:"question"`
+	Answer      string     `json:"answer"`
+	Author      *string    `json:"author"`
+	Status      *string    `json:"status"`
+	PublishedAt *time.Time `json:"published_at"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
 }
 
 func (row *FAQ) ToFAQResp() FAQResp {
+	status := "PUBLISHED"
+	var publishedAt *time.Time = &row.CreatedAt
 	return FAQResp{
-		ID:        row.ID,
-		Question:  row.Question,
-		Answer:    row.Answer,
-		CreatedAt: row.CreatedAt,
-		UpdatedAt: row.UpdatedAt,
+		ID:          row.ID,
+		Question:    row.Question,
+		Answer:      row.Answer,
+		Status:      &status,
+		PublishedAt: publishedAt,
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
 	}
 }

@@ -16,7 +16,7 @@ import (
 
 // ---------- Admin & Superadmin — CMS ----------
 
-// Get returns the current company profile data.
+// Get returns the current company profile data and any pending approvals.
 func (u *appUsecase) Get(ctx context.Context) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
@@ -27,7 +27,16 @@ func (u *appUsecase) Get(ctx context.Context) response.Base {
 		return response.Error(http.StatusInternalServerError, "Failed to fetch company profile")
 	}
 
-	return response.Success(profile.ToCompanyProfileResp())
+	resp := profile.ToCompanyProfileResp()
+
+	// Check if there is a pending approval request for this record
+	pending, err := u.gormDbRepo.GetPendingApprovalByRecord(ctx, "company_profiles", profile.ID)
+	if err == nil && pending != nil {
+		pResp := pending.ToApprovalRequestResp()
+		resp.PendingApproval = &pResp
+	}
+
+	return response.Success(resp)
 }
 
 // ---------- Admin only ----------

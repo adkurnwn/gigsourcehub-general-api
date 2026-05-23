@@ -31,16 +31,17 @@ func (m *CompanyProfile) BeforeCreate(tx *gorm.DB) (err error) {
 // --- Response ---
 
 type CompanyProfileResp struct {
-	ID           string    `json:"id"`
-	Address      *string   `json:"address"`
-	Phone        *string   `json:"phone"`
-	Email        *string   `json:"email"`
-	FacebookURL  *string   `json:"facebook_url"`
-	InstagramURL *string   `json:"instagram_url"`
-	LinkedinURL  *string   `json:"linkedin_url"`
-	TwitterURL   *string   `json:"twitter_url"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID              string               `json:"id"`
+	Address         *string              `json:"address"`
+	Phone           *string              `json:"phone"`
+	Email           *string              `json:"email"`
+	FacebookURL     *string              `json:"facebook_url"`
+	InstagramURL    *string              `json:"instagram_url"`
+	LinkedinURL     *string              `json:"linkedin_url"`
+	TwitterURL      *string              `json:"twitter_url"`
+	CreatedAt       time.Time            `json:"created_at"`
+	UpdatedAt       time.Time            `json:"updated_at"`
+	PendingApproval *ApprovalRequestResp `json:"pending_approval,omitempty"`
 }
 
 func (row *CompanyProfile) ToCompanyProfileResp() CompanyProfileResp {
