@@ -69,61 +69,106 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, search *st
 		}
 	}
 
-	// Build map of pending/rejected approvals by RecordID
-	approvalMap := make(map[string]gorm_model.ApprovalRequest)
+	// Build map of the latest approval request by RecordID
+	latestApproval := make(map[string]gorm_model.ApprovalRequest)
 	for _, app := range approvals {
-		if app.Status == "PENDING" || app.Status == "REJECTED" {
-			existing, exists := approvalMap[app.RecordID]
-			if !exists || app.CreatedAt.After(existing.CreatedAt) {
-				approvalMap[app.RecordID] = app
-			}
+		existing, exists := latestApproval[app.RecordID]
+		if !exists || app.CreatedAt.After(existing.CreatedAt) {
+			latestApproval[app.RecordID] = app
 		}
 	}
 
-	// Process approvals
-	for recordID, app := range approvalMap {
-		var proposed map[string]string
-		if app.ProposedData != nil {
-			_ = json.Unmarshal([]byte(*app.ProposedData), &proposed)
-		}
+	// Create a set of all record IDs we need to process
+	allRecordIDs := make(map[string]bool)
+	for id := range approvedMap {
+		allRecordIDs[id] = true
+	}
+	for id := range latestApproval {
+		allRecordIDs[id] = true
+	}
 
-		status := "DRAFT"
-		if app.Status == "REJECTED" {
-			status = "REJECTED"
-		}
+	finalMap := make(map[string]tempFAQ)
 
-		authorName := ""
-		if app.RequestedByAdmin != nil {
-			authorName = app.RequestedByAdmin.Name
-		}
+	for recordID := range allRecordIDs {
+		faq, existsInFaq := approvedMap[recordID]
+		app, hasApproval := latestApproval[recordID]
 
-		if app.Action == "CREATE" {
-			// Add as a new draft
-			approvedMap[recordID] = tempFAQ{
-				ID:        recordID,
-				Question:  proposed["question"],
-				Answer:    proposed["answer"],
-				Author:    authorName,
-				Status:    status,
-				CreatedAt: app.CreatedAt,
-				UpdatedAt: app.UpdatedAt,
+		if existsInFaq {
+			// FAQ is active (published) in the database
+			authorName := ""
+			if hasApproval && app.RequestedByAdmin != nil {
+				authorName = app.RequestedByAdmin.Name
 			}
-		} else if app.Action == "UPDATE" {
-			// Update the approved one
-			if existing, exists := approvedMap[recordID]; exists {
-				existing.Question = proposed["question"]
-				existing.Answer = proposed["answer"]
-				existing.Author = authorName
-				existing.Status = status
-				existing.UpdatedAt = app.UpdatedAt
-				approvedMap[recordID] = existing
+
+			if hasApproval && app.Status == "PENDING" {
+				// There is a pending update
+				var proposed map[string]string
+				if app.ProposedData != nil {
+					_ = json.Unmarshal([]byte(*app.ProposedData), &proposed)
+				}
+
+				finalMap[recordID] = tempFAQ{
+					ID:          recordID,
+					Question:    proposed["question"],
+					Answer:      proposed["answer"],
+					Author:      authorName,
+					Status:      "DRAFT", // pending update is shown as DRAFT/Pending
+					PublishedAt: faq.PublishedAt,
+					CreatedAt:   faq.CreatedAt,
+					UpdatedAt:   app.UpdatedAt,
+				}
+			} else {
+				// No pending update (or update was approved/rejected).
+				// If it was rejected, we still show the published FAQ as PUBLISHED.
+				// If it was approved, it is already updated in the faqs table, so we show it as PUBLISHED.
+				finalMap[recordID] = tempFAQ{
+					ID:          recordID,
+					Question:    faq.Question,
+					Answer:      faq.Answer,
+					Author:      authorName,
+					Status:      "PUBLISHED",
+					PublishedAt: faq.PublishedAt,
+					CreatedAt:   faq.CreatedAt,
+					UpdatedAt:   faq.UpdatedAt,
+				}
+			}
+		} else {
+			// FAQ is NOT active in the database (never approved, or was approved but soft-deleted).
+			// We only show it if it has an approval request that is PENDING or REJECTED
+			// (if it's APPROVED but not in faqs table, it means it was soft-deleted, so we don't show it).
+			if hasApproval && (app.Status == "PENDING" || app.Status == "REJECTED") && app.Action == "CREATE" {
+				var proposed map[string]string
+				if app.ProposedData != nil {
+					_ = json.Unmarshal([]byte(*app.ProposedData), &proposed)
+				}
+
+				status := "DRAFT"
+				if app.Status == "REJECTED" {
+					status = "REJECTED"
+				}
+
+				authorName := ""
+				if app.RequestedByAdmin != nil {
+					authorName = app.RequestedByAdmin.Name
+				}
+
+				finalMap[recordID] = tempFAQ{
+					ID:          recordID,
+					Question:    proposed["question"],
+					Answer:      proposed["answer"],
+					Author:      authorName,
+					Status:      status,
+					PublishedAt: nil,
+					CreatedAt:   app.CreatedAt,
+					UpdatedAt:   app.UpdatedAt,
+				}
 			}
 		}
 	}
 
 	// Convert map to slice and apply search filter
 	var merged []tempFAQ
-	for _, item := range approvedMap {
+	for _, item := range finalMap {
 		matchesSearch := true
 		if search != nil && *search != "" {
 			qLower := strings.ToLower(*search)
@@ -206,7 +251,25 @@ func (u *appUsecase) FetchData(ctx context.Context, id string) response.Base {
 		return response.Error(http.StatusInternalServerError, "Failed to fetch FAQ")
 	}
 
-	return response.Success(faq.ToFAQResp())
+	status := "PUBLISHED"
+	approvals, err := u.gormDbRepo.FetchApprovalRequests(ctx, gorm_model.ApprovalRequestFilter{
+		RecordID: &id,
+	})
+	if err == nil && len(approvals) > 0 {
+		var latest gorm_model.ApprovalRequest
+		for _, app := range approvals {
+			if latest.ID == "" || app.CreatedAt.After(latest.CreatedAt) {
+				latest = app
+			}
+		}
+		if latest.Status == "PENDING" {
+			status = "DRAFT"
+		} else if latest.Status == "REJECTED" {
+			status = "REJECTED"
+		}
+	}
+
+	return response.Success(faq.ToFAQResp(status))
 }
 
 // ---------- Admin only ----------
@@ -522,7 +585,7 @@ func (u *appUsecase) FetchPublic(ctx context.Context, page, limit int64, search 
 
 	var results []interface{}
 	for _, f := range faqs {
-		results = append(results, f.ToFAQResp())
+		results = append(results, f.ToFAQResp("PUBLISHED"))
 	}
 
 	var nextCursor *string
@@ -554,5 +617,5 @@ func (u *appUsecase) FetchPublicByID(ctx context.Context, id string) response.Ba
 		return response.Error(http.StatusInternalServerError, "Failed to fetch FAQ")
 	}
 
-	return response.Success(faq.ToFAQResp())
+	return response.Success(faq.ToFAQResp("PUBLISHED"))
 }

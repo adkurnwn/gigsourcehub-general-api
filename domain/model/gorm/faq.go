@@ -53,8 +53,7 @@ type FAQResp struct {
 	UpdatedAt   time.Time  `json:"updated_at"`
 }
 
-func (row *FAQ) ToFAQResp() FAQResp {
-	status := "PUBLISHED"
+func (row *FAQ) ToFAQResp(status string) FAQResp {
 	var publishedAt *time.Time = &row.CreatedAt
 	return FAQResp{
 		ID:          row.ID,
