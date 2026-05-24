@@ -1738,6 +1738,44 @@ paths:
       summary: Get Interviews (Admin)
       tags:
       - Interview
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Interview
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateInterviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Interview
+      tags:
+      - Interview
   /interview-stages:
     get:
       consumes:
@@ -1929,44 +1967,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Get Interview By ID
-      tags:
-      - Interview
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Create Interview
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/request_model.CreateInterviewRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Base'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.Base'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.Base'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/response.Base'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Base'
-      security:
-      - BearerAuth: []
-      summary: Create Interview
       tags:
       - Interview
     put:

@@ -148,7 +148,7 @@ func (h *routeHandler) FetchData(c *gin.Context) {
 // @Failure 401 {object} response.Base
 // @Failure 403 {object} response.Base
 // @Failure 500 {object} response.Base
-// @Router /interview/{id} [post]
+// @Router /interview [post]
 func (h *routeHandler) Create(c *gin.Context) {
 	claims, ok := c.Get("token_data")
 	if !ok {
