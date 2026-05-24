@@ -60,9 +60,6 @@ func (u *appUsecase) Login(ctx context.Context, payload request_model.LoginReque
 		if *user.AccountStatus == "Blocked" {
 			return response.Error(http.StatusForbidden, "Your account has been blocked.")
 		}
-		if *user.AccountStatus == "Inactive" {
-			return response.Error(http.StatusForbidden, "Your account is inactive.")
-		}
 	}
 
 	// check verification status
@@ -335,31 +332,5 @@ func (u *appUsecase) ResetPassword(ctx context.Context, req request_model.ResetP
 
 	return response.Success(map[string]string{
 		"message": "Password reset successfully! You can now log in with your new password.",
-	})
-}
-
-func (u *appUsecase) Logout(ctx context.Context, claim domain.JWTClaimUser) response.Base {
-	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
-	defer cancel()
-
-	userID := claim.UserID
-
-	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
-		DefaultFilter: gorm_model.DefaultFilter{
-			ID: userID,
-		},
-	})
-	if err != nil {
-		return response.Error(http.StatusInternalServerError, err.Error())
-	}
-
-	if user == nil {
-		return response.Error(http.StatusBadRequest, "user not found")
-	}
-
-	helpers.LogActivity(ctx, u.gormDbRepo, "Logout", "Authentication", user.Email, nil, true)
-
-	return response.Success(map[string]string{
-		"message": "Logout successful",
 	})
 }
