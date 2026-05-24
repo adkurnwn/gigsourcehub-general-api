@@ -1,4 +1,4 @@
-package usecase_interview
+package usecase_company_profile
 
 import (
 	"time"
@@ -15,7 +15,7 @@ type RepoInjection struct {
 	GormDbRepo domain.GormRepo
 }
 
-func NewAppUsecase(r RepoInjection, timeout time.Duration) domain.InterviewAppUsecase {
+func NewAppUsecase(r RepoInjection, timeout time.Duration) domain.CompanyProfileAppUsecase {
 	return &appUsecase{
 		gormDbRepo:     r.GormDbRepo,
 		contextTimeout: timeout,
