@@ -68,6 +68,12 @@ type GormRepo interface {
 	UpdateInterviewStage(ctx context.Context, model *gorm_model.InterviewStage) error
 	DeleteInterviewStage(ctx context.Context, id string) error
 
+	GetInterviewByID(ctx context.Context, id string) (*gorm_model.Interview, error)
+	CreateInterview(ctx context.Context, model *gorm_model.Interview) error
+	UpdateInterview(ctx context.Context, model *gorm_model.Interview) error
+	PatchInterviewStage(ctx context.Context, interviewID string, stageID string, status *string) error
+	PatchInterviewStatus(ctx context.Context, interviewID string, status string) error
+
 	FetchKabupatenKota(ctx context.Context, options gorm_model.KabupatenKotaFilter) (*sql.Rows, error)
 	FetchProvinsi(ctx context.Context, options gorm_model.ProvinsiFilter) (*sql.Rows, error)
 	FetchSystemRole(ctx context.Context, options gorm_model.SystemRoleFilter) (*sql.Rows, error)

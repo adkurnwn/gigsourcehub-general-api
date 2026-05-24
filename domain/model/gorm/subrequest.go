@@ -33,6 +33,7 @@ func (m *Subrequest) BeforeCreate(tx *gorm.DB) (err error) {
 type SubrequestResp struct {
 	ID        string  `json:"id"`
 	RequestID string  `json:"request_id"`
+	ProjectName string `json:"project_name,omitempty"`
 	Level     *string `json:"level"`
 	JobRoleID *string `json:"job_role_id"`
 	JobRole   *string `json:"job_role"`
@@ -48,9 +49,15 @@ func (row *Subrequest) ToSubrequestResp() SubrequestResp {
 		jobRoleName = &row.JobRole.Name
 	}
 
+	var projectName *string
+	if row.Request != nil {
+		projectName = &row.Request.ProjectName
+	}
+
 	return SubrequestResp{
 		ID:        row.ID,
 		RequestID: row.RequestID,
+		ProjectName: func() string { if projectName!=nil { return *projectName }; return "" }(),
 		Level:     row.Level,
 		JobRoleID: row.JobRoleID,
 		JobRole:   jobRoleName,
