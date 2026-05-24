@@ -18,7 +18,9 @@ import (
 	http_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/ai_chat"
 	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
 	http_chat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/chat"
+	http_company_profile "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/company_profile"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
+	http_faq "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/faq"
 	http_interview "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/interview"
 	http_interview_stage "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/interview_stage"
 	http_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_role"
@@ -43,7 +45,9 @@ import (
 	usecase_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/ai_chat"
 	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
 	usecase_chat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/chat"
+	usecase_company_profile "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/company_profile"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
+	usecase_faq "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/faq"
 	usecase_interview "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/interview"
 	usecase_interview_stage "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/interview_stage"
 	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
@@ -281,6 +285,16 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init faq usecase
+	ucFAQ := usecase_faq.NewAppUsecase(usecase_faq.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init company profile usecase
+	ucCompanyProfile := usecase_company_profile.NewAppUsecase(usecase_company_profile.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// start consumer
 	if mqRepo != nil {
 		cvConsumer := consumer.NewCVParserConsumer(mqRepo, repo)
@@ -341,6 +355,8 @@ func main() {
 	http_activity_log.NewActivityLogHandler(apiGroup, mdl, ucActivityLog)
 	http_system_setting.NewSystemSettingHandler(apiGroup, mdl, ucSystemSetting)
 	http_job_vacancy.NewJobVacancyHandler(apiGroup, mdl, ucJobVacancy)
+	http_faq.NewFAQHandler(apiGroup, mdl, ucFAQ)
+	http_company_profile.NewCompanyProfileHandler(apiGroup, mdl, ucCompanyProfile)
 	http_interview_stage.NewInterviewStageHandler(apiGroup, mdl, ucInterviewStage)
 	http_interview.NewInterviewHandler(apiGroup, mdl, ucInterview)
 
