@@ -662,12 +662,7 @@ enum "request_status" {
 
 enum "interview_status" {
   schema = schema.public
-  values = ["SCHEDULED", "CANCELLED", "RESCHEDULED", "NO_SHOW", "COMPLETED"]
-}
-
-enum "interview_method" {
-  schema = schema.public
-  values = ["Online", "Offline"]
+  values = ["SCHEDULED", "CANCELLED", "RESCHEDULED", "NO_SHOW"]
 }
 
 enum "subrequest_level" {
@@ -892,10 +887,6 @@ table "interviews" {
   column "id" {
     type = uuid
   }
-  column "admin_user_id" {
-    type = uuid
-    null = true
-  }
   column "candidate_user_id" {
     type = uuid
     null = false
@@ -908,20 +899,12 @@ table "interviews" {
     type = uuid
     null = false
   }
-  column "title" {
-    type = varchar(255)
-    null = true
-  }
-  column "description" {
-    type = text
-    null = true
-  }
   column "scheduled_at" {
     type = timestamptz
     null = true
   }
   column "method" {
-    type = enum.interview_method
+    type = varchar(50)
     null = true
   }
   column "status" {
@@ -962,10 +945,6 @@ table "interviews" {
     columns = [column.deleted_at]
   }
 
-  index "idx_interviews_admin_user_id" {
-    columns = [column.admin_user_id]
-  }
-
   index "idx_interviews_candidate_user_id" {
     columns = [column.candidate_user_id]
   }
@@ -983,13 +962,6 @@ table "interviews" {
     ref_columns = [table.users.column.id]
     on_update   = NO_ACTION
     on_delete   = CASCADE
-  }
-
-  foreign_key "interviews_admin_user_fk" {
-    columns     = [column.admin_user_id]
-    ref_columns = [table.users.column.id]
-    on_update   = NO_ACTION
-    on_delete   = SET_NULL
   }
 
   foreign_key "interviews_subrequest_fk" {

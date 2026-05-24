@@ -18,10 +18,7 @@ import (
 	http_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/ai_chat"
 	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
 	http_chat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/chat"
-	http_company_profile "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/company_profile"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
-	http_faq "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/faq"
-	http_interview "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/interview"
 	http_interview_stage "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/interview_stage"
 	http_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_role"
 	http_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_title"
@@ -34,6 +31,8 @@ import (
 	httpdelivery_request "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/request"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
 	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
+	http_company_profile "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/company_profile"
+	http_faq "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/faq"
 	http_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/system_setting"
 	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
 	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
@@ -48,7 +47,6 @@ import (
 	usecase_company_profile "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/company_profile"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
 	usecase_faq "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/faq"
-	usecase_interview "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/interview"
 	usecase_interview_stage "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/interview_stage"
 	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
 	usecase_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_title"
@@ -226,11 +224,6 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
-	// init interview usecase
-	ucInterview := usecase_interview.NewAppUsecase(usecase_interview.RepoInjection{
-		GormDbRepo: repo,
-	}, timeoutContext)
-
 	// init kabupaten kota usecase
 	ucKabupatenKota := usecase_kabupaten_kota.NewAppUsecase(usecase_kabupaten_kota.RepoInjection{
 		GormDbRepo: repo,
@@ -358,7 +351,6 @@ func main() {
 	http_faq.NewFAQHandler(apiGroup, mdl, ucFAQ)
 	http_company_profile.NewCompanyProfileHandler(apiGroup, mdl, ucCompanyProfile)
 	http_interview_stage.NewInterviewStageHandler(apiGroup, mdl, ucInterviewStage)
-	http_interview.NewInterviewHandler(apiGroup, mdl, ucInterview)
 
 	// init chat
 	chatHub := http_chat.NewHub()
