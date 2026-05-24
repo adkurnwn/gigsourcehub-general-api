@@ -25,8 +25,8 @@ func NewInterviewHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domai
 		Middleware: mdl,
 	}
 
-	api := r.Group("/interview", mdl.Auth(), mdl.AuthRole("Admin"))
-	api.GET("", handler.FetchAll)
+	api := r.Group("/interview", mdl.Auth(), mdl.AuthRole("Admin",))
+	api.GET("", handler.FetchAll, mdl.AuthRole("Admin", "Candidate"))
 	api.GET("/scheduled", handler.FetchScheduled)
 	api.GET("/:id", handler.FetchData)
 	api.POST("", handler.Create)
