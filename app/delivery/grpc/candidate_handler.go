@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 
+	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
 )
@@ -91,5 +92,36 @@ func (h *CandidateHandler) GetSectors(ctx context.Context, req *pb.GetSectorsReq
 
 	return &pb.GetSectorsResponse{
 		Sectors: pbSectors,
+	}, nil
+}
+
+func (h *CandidateHandler) UpdateCVProgress(ctx context.Context, req *pb.UpdateCVProgressRequest) (*pb.UpdateCVProgressResponse, error) {
+	cvID := req.GetCvId()
+	progress := req.GetProgress()
+	status := req.GetStatus()
+
+	cv, err := h.gormRepo.GetCVByID(ctx, cvID)
+	if err != nil {
+		return &pb.UpdateCVProgressResponse{
+			Success: false,
+			Message: "cv not found: " + err.Error(),
+		}, nil
+	}
+
+	if status != "" {
+		cv.Status = status
+		if err := h.gormRepo.UpdateCV(ctx, cv); err != nil {
+			return &pb.UpdateCVProgressResponse{
+				Success: false,
+				Message: "failed to update cv status: " + err.Error(),
+			}, nil
+		}
+	}
+
+	usecase_cv.SetCVProgress(cvID, int(progress))
+
+	return &pb.UpdateCVProgressResponse{
+		Success: true,
+		Message: "success",
 	}, nil
 }

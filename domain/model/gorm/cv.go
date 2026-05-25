@@ -15,6 +15,7 @@ type CV struct {
 	Path       string         `gorm:"column:path;type:varchar(255);not null"`
 	ParsedData *string        `gorm:"column:parsed_data;type:jsonb"`
 	Status     string         `gorm:"column:status;type:varchar(50);default:'UPLOADED'"`
+	Progress   int            `gorm:"-"`
 	CreatedAt  time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt  time.Time      `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt  gorm.DeletedAt `gorm:"column:deleted_at;index"`
@@ -45,6 +46,7 @@ type CVResp struct {
 	Path       string    `json:"path"`
 	ParsedData string    `json:"parsed_data,omitempty"`
 	Status     string    `json:"status"`
+	Progress   int       `json:"progress"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
 }
@@ -65,6 +67,7 @@ func (row *CV) ToCVResp() CVResp {
 		Path:       path,
 		ParsedData: parsedData,
 		Status:     row.Status,
+		Progress:   row.Progress,
 		CreatedAt:  row.CreatedAt,
 		UpdatedAt:  row.UpdatedAt,
 	}

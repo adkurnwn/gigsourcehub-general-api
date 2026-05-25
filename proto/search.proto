@@ -14,6 +14,7 @@ service SearchService {
 service CandidateService {
   rpc GetEnrichmentData (EnrichmentRequest) returns (EnrichmentResponse);
   rpc GetSectors (GetSectorsRequest) returns (GetSectorsResponse);
+  rpc UpdateCVProgress (UpdateCVProgressRequest) returns (UpdateCVProgressResponse);
 }
 
 message GetSectorsRequest {}
@@ -77,3 +78,15 @@ message UpdateCandidateResponse {
   bool success = 1;
   string message = 2;
 }
+
+message UpdateCVProgressRequest {
+  string cv_id = 1;
+  int32 progress = 2;
+  string status = 3;
+}
+
+message UpdateCVProgressResponse {
+  bool success = 1;
+  string message = 2;
+}
+

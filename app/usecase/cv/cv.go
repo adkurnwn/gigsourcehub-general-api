@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 
@@ -19,6 +20,25 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
+
+var cvProgressMap sync.Map // Map[string]int (cvID -> progress)
+
+func SetCVProgress(cvID string, progress int) {
+	cvProgressMap.Store(cvID, progress)
+}
+
+func GetCVProgress(cvID string) int {
+	val, ok := cvProgressMap.Load(cvID)
+	if !ok {
+		return 0
+	}
+	return val.(int)
+}
+
+func DeleteCVProgress(cvID string) {
+	cvProgressMap.Delete(cvID)
+}
+
 
 // levenshtein computes the edit distance between two strings (case-insensitive).
 func levenshtein(a, b string) int {
@@ -188,6 +208,7 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 			return response.Error(http.StatusInternalServerError, "db save failed")
 		}
 		existingCV = cv
+		SetCVProgress(existingCV.ID, 20)
 	} else {
 		// CV exists, update it
 		existingCV.Filename = fileHeader.Filename
@@ -199,6 +220,7 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 			helpers.LogActivity(ctx, u.gormRepo, "Upload", "CV", userID, nil, false)
 			return response.Error(http.StatusInternalServerError, "db update failed")
 		}
+		SetCVProgress(existingCV.ID, 20)
 	}
 
 	helpers.LogActivity(ctx, u.gormRepo, "Upload", "CV", userID, nil, true)
@@ -232,6 +254,7 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 		}
 	}(existingCV)
 
+	existingCV.Progress = 20
 	return response.Success(existingCV.ToCVResp())
 }
 
@@ -315,9 +338,19 @@ func (u *cvUsecase) GetParsedCV(ctx context.Context, userID string) response.Bas
 		}
 	}
 
+	progress := GetCVProgress(cv.ID)
+	if cv.Status == "PARSED" {
+		progress = 100
+		DeleteCVProgress(cv.ID)
+	} else if progress == 0 {
+		progress = 20
+	}
+
 	return response.Success(map[string]interface{}{
 		"id":          cv.ID,
 		"parsed_data": parsedData,
+		"status":      cv.Status,
+		"progress":    progress,
 	})
 }
 
