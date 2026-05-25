@@ -9,6 +9,7 @@ import (
 const (
 	TokenTypeVerification  = "VERIFICATION"
 	TokenTypePasswordReset = "PASSWORD_RESET"
+	TokenTypeBlacklist     = "BLACKLIST"
 )
 
 type UserToken struct {
