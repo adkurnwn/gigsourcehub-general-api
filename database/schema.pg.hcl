@@ -1598,6 +1598,46 @@ table "company_profiles" {
   }
 }
 
+table "career_departments" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "name" {
+    type = varchar(50)
+    null = true
+  }
+  column "description" {
+    type = text
+    null = true
+  }
+  column "image_path" {
+    type = text
+    null = true
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_career_departments_deleted_at" {
+    columns = [column.deleted_at]
+  }
+}
+
 table "faqs" {
   schema = schema.public
 

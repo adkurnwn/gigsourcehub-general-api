@@ -1,4 +1,4 @@
-h1:hvs9+UgnC1lvqgPgNJ+3hc7dTCPuKu/2+6aNTssoNw4=
+h1:YQ/nm0fjRZl4DljOX1xRB+mNKcwzwSwyAnDn2ygtCvw=
 20260301081551_init.sql h1:+1bzghZ6e0PhFe8TIjoQdJ7hEp4CLUlBlyfVDOAe8o4=
 20260301081552_add_seeder_prov_kab_kota_indonesia.sql h1:nVsDxVEaww89UrDtE/uSp6OYHxMg+GIUDewzRV7Jsd8=
 20260301081553_add_seeder_reference_data.sql h1:8n9QgkmOPPSGIA7+2alcfi9pexAhMeQRduqZm46SchQ=
@@ -22,5 +22,6 @@ h1:hvs9+UgnC1lvqgPgNJ+3hc7dTCPuKu/2+6aNTssoNw4=
 20260506073519_add_chat_columns.sql h1:qWlEF0XXi3DFPFMBBsIkFR6VWr0X+jAi7gSN3QRtjws=
 20260509082113_add_reply_message.sql h1:3xLD+wcznmuMY2vaxnoEh+99in6y5quqpLg/nwIoZQA=
 20260521132348_add_hex_code_and_is_active_to_interview_stages.sql h1:3qQvIXcmZHxIYhH8oYmys9yo6RjmVZOkxJn6tKoDlDQ=
-20260524061410_add_interview_schedule_fields.sql h1:W26097Bm67+C4jqG9nv3NMC2xKa9bpSPENv2AaEEw08=
-20260524061737_add_completed_in_interview_status.sql h1:HA2hO4IRGMOscqLjOday18KyfLrTYB3M/HtHBRtt32c=
+20260524061410_add_interview_schedule_fields.sql h1:/JCeOZAIgx0Vs7RDWKu8VxjedgdPz08BMLinkD+M+nM=
+20260524061737_add_completed_in_interview_status.sql h1:gVt3KxIMSwK/GvwephctyzgzwExL3juLpz/C3gM0UU8=
+20260525081755_add_career_departments_tables.sql h1:ZNGZwSBd54GPzkgrJpOF3fISaiZbb1TB05nmravbgF4=
