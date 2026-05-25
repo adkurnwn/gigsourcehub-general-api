@@ -357,6 +357,24 @@ func (u *appUsecase) Logout(ctx context.Context, claim domain.JWTClaimUser) resp
 		return response.Error(http.StatusBadRequest, "user not found")
 	}
 
+	if claim.ID != "" {
+		expiresAt := time.Now().Add(24 * time.Hour) // Fallback expires at
+		if claim.ExpiresAt != nil {
+			expiresAt = claim.ExpiresAt.Time
+		}
+
+		blacklistedToken := gorm_model.NewUserToken(
+			userID,
+			gorm_model.TokenTypeBlacklist,
+			claim.ID,
+			expiresAt,
+		)
+		err = u.gormDbRepo.CreateUserToken(ctx, &blacklistedToken)
+		if err != nil {
+			return response.Error(http.StatusInternalServerError, "Failed to logout session: "+err.Error())
+		}
+	}
+
 	helpers.LogActivity(ctx, u.gormDbRepo, "Logout", "Authentication", user.Email, nil, true)
 
 	return response.Success(map[string]string{
