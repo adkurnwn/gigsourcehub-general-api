@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	"github.com/sirupsen/logrus"
 )
@@ -67,6 +68,8 @@ func (c *CVParserConsumer) handleMessage(msg []byte) error {
 		logrus.Errorf("CVParserConsumer: Failed to update CV ID %s: %v", idStr, err)
 		return err
 	}
+
+	usecase_cv.DeleteCVProgress(idStr)
 
 	logrus.Infof("CVParserConsumer: Successfully updated parsed data for CV ID %s", idStr)
 	return nil
