@@ -153,6 +153,7 @@ type JobVacancyAppUsecase interface {
 type ChatAppUsecase interface {
 	CreateConversation(ctx context.Context, adminID string, req request_model.CreateConversationRequest) response.Base
 	StartConversation(ctx context.Context, adminID string, req request_model.CreateConversationRequest) response.Base
+	UploadOffering(ctx context.Context, adminID string, conversationID string, file *multipart.FileHeader) response.Base
 	FetchMyConversations(ctx context.Context, userID string, page, limit int64) response.Base
 	GetConversation(ctx context.Context, userID string, conversationID string) response.Base
 	SendMessage(ctx context.Context, userID string, conversationID string, req request_model.SendMessageRequest) response.Base

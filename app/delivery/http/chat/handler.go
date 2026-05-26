@@ -37,6 +37,8 @@ func NewChatHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.Cha
 		Hub:        hub,
 	}
 
+	r.POST("/chats/upload-offering", mdl.Auth(), mdl.AuthRole("Admin"), handler.UploadOffering)
+
 	// Admin-only: create conversation
 	adminAPI := r.Group("/chats", mdl.Auth(), mdl.AuthAdmin())
 	adminAPI.POST("", handler.CreateConversation)
@@ -113,6 +115,44 @@ func (h *routeHandler) StartConversation(c *gin.Context) {
 	}
 
 	res := h.Usecase.StartConversation(c.Request.Context(), tokenData.UserID, req)
+	c.JSON(res.Status, res)
+}
+
+// UploadOffering godoc
+// @Security BearerAuth
+// @Summary Upload offering file
+// @Description Upload a PDF offering file and store it as a chat message content payload
+// @Tags Chat
+// @Accept multipart/form-data
+// @Produce json
+// @Param conversation_id formData string true "Conversation ID"
+// @Param file formData file true "Offering PDF file"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /chats/upload-offering [post]
+func (h *routeHandler) UploadOffering(c *gin.Context) {
+	conversationID := c.PostForm("conversation_id")
+	if conversationID == "" {
+		c.JSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "conversation_id is required"))
+		return
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "file is required"))
+		return
+	}
+
+	claims, ok := c.Get("token_data")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, response.Error(http.StatusUnauthorized, "Unauthorized"))
+		return
+	}
+	tokenData := claims.(domain.JWTClaimUser)
+
+	res := h.Usecase.UploadOffering(c.Request.Context(), tokenData.UserID, conversationID, file)
 	c.JSON(res.Status, res)
 }
 
