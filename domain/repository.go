@@ -177,6 +177,14 @@ type GormRepo interface {
 	UpdateFAQ(ctx context.Context, model *gorm_model.FAQ) error
 	DeleteFAQ(ctx context.Context, id string) error
 
+	// Career Department
+	FetchCareerDepartment(ctx context.Context, options gorm_model.CareerDepartmentFilter) ([]gorm_model.CareerDepartment, error)
+	CountCareerDepartment(ctx context.Context, options gorm_model.CareerDepartmentFilter) (int64, error)
+	GetCareerDepartmentByID(ctx context.Context, id string) (*gorm_model.CareerDepartment, error)
+	CreateCareerDepartment(ctx context.Context, model *gorm_model.CareerDepartment) error
+	UpdateCareerDepartment(ctx context.Context, model *gorm_model.CareerDepartment) error
+	DeleteCareerDepartment(ctx context.Context, id string) error
+
 	// Company Profile
 	GetCompanyProfile(ctx context.Context) (*gorm_model.CompanyProfile, error)
 	UpdateCompanyProfile(ctx context.Context, model *gorm_model.CompanyProfile) error

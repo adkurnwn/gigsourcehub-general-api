@@ -197,3 +197,25 @@ type CompanyProfileAppUsecase interface {
 	// Public — no auth
 	GetPublic(ctx context.Context) response.Base
 }
+
+type CareerDepartmentAppUsecase interface {
+	// Admin & Superadmin — CMS
+	FetchAll(ctx context.Context, page, limit int64, search *string) response.Base
+	FetchData(ctx context.Context, id string) response.Base
+
+	// Admin only
+	Create(ctx context.Context, adminID string, req request_model.CreateCareerDepartmentRequest) response.Base
+	Update(ctx context.Context, adminID string, id string, req request_model.UpdateCareerDepartmentRequest) response.Base
+	Delete(ctx context.Context, id string) response.Base
+	UploadImage(ctx context.Context, id string, file *multipart.FileHeader) response.Base
+
+	// Superadmin — Approvals
+	FetchApprovals(ctx context.Context, page, limit int64) response.Base
+	ApproveRequest(ctx context.Context, superadminID string, approvalID string) response.Base
+	RejectRequest(ctx context.Context, superadminID string, approvalID string, req request_model.ReviewApprovalRequest) response.Base
+
+	// Public — no auth
+	FetchPublic(ctx context.Context, page, limit int64, search *string) response.Base
+	FetchPublicByID(ctx context.Context, id string) response.Base
+}
+
