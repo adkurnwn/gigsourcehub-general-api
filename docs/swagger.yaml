@@ -135,6 +135,16 @@ definitions:
     required:
     - candidate_id
     type: object
+  request_model.CreateCareerDepartmentRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - description
+    - name
+    type: object
   request_model.CreateConversationRequest:
     properties:
       candidate_user_id:
@@ -154,6 +164,34 @@ definitions:
     required:
     - answer
     - question
+    type: object
+  request_model.CreateInterviewRequest:
+    properties:
+      candidate_user_id:
+        type: string
+      description:
+        type: string
+      meeting_link:
+        type: string
+      meeting_location:
+        type: string
+      method:
+        description: Online | Offline
+        type: string
+      scheduled_at:
+        description: RFC3339
+        type: string
+      stage_id:
+        type: string
+      subrequest_id:
+        type: string
+      title:
+        type: string
+    required:
+    - method
+    - scheduled_at
+    - stage_id
+    - title
     type: object
   request_model.CreateInterviewStageRequest:
     properties:
@@ -317,6 +355,28 @@ definitions:
       password:
         type: string
     type: object
+  request_model.PatchInterviewStageRequest:
+    properties:
+      interview_id:
+        type: string
+      stage_id:
+        type: string
+      status:
+        type: string
+    required:
+    - interview_id
+    - stage_id
+    type: object
+  request_model.PatchInterviewStatusRequest:
+    properties:
+      interview_id:
+        type: string
+      status:
+        type: string
+    required:
+    - interview_id
+    - status
+    type: object
   request_model.PatchUserRecruitmentStatusRequest:
     properties:
       candidate_level:
@@ -368,6 +428,16 @@ definitions:
     required:
     - content
     type: object
+  request_model.UpdateCareerDepartmentRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - description
+    - name
+    type: object
   request_model.UpdateCompanyProfileRequest:
     properties:
       address:
@@ -394,6 +464,30 @@ definitions:
     required:
     - answer
     - question
+    type: object
+  request_model.UpdateInterviewRequest:
+    properties:
+      description:
+        type: string
+      meeting_link:
+        type: string
+      meeting_location:
+        type: string
+      method:
+        description: Online | Offline
+        type: string
+      scheduled_at:
+        description: RFC3339
+        type: string
+      stage_id:
+        type: string
+      title:
+        type: string
+    required:
+    - method
+    - scheduled_at
+    - stage_id
+    - title
     type: object
   request_model.UpdateInterviewStageRequest:
     properties:
@@ -1339,6 +1433,352 @@ paths:
       summary: Delete Bookmark
       tags:
       - Bookmarks
+  /career-departments:
+    get:
+      consumes:
+      - application/json
+      description: Get all career departments with pagination (Admin & Superadmin)
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Search by name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get All Career Departments (CMS)
+      tags:
+      - Career Department
+    post:
+      consumes:
+      - application/json
+      description: Admin creates a new Career Department approval request
+      parameters:
+      - description: Create Career Department Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateCareerDepartmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Career Department (Admin)
+      tags:
+      - Career Department
+  /career-departments/{id}:
+    delete:
+      description: Admin directly deletes a Career Department (no approval needed)
+      parameters:
+      - description: Career Department ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Career Department (Admin)
+      tags:
+      - Career Department
+    get:
+      consumes:
+      - application/json
+      description: Get career department detail by ID (Admin & Superadmin)
+      parameters:
+      - description: Career Department ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Career Department By ID (CMS)
+      tags:
+      - Career Department
+    put:
+      consumes:
+      - application/json
+      description: Admin creates a Career Department update approval request
+      parameters:
+      - description: Career Department ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Career Department Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateCareerDepartmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Career Department (Admin)
+      tags:
+      - Career Department
+  /career-departments/{id}/image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Admin uploads an image for a career department to S3
+      parameters:
+      - description: Career Department ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Image file (JPEG, PNG, WebP)
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Upload Career Department Image (Admin)
+      tags:
+      - Career Department
+  /career-departments/approvals:
+    get:
+      consumes:
+      - application/json
+      description: Get all career department approval requests with pagination (Superadmin)
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Career Department Approval Requests
+      tags:
+      - Career Department Approvals
+  /career-departments/approvals/{id}/approve:
+    post:
+      consumes:
+      - application/json
+      description: Superadmin approves a career department approval request
+      parameters:
+      - description: Approval Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Approve Career Department Approval Request
+      tags:
+      - Career Department Approvals
+  /career-departments/approvals/{id}/reject:
+    post:
+      consumes:
+      - application/json
+      description: Superadmin rejects a career department approval request
+      parameters:
+      - description: Approval Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Rejection Reason
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.ReviewApprovalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Reject Career Department Approval Request
+      tags:
+      - Career Department Approvals
   /chats:
     get:
       description: Get paginated list of conversations for the authenticated user
@@ -2205,6 +2645,95 @@ paths:
       summary: Reject FAQ Approval Request
       tags:
       - FAQ Approvals
+  /interview:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by candidate user id
+        in: query
+        name: candidate_user_id
+        type: string
+      - description: Filter by subrequest id
+        in: query
+        name: subrequest_id
+        type: string
+      - description: Filter by stage id
+        in: query
+        name: stage_id
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Interviews (Admin)
+      tags:
+      - Interview
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Interview
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateInterviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create Interview
+      tags:
+      - Interview
   /interview-stages:
     get:
       consumes:
@@ -2368,6 +2897,204 @@ paths:
       summary: Update Interview Stage
       tags:
       - Interview Stage
+  /interview/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Interview ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Interview By ID
+      tags:
+      - Interview
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Interview ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Interview
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.UpdateInterviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Update Interview
+      tags:
+      - Interview
+  /interview/scheduled:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Scheduled Interviews (Admin)
+      tags:
+      - Interview
+  /interview/stage:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Patch Stage
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.PatchInterviewStageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Patch Interview Stage
+      tags:
+      - Interview
+  /interview/status:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Patch Status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.PatchInterviewStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Patch Interview Status
+      tags:
+      - Interview
   /job-titles:
     get:
       consumes:
@@ -2995,6 +3722,68 @@ paths:
       summary: Get All Provinsi
       tags:
       - Domisili
+  /public/career-departments:
+    get:
+      consumes:
+      - application/json
+      description: Get all approved career departments (no authentication required)
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Search by name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Get Public Career Departments
+      tags:
+      - Career Department Public
+  /public/career-departments/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a single approved career department by ID (no authentication
+        required)
+      parameters:
+      - description: Career Department ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Get Public Career Department By ID
+      tags:
+      - Career Department Public
   /public/company-profile:
     get:
       consumes:

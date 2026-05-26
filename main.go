@@ -20,6 +20,7 @@ import (
 	http_chat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/chat"
 	http_company_profile "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/company_profile"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
+	http_career_department "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/career_department"
 	http_faq "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/faq"
 	http_interview "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/interview"
 	http_interview_stage "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/interview_stage"
@@ -47,6 +48,7 @@ import (
 	usecase_chat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/chat"
 	usecase_company_profile "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/company_profile"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
+	usecase_career_department "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/career_department"
 	usecase_faq "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/faq"
 	usecase_interview "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/interview"
 	usecase_interview_stage "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/interview_stage"
@@ -296,6 +298,12 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init career department usecase
+	ucCareerDepartment := usecase_career_department.NewAppUsecase(usecase_career_department.RepoInjection{
+		GormDbRepo:  repo,
+		StorageRepo: storageRepo,
+	}, timeoutContext)
+
 	// start consumer
 	if mqRepo != nil {
 		cvConsumer := consumer.NewCVParserConsumer(mqRepo, repo)
@@ -358,6 +366,7 @@ func main() {
 	http_job_vacancy.NewJobVacancyHandler(apiGroup, mdl, ucJobVacancy)
 	http_faq.NewFAQHandler(apiGroup, mdl, ucFAQ)
 	http_company_profile.NewCompanyProfileHandler(apiGroup, mdl, ucCompanyProfile)
+	http_career_department.NewCareerDepartmentHandler(apiGroup, mdl, ucCareerDepartment)
 	http_interview_stage.NewInterviewStageHandler(apiGroup, mdl, ucInterviewStage)
 	http_interview.NewInterviewHandler(apiGroup, mdl, ucInterview)
 
