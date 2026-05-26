@@ -1529,7 +1529,7 @@ enum "job_vacancy_status" {
 
 enum "approval_request_table_name" {
   schema = schema.public
-  values = ["faqs", "job_vacancies", "company_profiles"]
+  values = ["faqs", "job_vacancies", "company_profiles", "career_departments"]
 }
 
 enum "approval_request_action" {
