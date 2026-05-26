@@ -76,15 +76,6 @@ func (m *appMiddleware) Auth() gin.HandlerFunc {
 			return
 		}
 
-		// Check if token has been blacklisted (logged out)
-		if claims.ID != "" {
-			_, err := m.repo.GetUserToken(c.Request.Context(), claims.ID, "BLACKLIST")
-			if err == nil {
-				response := response.Error(http.StatusUnauthorized, "Unauthorized: Session has ended. Please log in again.")
-				c.AbortWithStatusJSON(http.StatusUnauthorized, response)
-				return
-			}
-		}
 
 		// Enrichment for Activity Logging
 		ip := c.GetHeader("CF-Connecting-IP")

@@ -15,6 +15,7 @@ func (h *routeHandler) handleAuthRoute(prefixPath string) {
 
 	api.POST("/login", h.Login)
 	api.POST("/register", h.Register)
+	api.POST("/refresh", h.RefreshToken)
 
 	api.GET("/verify", h.VerifyAccount)
 	api.POST("/forgot-password", h.ForgotPassword)
@@ -183,6 +184,7 @@ func (r *routeHandler) GetMe(c *gin.Context) {
 //	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
+//	@Param			request	body		request_model.LogoutRequest	false	"Logout Request"
 //	@Success		200	{object}	response.Base
 //	@Failure		400	{object}	response.Base
 //	@Failure		401	{object}	response.Base
@@ -193,6 +195,36 @@ func (r *routeHandler) GetMe(c *gin.Context) {
 func (r *routeHandler) Logout(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	response := r.Usecase.Logout(ctx, c.MustGet("token_data").(domain.JWTClaimUser))
+	var payload request_model.LogoutRequest
+	_ = c.ShouldBindJSON(&payload)
+
+	response := r.Usecase.Logout(ctx, c.MustGet("token_data").(domain.JWTClaimUser), payload.RefreshToken)
 	c.JSON(response.Status, response)
+}
+
+// Refresh Token
+//
+//	@Summary		Refresh token
+//	@Description	Refresh access token using refresh token
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		request_model.RefreshTokenRequest	true	"Refresh Token Request"
+//	@Success		200		{object}	response.Base
+//	@Failure		400		{object}	response.Base
+//	@Failure		401		{object}	response.Base
+//	@Failure		500		{object}	response.Base
+//	@Router			/auth/refresh [post]
+func (r *routeHandler) RefreshToken(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	var payload request_model.RefreshTokenRequest
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "invalid json data"))
+		return
+	}
+
+	res := r.Usecase.RefreshToken(ctx, payload)
+	c.JSON(res.Status, res)
 }

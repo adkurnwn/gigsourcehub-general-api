@@ -33,7 +33,8 @@ type MemberAppUsecase interface {
 	ForgotPassword(ctx context.Context, req request_model.ForgotPasswordRequest) response.Base
 	ResetPassword(ctx context.Context, req request_model.ResetPasswordRequest) response.Base
 	UpdatePassword(ctx context.Context, userID string, req request_model.UpdatePasswordRequest) response.Base
-	Logout(ctx context.Context, claim JWTClaimUser) response.Base
+	Logout(ctx context.Context, claim JWTClaimUser, refreshToken string) response.Base
+	RefreshToken(ctx context.Context, payload request_model.RefreshTokenRequest) response.Base
 }
 
 type JobRoleAppUsecase interface {
