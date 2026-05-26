@@ -375,7 +375,8 @@ func main() {
 	go chatHub.Run()
 
 	ucChat := usecase_chat.NewAppUsecase(usecase_chat.RepoInjection{
-		GormDbRepo: repo,
+		GormDbRepo:  repo,
+		StorageRepo: storageRepo,
 	}, chatHub, timeoutContext)
 	http_chat.NewChatHandler(apiGroup, mdl, ucChat, chatHub)
 

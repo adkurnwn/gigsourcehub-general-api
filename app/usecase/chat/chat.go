@@ -1,13 +1,23 @@
 package usecase_chat
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"path/filepath"
 	"strconv"
+	"strings"
+	"time"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
+	storage_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/storage"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -25,6 +35,97 @@ func (u *appUsecase) CreateConversation(ctx context.Context, adminID string, req
 
 func (u *appUsecase) StartConversation(ctx context.Context, adminID string, req request_model.CreateConversationRequest) response.Base {
 	return u.createConversation(ctx, adminID, req, true)
+}
+
+func (u *appUsecase) UploadOffering(ctx context.Context, adminID string, conversationID string, fileHeader *multipart.FileHeader) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	if filepath.Ext(strings.ToLower(fileHeader.Filename)) != ".pdf" {
+		return response.Error(http.StatusBadRequest, "invalid file type: only PDF files are allowed")
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return response.Error(http.StatusBadRequest, "failed to open file")
+	}
+	defer file.Close()
+
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		return response.Error(http.StatusBadRequest, "failed to read file")
+	}
+
+	if detected := http.DetectContentType(fileBytes); detected != "application/pdf" {
+		return response.Error(http.StatusBadRequest, "invalid file content: only PDF files are allowed")
+	}
+
+	if u.storageRepo == nil {
+		return response.Error(http.StatusInternalServerError, "storage service is not available")
+	}
+
+	conv, err := u.gormDbRepo.GetConversationByID(ctx, conversationID)
+	if err != nil {
+		return response.Error(http.StatusNotFound, "conversation not found")
+	}
+	if conv.AdminUserID != adminID && conv.CandidateUserID != adminID {
+		return response.Error(http.StatusForbidden, "You are not a participant of this conversation")
+	}
+
+	objectKey := fmt.Sprintf("offering/%s/%s.pdf", adminID, uuid.NewString())
+	expires := 24 * time.Hour
+	uploadData, err := u.storageRepo.UploadFilePrivate(objectKey, bytes.NewReader(fileBytes), "application/pdf", &expires)
+	if err != nil {
+		logrus.Error("UploadOffering S3 error: ", err)
+		return response.Error(http.StatusInternalServerError, "failed to upload offering file")
+	}
+
+	if uploadData == nil {
+		uploadData = &storage_model.UploadResponse{
+			Key:         objectKey,
+			ContentType: "application/pdf",
+			URL:         u.storageRepo.GetPresignedLink(objectKey, &expires),
+		}
+	}
+	uploadData.Filename = fileHeader.Filename
+	uploadData.FileSize = fileHeader.Size
+
+	contentBytes, err := json.Marshal(uploadData)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "failed to serialize offering payload")
+	}
+
+	msg := gorm_model.Message{
+		ConversationID: conversationID,
+		Content:        string(contentBytes),
+		SenderUserID:   adminID,
+	}
+	if err := u.gormDbRepo.CreateMessage(ctx, &msg); err != nil {
+		logrus.Error("UploadOffering CreateMessage error: ", err)
+		return response.Error(http.StatusInternalServerError, "failed to create offering message")
+	}
+
+	msgLoaded, err := u.gormDbRepo.GetMessageByID(ctx, msg.ID)
+	if err == nil {
+		msg = *msgLoaded
+	}
+
+	if u.hub != nil {
+		var targetUserID string
+		var targetRole string
+		if conv.AdminUserID == adminID {
+			targetUserID = conv.CandidateUserID
+			targetRole = "Candidate"
+		} else {
+			targetUserID = conv.AdminUserID
+			targetRole = "Admin"
+		}
+
+		broadcastResp := msg.ToMessageResp(targetRole)
+		u.hub.SendToUser(targetUserID, "new_message", broadcastResp)
+	}
+
+	return response.Success(msg.ToMessageResp("Admin"))
 }
 
 func (u *appUsecase) createConversation(ctx context.Context, adminID string, req request_model.CreateConversationRequest, markContacted bool) response.Base {
