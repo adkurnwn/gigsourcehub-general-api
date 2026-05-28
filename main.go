@@ -17,10 +17,10 @@ import (
 	http_admin_note "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/admin_note"
 	http_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/ai_chat"
 	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
+	http_career_department "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/career_department"
 	http_chat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/chat"
 	http_company_profile "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/company_profile"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
-	http_career_department "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/career_department"
 	http_faq "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/faq"
 	http_interview "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/interview"
 	http_interview_stage "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/interview_stage"
@@ -30,6 +30,7 @@ import (
 	http_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/kabupaten_kota"
 	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
+	http_onboarding "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/onboarding"
 	http_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/provinsi"
 	http_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/recruitment_status"
 	httpdelivery_request "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/request"
@@ -45,10 +46,10 @@ import (
 	usecase_admin_note "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/admin_note"
 	usecase_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/ai_chat"
 	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
+	usecase_career_department "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/career_department"
 	usecase_chat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/chat"
 	usecase_company_profile "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/company_profile"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
-	usecase_career_department "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/career_department"
 	usecase_faq "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/faq"
 	usecase_interview "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/interview"
 	usecase_interview_stage "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/interview_stage"
@@ -350,6 +351,7 @@ func main() {
 	// init route
 	apiGroup := ginEngine.Group("/api")
 	http_member.NewRouteHandler(apiGroup, mdl, ucMember)
+	http_onboarding.NewOnboardingHandler(apiGroup, mdl, ucMember)
 	http_cv.NewCVHandler(apiGroup, mdl, ucCV)
 	http_job_role.NewJobRoleHandler(apiGroup, mdl, ucJobRole)
 	httpdelivery_request.NewRequestHandler(apiGroup, mdl, ucRequest)

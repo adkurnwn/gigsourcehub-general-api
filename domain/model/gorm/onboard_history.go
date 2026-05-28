@@ -21,9 +21,41 @@ type OnboardHistory struct {
 	DeletedAt       gorm.DeletedAt `gorm:"column:deleted_at;index"`
 }
 
+type OnboardHistoryResp struct {
+	ID              string     `json:"id"`
+	CandidateUserID string     `json:"candidate_user_id"`
+	CandidateUser   *UserResp  `json:"candidate_user,omitempty"`
+	OfferingID      *string    `json:"offering_id,omitempty"`
+	StartDate       *time.Time `json:"start_date,omitempty"`
+	EndDate         *time.Time `json:"end_date,omitempty"`
+	Snapshot        *string    `json:"snapshot,omitempty"`
+	CreatedAt       time.Time  `json:"created_at"`
+	UpdatedAt       time.Time  `json:"updated_at"`
+}
+
 func (m *OnboardHistory) BeforeCreate(tx *gorm.DB) (err error) {
 	if m.ID == "" {
 		m.ID = uuid.NewString()
 	}
 	return
+}
+
+func (m *OnboardHistory) ToOnboardHistoryResp() OnboardHistoryResp {
+	var candidateResp *UserResp
+	if m.CandidateUser != nil {
+		resp := m.CandidateUser.ToUserResp()
+		candidateResp = &resp
+	}
+
+	return OnboardHistoryResp{
+		ID:              m.ID,
+		CandidateUserID: m.CandidateUserID,
+		CandidateUser:   candidateResp,
+		OfferingID:      m.OfferingID,
+		StartDate:       m.StartDate,
+		EndDate:         m.EndDate,
+		Snapshot:        m.Snapshot,
+		CreatedAt:       m.CreatedAt,
+		UpdatedAt:       m.UpdatedAt,
+	}
 }

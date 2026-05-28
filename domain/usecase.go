@@ -29,6 +29,9 @@ type MemberAppUsecase interface {
 	CancelRecruitment(ctx context.Context, id string) response.Base
 	GetActiveSubrequest(ctx context.Context, id string) response.Base
 	FinalizeRecruitment(ctx context.Context, adminID string, req request_model.FinalizeRecruitmentRequest) response.Base
+	FetchOnboardingByCandidate(ctx context.Context, candidateID string, page, limit int64, cursor string) response.Base
+	FetchOnboardingActiveTeam(ctx context.Context, employeeID string, page, limit int64, cursor string) response.Base
+	FetchOnboardingHistory(ctx context.Context, employeeID string, page, limit int64, cursor string) response.Base
 
 	VerifyAccount(ctx context.Context, token string) response.Base
 	ForgotPassword(ctx context.Context, req request_model.ForgotPasswordRequest) response.Base
