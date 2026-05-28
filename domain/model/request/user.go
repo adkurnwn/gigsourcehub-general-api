@@ -37,3 +37,10 @@ type PatchUserRecruitmentStatusRequest struct {
 	CandidateLevel      *string `json:"candidate_level"`
 	RecruitmentStatusId *string `json:"recruitment_status_id"`
 }
+
+type FinalizeRecruitmentRequest struct {
+	CandidateUserID string  `json:"candidate_user_id"`
+	SubrequestID    string  `json:"subrequest_id"`
+	StartDate       *string `json:"start_date"` // format: "2006-01-02"
+	EndDate         *string `json:"end_date"`   // format: "2006-01-02"
+}

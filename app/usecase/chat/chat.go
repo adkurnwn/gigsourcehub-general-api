@@ -90,6 +90,17 @@ func (u *appUsecase) UploadOffering(ctx context.Context, adminID string, convers
 	uploadData.Filename = fileHeader.Filename
 	uploadData.FileSize = fileHeader.Size
 
+	offering := &gorm_model.Offering{
+		Filename:     uploadData.Filename,
+		UserID:       conv.CandidateUserID,
+		Path:         uploadData.URL,
+		SubrequestID: conv.SubrequestID,
+	}
+	if err := u.gormDbRepo.CreateOffering(ctx, offering); err != nil {
+		logrus.Error("UploadOffering CreateOffering error: ", err)
+		return response.Error(http.StatusInternalServerError, "failed to save offering")
+	}
+
 	contentBytes, err := json.Marshal(uploadData)
 	if err != nil {
 		return response.Error(http.StatusInternalServerError, "failed to serialize offering payload")

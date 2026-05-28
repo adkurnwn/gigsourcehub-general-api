@@ -13,8 +13,8 @@ type MessageAttachment struct {
 	AttachmentType string         `gorm:"column:attachment_type;type:message_attachment_type;not null"`
 	InterviewID    *string        `gorm:"column:interview_id;type:uuid"`
 	Interview      *Interview     `gorm:"foreignKey:InterviewID"`
-	ContractID     *string        `gorm:"column:contract_id;type:uuid"`
-	Contract       *Contract      `gorm:"foreignKey:ContractID"`
+	OfferingID     *string        `gorm:"column:offering_id;type:uuid"`
+	Offering       *Offering      `gorm:"foreignKey:OfferingID"`
 	CreatedAt      time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt      time.Time      `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt      gorm.DeletedAt `gorm:"column:deleted_at;index"`

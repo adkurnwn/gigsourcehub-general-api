@@ -224,7 +224,7 @@ func (r *gormRepo) SoftDeleteSubrequestCandidatesByCandidateID(ctx context.Conte
 	return err
 }
 
-func (r *gormRepo) CancelRecruitmentByCandidateID(ctx context.Context, candidateID, availableStatusID string) error {
+func (r *gormRepo) CancelRecruitmentByCandidateID(ctx context.Context, candidateID string) error {
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		now := time.Now()
 		if err := tx.Model(&gorm_model.SubrequestCandidate{}).
@@ -235,7 +235,7 @@ func (r *gormRepo) CancelRecruitmentByCandidateID(ctx context.Context, candidate
 
 		if err := tx.Model(&gorm_model.User{}).
 			Where("id = ?", candidateID).
-			Update("recruitment_status_id", availableStatusID).Error; err != nil {
+			Update("recruitment_status_id", nil).Error; err != nil {
 			return err
 		}
 

@@ -2162,17 +2162,17 @@ func (_c *GormRepo_SoftDeleteSubrequestCandidatesByCandidateID_Call) RunAndRetur
 	return _c
 }
 
-// CancelRecruitmentByCandidateID provides a mock function with given fields: ctx, candidateID, availableStatusID
-func (_m *GormRepo) CancelRecruitmentByCandidateID(ctx context.Context, candidateID string, availableStatusID string) error {
-	ret := _m.Called(ctx, candidateID, availableStatusID)
+// CancelRecruitmentByCandidateID provides a mock function with given fields: ctx, candidateID
+func (_m *GormRepo) CancelRecruitmentByCandidateID(ctx context.Context, candidateID string) error {
+	ret := _m.Called(ctx, candidateID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CancelRecruitmentByCandidateID")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, candidateID, availableStatusID)
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, candidateID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2188,14 +2188,13 @@ type GormRepo_CancelRecruitmentByCandidateID_Call struct {
 // CancelRecruitmentByCandidateID is a helper method to define mock.On call
 //   - ctx context.Context
 //   - candidateID string
-//   - availableStatusID string
-func (_e *GormRepo_Expecter) CancelRecruitmentByCandidateID(ctx interface{}, candidateID interface{}, availableStatusID interface{}) *GormRepo_CancelRecruitmentByCandidateID_Call {
-	return &GormRepo_CancelRecruitmentByCandidateID_Call{Call: _e.mock.On("CancelRecruitmentByCandidateID", ctx, candidateID, availableStatusID)}
+func (_e *GormRepo_Expecter) CancelRecruitmentByCandidateID(ctx interface{}, candidateID interface{}) *GormRepo_CancelRecruitmentByCandidateID_Call {
+	return &GormRepo_CancelRecruitmentByCandidateID_Call{Call: _e.mock.On("CancelRecruitmentByCandidateID", ctx, candidateID)}
 }
 
-func (_c *GormRepo_CancelRecruitmentByCandidateID_Call) Run(run func(ctx context.Context, candidateID string, availableStatusID string)) *GormRepo_CancelRecruitmentByCandidateID_Call {
+func (_c *GormRepo_CancelRecruitmentByCandidateID_Call) Run(run func(ctx context.Context, candidateID string)) *GormRepo_CancelRecruitmentByCandidateID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -2205,7 +2204,7 @@ func (_c *GormRepo_CancelRecruitmentByCandidateID_Call) Return(_a0 error) *GormR
 	return _c
 }
 
-func (_c *GormRepo_CancelRecruitmentByCandidateID_Call) RunAndReturn(run func(context.Context, string, string) error) *GormRepo_CancelRecruitmentByCandidateID_Call {
+func (_c *GormRepo_CancelRecruitmentByCandidateID_Call) RunAndReturn(run func(context.Context, string) error) *GormRepo_CancelRecruitmentByCandidateID_Call {
 	_c.Call.Return(run)
 	return _c
 }

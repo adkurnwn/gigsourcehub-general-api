@@ -43,6 +43,9 @@ func (h *routeHandler) handleUserRoute(path string) {
 	// cancel recruitment process for candidate by admin
 	userGroup.PATCH("/:id/cancel-recruitment", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.CancelRecruitment)
 
+	// finalize recruitment for candidate by admin
+	userGroup.POST("/finalize-recruitment", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.FinalizeRecruitment)
+
 	// get active subrequest for candidate by admin/superadmin
 	userGroup.GET("/:id/active-subrequest", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin"), h.GetActiveSubrequest)
 
@@ -350,7 +353,7 @@ func (h *routeHandler) PatchUserRecruitmentStatus(c *gin.Context) {
 
 // CancelRecruitment
 // @Summary Cancel Recruitment Process
-// @Description Cancel a candidate recruitment process and set status to Available
+// @Description Cancel a candidate recruitment process and set status to Null
 // @Tags Users
 // @Accept json
 // @Produce json
@@ -372,6 +375,40 @@ func (h *routeHandler) CancelRecruitment(c *gin.Context) {
 	}
 
 	res := h.Usecase.CancelRecruitment(c.Request.Context(), id)
+	c.JSON(res.Status, res)
+}
+
+// FinalizeRecruitment
+// @Summary Finalize Recruitment
+// @Description Finalize a candidate recruitment and create onboarding history
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param request body request_model.FinalizeRecruitmentRequest true "Finalize Recruitment"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /users/finalize-recruitment [post]
+// @Security BearerAuth
+func (h *routeHandler) FinalizeRecruitment(c *gin.Context) {
+	claims, ok := c.Get("token_data")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, response.Error(http.StatusUnauthorized, "Unauthorized"))
+		return
+	}
+	tokenData := claims.(domain.JWTClaimUser)
+
+	var req request_model.FinalizeRecruitmentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		res := response.Error(http.StatusBadRequest, "Invalid request body")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	res := h.Usecase.FinalizeRecruitment(c.Request.Context(), tokenData.UserID, req)
 	c.JSON(res.Status, res)
 }
 

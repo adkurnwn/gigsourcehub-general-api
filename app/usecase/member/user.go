@@ -707,12 +707,7 @@ func (u *appUsecase) CancelRecruitment(ctx context.Context, id string) response.
 		return response.Error(http.StatusBadRequest, "User is not a candidate")
 	}
 
-	var availableStatus gorm_model.RecruitmentStatus
-	if err := u.gormDbRepo.GetDB().WithContext(ctx).Where("name = ?", "Available").First(&availableStatus).Error; err != nil {
-		return response.Error(http.StatusInternalServerError, "Available recruitment status not found")
-	}
-
-	if err := u.gormDbRepo.CancelRecruitmentByCandidateID(ctx, user.ID, availableStatus.ID); err != nil {
+	if err := u.gormDbRepo.CancelRecruitmentByCandidateID(ctx, user.ID); err != nil {
 		return response.Error(http.StatusInternalServerError, "Failed to cancel recruitment")
 	}
 
@@ -735,6 +730,115 @@ func (u *appUsecase) CancelRecruitment(ctx context.Context, id string) response.
 	})
 
 	return response.SuccessAction("User", user.Email, "recruitment canceled")
+}
+
+func (u *appUsecase) FinalizeRecruitment(ctx context.Context, adminID string, req request_model.FinalizeRecruitmentRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	if req.CandidateUserID == "" || req.SubrequestID == "" {
+		return response.Error(http.StatusBadRequest, "candidate_user_id and subrequest_id are required")
+	}
+	if req.StartDate == nil || *req.StartDate == "" {
+		return response.Error(http.StatusBadRequest, "start_date is required")
+	}
+	if req.EndDate == nil || *req.EndDate == "" {
+		return response.Error(http.StatusBadRequest, "end_date is required")
+	}
+
+	startDate, err := time.Parse("2006-01-02", *req.StartDate)
+	if err != nil {
+		return response.Error(http.StatusBadRequest, "invalid start_date format")
+	}
+	endDate, err := time.Parse("2006-01-02", *req.EndDate)
+	if err != nil {
+		return response.Error(http.StatusBadRequest, "invalid end_date format")
+	}
+	if endDate.Before(startDate) {
+		return response.Error(http.StatusBadRequest, "end_date must be after start_date")
+	}
+
+	userRole, err := u.gormDbRepo.GetRoleNameByUserID(ctx, adminID)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to verify requester role")
+	}
+	if userRole != "Admin" {
+		return response.Error(http.StatusForbidden, "Only Admin can finalize recruitment")
+	}
+
+	adminAllowed, err := u.gormDbRepo.IsAdminOfSubrequest(ctx, adminID, req.SubrequestID)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to verify admin assignment")
+	}
+	if !adminAllowed {
+		return response.Error(http.StatusForbidden, "You are not assigned to this subrequest's request")
+	}
+
+	candidate, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: req.CandidateUserID},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch candidate")
+	}
+	if candidate == nil {
+		return response.Error(http.StatusNotFound, "Candidate not found")
+	}
+	if candidate.SystemRole == nil || candidate.SystemRole.Name != "Candidate" {
+		return response.Error(http.StatusBadRequest, "User is not a candidate")
+	}
+
+	isCandidate, err := u.gormDbRepo.IsCandidateOnSubrequest(ctx, req.CandidateUserID, req.SubrequestID)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to verify candidate assignment")
+	}
+	if !isCandidate {
+		return response.Error(http.StatusBadRequest, "Candidate is not assigned to this subrequest")
+	}
+
+	snapshotData, err := u.gormDbRepo.GetFinalizeSnapshotData(ctx, req.SubrequestID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(http.StatusNotFound, "Subrequest snapshot data not found")
+		}
+		logrus.Errorf("GetFinalizeSnapshotData error: %v", err)
+		return response.Error(http.StatusInternalServerError, "Failed to build snapshot data")
+	}
+
+	snapshotPayload := map[string]interface{}{
+		"subrequest_id":    snapshotData.SubrequestID,
+		"job_role_id":      snapshotData.JobRoleID,
+		"job_role_name":    snapshotData.JobRoleName,
+		"project_name":     snapshotData.ProjectName,
+		"employee_user_id": snapshotData.EmployeeUserID,
+		"employee_name":    snapshotData.EmployeeName,
+	}
+	encodedSnapshot, err := json.Marshal(snapshotPayload)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to serialize snapshot")
+	}
+
+	acceptedStatusID := "1db9ec40-fdc0-4357-9d7a-1ed6f38fe1cb"
+	var acceptedStatus gorm_model.RecruitmentStatus
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&acceptedStatus, "id = ?", acceptedStatusID).Error; err != nil {
+		return response.Error(http.StatusInternalServerError, "Accepted recruitment status not found")
+	}
+
+	if err := u.gormDbRepo.FinalizeRecruitment(
+		ctx,
+		req.CandidateUserID,
+		req.SubrequestID,
+		acceptedStatus.ID,
+		&startDate,
+		&endDate,
+		nil,
+		string(encodedSnapshot),
+	); err != nil {
+		helpers.LogActivity(ctx, u.gormDbRepo, "Finalize", "Recruitment", candidate.Email, req, false)
+		return response.Error(http.StatusInternalServerError, "Failed to finalize recruitment")
+	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Finalize", "Recruitment", candidate.Email, req, true)
+	return response.SuccessAction("User", candidate.Email, "recruitment finalized")
 }
 
 func (u *appUsecase) GetActiveSubrequest(ctx context.Context, id string) response.Base {

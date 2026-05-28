@@ -519,8 +519,8 @@ func (u *appUsecase) AssignCandidateToSubrequest(ctx context.Context, adminID st
 	if err != nil {
 		return response.Error(http.StatusInternalServerError, "Failed to check candidate assignments")
 	}
-	if statusName != "Available" {
-		return response.Error(http.StatusConflict, "Candidate recruitment status must be Available to assign")
+	if statusName != "" {
+		return response.Error(http.StatusConflict, "Candidate recruitment status must be null to assign")
 	}
 	if activeAssignments > 0 {
 		return response.Error(http.StatusConflict, "Candidate is still in a recruitment process")
