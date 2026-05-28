@@ -102,8 +102,17 @@ type GormRepo interface {
 	AssignCandidateToSubrequest(ctx context.Context, model *gorm_model.SubrequestCandidate, recruitmentStatusID string) error
 	CountActiveSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) (int64, error)
 	SoftDeleteSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) error
-	CancelRecruitmentByCandidateID(ctx context.Context, candidateID, availableStatusID string) error
+	CancelRecruitmentByCandidateID(ctx context.Context, candidateID string) error
 	GetActiveSubrequestByCandidateID(ctx context.Context, candidateID string) (*gorm_model.ActiveSubrequestInfo, error)
+	GetFinalizeSnapshotData(ctx context.Context, subrequestID string) (*gorm_model.FinalizeRecruitmentSnapshot, error)
+	FinalizeRecruitment(ctx context.Context, candidateID, subrequestID, acceptedStatusID string, startDate, endDate *time.Time, offeringID *string, snapshotJSON string) error
+	CreateOffering(ctx context.Context, model *gorm_model.Offering) error
+	FetchOnboardHistoriesByCandidate(ctx context.Context, candidateID string, limit, offset int64) ([]gorm_model.OnboardHistory, error)
+	CountOnboardHistoriesByCandidate(ctx context.Context, candidateID string) (int64, error)
+	FetchOnboardHistoriesByEmployee(ctx context.Context, employeeID string, limit, offset int64) ([]gorm_model.OnboardHistory, error)
+	CountOnboardHistoriesByEmployee(ctx context.Context, employeeID string) (int64, error)
+	FetchOnboardHistoriesByEmployeeHistory(ctx context.Context, employeeID string, beforeDate time.Time, limit, offset int64) ([]gorm_model.OnboardHistory, error)
+	CountOnboardHistoriesByEmployeeHistory(ctx context.Context, employeeID string, beforeDate time.Time) (int64, error)
 
 	GetDB() *gorm.DB
 

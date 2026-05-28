@@ -1009,7 +1009,7 @@ table "interviews" {
 
 enum "message_attachment_type" {
   schema = schema.public
-  values = ["INTERVIEW", "CONTRACT"]
+  values = ["INTERVIEW", "OFFERING"]
 }
 
 table "conversations" {
@@ -1166,7 +1166,7 @@ table "messages" {
   }
 }
 
-table "contracts" {
+table "offerings" {
   schema = schema.public
 
   column "id" {
@@ -1188,14 +1188,6 @@ table "contracts" {
     type = uuid
     null = false
   }
-  column "start_date" {
-    type = date
-    null = true
-  }
-  column "end_date" {
-    type = date
-    null = true
-  }
   column "created_at" {
     type = timestamptz
     null = false
@@ -1213,26 +1205,26 @@ table "contracts" {
     columns = [column.id]
   }
 
-  index "idx_contracts_deleted_at" {
+  index "idx_offerings_deleted_at" {
     columns = [column.deleted_at]
   }
 
-  index "idx_contracts_user_id_kandidat" {
+  index "idx_offerings_user_id_kandidat" {
     columns = [column.user_id_kandidat]
   }
 
-  index "idx_contracts_subrequest_id" {
+  index "idx_offerings_subrequest_id" {
     columns = [column.subrequest_id]
   }
 
-  foreign_key "contracts_user_kandidat_fk" {
+  foreign_key "offerings_user_kandidat_fk" {
     columns     = [column.user_id_kandidat]
     ref_columns = [table.users.column.id]
     on_update   = NO_ACTION
     on_delete   = CASCADE
   }
 
-  foreign_key "contracts_subrequest_fk" {
+  foreign_key "offerings_subrequest_fk" {
     columns     = [column.subrequest_id]
     ref_columns = [table.subrequests.column.id]
     on_update   = NO_ACTION
@@ -1258,7 +1250,7 @@ table "message_attachments" {
     type = uuid
     null = true
   }
-  column "contract_id" {
+  column "offering_id" {
     type = uuid
     null = true
   }
@@ -1301,9 +1293,9 @@ table "message_attachments" {
     on_delete   = SET_NULL
   }
 
-  foreign_key "message_attachments_contract_fk" {
-    columns     = [column.contract_id]
-    ref_columns = [table.contracts.column.id]
+  foreign_key "message_attachments_offering_fk" {
+    columns     = [column.offering_id]
+    ref_columns = [table.offerings.column.id]
     on_update   = NO_ACTION
     on_delete   = SET_NULL
   }
@@ -1319,9 +1311,21 @@ table "onboard_histories" {
     type = uuid
     null = false
   }
-  column "contract_id" {
+  column "offering_id" {
     type = uuid
-    null = false
+    null = true
+  }
+  column "start_date" {
+    type = date
+    null = true
+  }
+  column "end_date" {
+    type = date
+    null = true
+  }
+  column "snapshot" {
+    type = jsonb
+    null = true
   }
   column "created_at" {
     type = timestamptz
@@ -1348,8 +1352,8 @@ table "onboard_histories" {
     columns = [column.candidate_user_id]
   }
 
-  index "idx_onboard_histories_contract_id" {
-    columns = [column.contract_id]
+  index "idx_onboard_histories_offering_id" {
+    columns = [column.offering_id]
   }
 
   foreign_key "onboard_histories_candidate_user_fk" {
@@ -1359,9 +1363,9 @@ table "onboard_histories" {
     on_delete   = CASCADE
   }
 
-  foreign_key "onboard_histories_contract_fk" {
-    columns     = [column.contract_id]
-    ref_columns = [table.contracts.column.id]
+  foreign_key "onboard_histories_offering_fk" {
+    columns     = [column.offering_id]
+    ref_columns = [table.offerings.column.id]
     on_update   = NO_ACTION
     on_delete   = CASCADE
   }
