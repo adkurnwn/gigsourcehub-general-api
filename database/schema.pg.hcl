@@ -1709,7 +1709,15 @@ table "job_vacancies" {
     null = true
   }
   column "description" {
-    type = varchar(50)
+    type = jsonb
+    null = true
+  }
+  column "candidate_qualification" {
+    type = jsonb
+    null = true
+  }
+  column "benefit" {
+    type = jsonb
     null = true
   }
   column "overview" {

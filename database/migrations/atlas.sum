@@ -1,4 +1,4 @@
-h1:le0GsZUFVAOR2ytHcjLHEQxY9O5PB3+udczA11QdBgY=
+h1:VZ5+kTSKFBIVjJ4IVzZ+D6/tQ4Bdq4YADBbjLg+6cSg=
 20260301081551_init.sql h1:+1bzghZ6e0PhFe8TIjoQdJ7hEp4CLUlBlyfVDOAe8o4=
 20260301081552_add_seeder_prov_kab_kota_indonesia.sql h1:nVsDxVEaww89UrDtE/uSp6OYHxMg+GIUDewzRV7Jsd8=
 20260301081553_add_seeder_reference_data.sql h1:8n9QgkmOPPSGIA7+2alcfi9pexAhMeQRduqZm46SchQ=
@@ -25,4 +25,5 @@ h1:le0GsZUFVAOR2ytHcjLHEQxY9O5PB3+udczA11QdBgY=
 20260524061410_add_interview_schedule_fields.sql h1:/JCeOZAIgx0Vs7RDWKu8VxjedgdPz08BMLinkD+M+nM=
 20260524061737_add_completed_in_interview_status.sql h1:gVt3KxIMSwK/GvwephctyzgzwExL3juLpz/C3gM0UU8=
 20260525081755_add_career_departments_tables.sql h1:A1kr6Km7DGHJGZC45i9Zp1A7Ojy8GJRZgFKdjnx5Wmg=
-20260527124144_alter_table_contracts_and_onboarding.sql h1:svJjImGYikmY+BH8S/UUAA6bYrwE38bThP86sbrnT2U=
+20260527124144_alter_table_contracts_and_onboarding.sql h1:tE7R5QCcp4r030TuO8T5MQP7aQ8bIvczKNhLe1wTq04=
+20260529122032_update_job_vacancies_description_and_fields.sql h1:chGpq4fbV3E78WZV+DwcWyiFCtus605Jsq+qhXyCuqE=
