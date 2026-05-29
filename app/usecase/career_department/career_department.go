@@ -18,6 +18,7 @@ import (
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
+	"github.com/disintegration/imaging"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -157,11 +158,16 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, search *st
 					authorName = app.RequestedByAdmin.Name
 				}
 
+				var imgPath *string
+				if val, ok := proposed["image_path"]; ok && val != "" {
+					imgPath = &val
+				}
+
 				finalMap[recordID] = tempDept{
 					ID:          recordID,
 					Name:        proposed["name"],
 					Description: proposed["description"],
-					ImagePath:   nil,
+					ImagePath:   imgPath,
 					Author:      authorName,
 					Status:      status,
 					PublishedAt: nil,
@@ -263,7 +269,43 @@ func (u *appUsecase) FetchData(ctx context.Context, id string) response.Base {
 	dept, err := u.gormDbRepo.GetCareerDepartmentByID(ctx, id)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return response.Error(http.StatusNotFound, "Career department not found")
+			// Check if there is a pending/rejected CREATE approval request for this record ID
+			appReq, appErr := u.gormDbRepo.GetPendingApprovalByRecord(ctx, "career_departments", id)
+			if appErr != nil {
+				// Try by ApprovalRequest ID itself
+				appReq2, appErr2 := u.gormDbRepo.GetApprovalRequestByID(ctx, id)
+				if appErr2 == nil && appReq2 != nil && appReq2.TableName == "career_departments" && appReq2.Action == "CREATE" {
+					appReq = appReq2
+					id = appReq2.RecordID
+				} else {
+					return response.Error(http.StatusNotFound, "Career department not found")
+				}
+			}
+			var data map[string]string
+			if appReq.ProposedData != nil {
+				_ = json.Unmarshal([]byte(*appReq.ProposedData), &data)
+			}
+			var imageURL *string
+			if val, ok := data["image_path"]; ok && val != "" {
+				ip := val
+				if len(ip) > 0 && ip[0] != 'h' {
+					ip = fmt.Sprintf("%s/%s", getS3PublicURL(), ip)
+				}
+				imageURL = &ip
+			}
+			statusVal := "DRAFT"
+			if appReq.Status == "REJECTED" {
+				statusVal = "REJECTED"
+			}
+			return response.Success(gorm_model.CareerDepartmentResp{
+				ID:          id,
+				Name:        data["name"],
+				Description: data["description"],
+				ImageURL:    imageURL,
+				Status:      &statusVal,
+				CreatedAt:   appReq.CreatedAt,
+				UpdatedAt:   appReq.UpdatedAt,
+			})
 		}
 		logrus.Error("CareerDepartment FetchData error:", err)
 		return response.Error(http.StatusInternalServerError, "Failed to fetch career department")
@@ -401,7 +443,7 @@ func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
 }
 
 // UploadImage — Admin uploads an image for a career department directly to S3.
-// The image is stored under: career-department-images/{id}/filename.ext
+// The image is stored under: career-department-images/{id}/filename.jpeg
 // The objectKey (path) is saved to the career_departments record.
 func (u *appUsecase) UploadImage(ctx context.Context, id string, fileHeader *multipart.FileHeader) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
@@ -409,12 +451,31 @@ func (u *appUsecase) UploadImage(ctx context.Context, id string, fileHeader *mul
 
 	// Check if career department exists
 	dept, err := u.gormDbRepo.GetCareerDepartmentByID(ctx, id)
+	var isPendingCreate bool
+	var approval *gorm_model.ApprovalRequest
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return response.Error(http.StatusNotFound, "Career department not found")
+			appReq, appErr := u.gormDbRepo.GetPendingApprovalByRecord(ctx, "career_departments", id)
+			if appErr != nil {
+				// Try by ApprovalRequest ID itself
+				appReq2, appErr2 := u.gormDbRepo.GetApprovalRequestByID(ctx, id)
+				if appErr2 == nil && appReq2 != nil && appReq2.TableName == "career_departments" && appReq2.Action == "CREATE" && appReq2.Status == "PENDING" {
+					appReq = appReq2
+					id = appReq2.RecordID
+				} else {
+					if appErr == gorm.ErrRecordNotFound {
+						return response.Error(http.StatusNotFound, "Career department not found")
+					}
+					logrus.Error("CareerDepartment UploadImage approval fetch error:", appErr)
+					return response.Error(http.StatusInternalServerError, "Failed to fetch career department status")
+				}
+			}
+			isPendingCreate = true
+			approval = appReq
+		} else {
+			logrus.Error("CareerDepartment UploadImage fetch error:", err)
+			return response.Error(http.StatusInternalServerError, "Failed to fetch career department")
 		}
-		logrus.Error("CareerDepartment UploadImage fetch error:", err)
-		return response.Error(http.StatusInternalServerError, "Failed to fetch career department")
 	}
 
 	// Validate content type
@@ -433,39 +494,74 @@ func (u *appUsecase) UploadImage(ctx context.Context, id string, fileHeader *mul
 	if err != nil {
 		return response.Error(http.StatusBadRequest, "Failed to open file")
 	}
-	defer file.Close()
-
 	fileBytes, err := io.ReadAll(file)
+	file.Close()
 	if err != nil {
 		return response.Error(http.StatusBadRequest, "Failed to read file")
 	}
 
-	// Determine extension from content type
-	ext := "jpeg"
-	switch contentType {
-	case "image/png":
-		ext = "png"
-	case "image/webp":
-		ext = "webp"
+	// Decode and re-encode as optimized JPEG
+	originalImg, err := imaging.Decode(bytes.NewReader(fileBytes))
+	if err != nil {
+		return response.Error(http.StatusBadRequest, "Failed to decode image")
 	}
 
-	// Upload to S3 under: career-department-images/{id}/{timestamp}.{ext}
+	var originalBuf bytes.Buffer
+	if err := imaging.Encode(&originalBuf, originalImg, imaging.JPEG, imaging.JPEGQuality(85)); err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to optimize image")
+	}
+
+	// Upload to S3 under: career-department-images/{id}/{timestamp}.jpeg
 	timestamp := time.Now().Unix()
-	objectKey := fmt.Sprintf("career-department-images/%s/%d.%s", id, timestamp, ext)
+	objectKey := fmt.Sprintf("career-department-images/%s/%d.jpeg", id, timestamp)
 
-	oldImagePath := dept.ImagePath
+	var oldImagePath *string
+	if isPendingCreate {
+		var proposed map[string]string
+		if approval.ProposedData != nil {
+			_ = json.Unmarshal([]byte(*approval.ProposedData), &proposed)
+			if path, ok := proposed["image_path"]; ok && path != "" {
+				oldImagePath = &path
+			}
+		}
+	} else {
+		oldImagePath = dept.ImagePath
+	}
 
-	_, err = u.storageRepo.UploadFilePublic(objectKey, bytes.NewReader(fileBytes), contentType)
+	_, err = u.storageRepo.UploadFilePublic(objectKey, &originalBuf, "image/jpeg")
 	if err != nil {
 		logrus.Error("CareerDepartment UploadImage S3 error:", err)
 		return response.Error(http.StatusInternalServerError, "Failed to upload image")
 	}
 
-	// Update record with new image path
-	dept.ImagePath = &objectKey
-	if err := u.gormDbRepo.UpdateCareerDepartment(ctx, dept); err != nil {
-		logrus.Error("CareerDepartment UploadImage DB update error:", err)
-		return response.Error(http.StatusInternalServerError, "Failed to update career department image")
+	// Update record or approval with new image path
+	if isPendingCreate {
+		var proposed map[string]string
+		if approval.ProposedData != nil {
+			_ = json.Unmarshal([]byte(*approval.ProposedData), &proposed)
+		} else {
+			proposed = make(map[string]string)
+		}
+		proposed["image_path"] = objectKey
+
+		proposedBytes, marshalErr := json.Marshal(proposed)
+		if marshalErr != nil {
+			logrus.Error("CareerDepartment UploadImage marshal error:", marshalErr)
+			return response.Error(http.StatusInternalServerError, "Failed to process image metadata")
+		}
+		proposedStr := string(proposedBytes)
+		approval.ProposedData = &proposedStr
+
+		if err := u.gormDbRepo.UpdateApprovalRequest(ctx, approval); err != nil {
+			logrus.Error("CareerDepartment UploadImage approval update error:", err)
+			return response.Error(http.StatusInternalServerError, "Failed to update career department image metadata")
+		}
+	} else {
+		dept.ImagePath = &objectKey
+		if err := u.gormDbRepo.UpdateCareerDepartment(ctx, dept); err != nil {
+			logrus.Error("CareerDepartment UploadImage DB update error:", err)
+			return response.Error(http.StatusInternalServerError, "Failed to update career department image")
+		}
 	}
 
 	// Delete old image from S3 (best-effort)
@@ -476,7 +572,17 @@ func (u *appUsecase) UploadImage(ctx context.Context, id string, fileHeader *mul
 	}
 
 	imageURL := u.storageRepo.GetPublicLink(objectKey)
-	helpers.LogActivity(ctx, u.gormDbRepo, "UploadImage", "CareerDepartment", dept.Name, nil, true)
+	deptName := ""
+	if isPendingCreate {
+		var proposed map[string]string
+		if approval.ProposedData != nil {
+			_ = json.Unmarshal([]byte(*approval.ProposedData), &proposed)
+		}
+		deptName = proposed["name"]
+	} else {
+		deptName = dept.Name
+	}
+	helpers.LogActivity(ctx, u.gormDbRepo, "UploadImage", "CareerDepartment", deptName, nil, true)
 	return response.Success(map[string]string{
 		"image_url": imageURL,
 	})
@@ -567,10 +673,16 @@ func (u *appUsecase) ApproveRequest(ctx context.Context, superadminID string, ap
 			}
 		}
 
+		var imagePath *string
+		if val, ok := data["image_path"]; ok && val != "" {
+			imagePath = &val
+		}
+
 		dept := &gorm_model.CareerDepartment{
 			ID:          approval.RecordID,
 			Name:        data["name"],
 			Description: data["description"],
+			ImagePath:   imagePath,
 		}
 
 		if err := u.gormDbRepo.CreateCareerDepartment(ctx, dept); err != nil {
