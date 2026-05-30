@@ -1,6 +1,10 @@
 package gorm_model
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -77,6 +81,27 @@ func (row *ApprovalRequest) ToApprovalRequestResp() ApprovalRequestResp {
 		adminName = &row.RequestedByAdmin.Name
 	}
 
+	proposedData := row.ProposedData
+	if row.TableName == "career_departments" && proposedData != nil && *proposedData != "" {
+		var data map[string]interface{}
+		if err := json.Unmarshal([]byte(*proposedData), &data); err == nil {
+			if imgPathVal, ok := data["image_path"]; ok {
+				if imgPath, ok := imgPathVal.(string); ok && imgPath != "" {
+					s3URL := os.Getenv("S3_PUBLIC_URL")
+					fullURL := imgPath
+					if !strings.HasPrefix(imgPath, "http") {
+						fullURL = fmt.Sprintf("%s/%s", s3URL, imgPath)
+					}
+					data["image_url"] = fullURL
+					if newBytes, err := json.Marshal(data); err == nil {
+						newStr := string(newBytes)
+						proposedData = &newStr
+					}
+				}
+			}
+		}
+	}
+
 	return ApprovalRequestResp{
 		ID:                     row.ID,
 		RequestedByAdminID:     row.RequestedByAdminID,
@@ -84,7 +109,7 @@ func (row *ApprovalRequest) ToApprovalRequestResp() ApprovalRequestResp {
 		TableName:              row.TableName,
 		RecordID:               row.RecordID,
 		Action:                 row.Action,
-		ProposedData:           row.ProposedData,
+		ProposedData:           proposedData,
 		Status:                 row.Status,
 		RejectedReason:         row.RejectedReason,
 		ReviewedBySuperadminID: row.ReviewedBySuperadminID,
