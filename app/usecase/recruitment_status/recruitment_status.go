@@ -151,16 +151,8 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 		return response.Error(http.StatusInternalServerError, "Failed to serialize RecruitmentStatus data")
 	}
 
-	// Overwrite modifiable components
-	if existingRecruitmentStatus.IsActive && req.IsActive != nil && !*req.IsActive {
-		var userCount int64
-		if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.User{}).Where("recruitment_status_id = ?", id).Count(&userCount).Error; err != nil {
-			logrus.Error("RecruitmentStatus deactivation check error: ", err)
-			return response.Error(http.StatusInternalServerError, "Failed to verify recruitment status references")
-		}
-		if userCount > 0 {
-			return response.Error(http.StatusBadRequest, "Cannot deactivate recruitment status because it is currently referenced by one or more users")
-		}
+	if !existingRecruitmentStatus.CanBeDeleted {
+		return response.Error(http.StatusBadRequest, "Cannot edit default seed recruitment status")
 	}
 
 	existingRecruitmentStatus.Name = req.Name
@@ -206,6 +198,16 @@ func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
 
 	if !existingRecruitmentStatus.CanBeDeleted {
 		return response.Error(http.StatusBadRequest, "This recruitment status is default seed data and cannot be deleted")
+	}
+
+	// Safety Check: Check if assigned to any user
+	var userCount int64
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.User{}).Where("recruitment_status_id = ?", id).Count(&userCount).Error; err != nil {
+		logrus.Error("RecruitmentStatus delete check error: ", err)
+		return response.Error(http.StatusInternalServerError, "Failed to verify recruitment status references")
+	}
+	if userCount > 0 {
+		return response.Error(http.StatusBadRequest, "Cannot delete recruitment status because it is currently referenced by one or more users")
 	}
 
 	if err := u.gormDbRepo.DeleteRecruitmentStatus(ctx, id); err != nil {

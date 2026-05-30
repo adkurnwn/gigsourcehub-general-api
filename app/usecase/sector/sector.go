@@ -143,23 +143,6 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 		return response.Error(http.StatusInternalServerError, "Failed to serialize Sector data")
 	}
 
-	// Overwrite modifiable components
-	if existingSector.IsActive && !req.IsActive {
-		var jobRoleCount int64
-		if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.JobRole{}).Where("sector_id = ?", id).Count(&jobRoleCount).Error; err != nil {
-			logrus.Error("Sector deactivation check error: ", err)
-			return response.Error(http.StatusInternalServerError, "Failed to verify sector references")
-		}
-		var jobTitleCount int64
-		if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.JobTitle{}).Where("sector_id = ?", id).Count(&jobTitleCount).Error; err != nil {
-			logrus.Error("Sector deactivation check error: ", err)
-			return response.Error(http.StatusInternalServerError, "Failed to verify sector references")
-		}
-		if jobRoleCount > 0 || jobTitleCount > 0 {
-			return response.Error(http.StatusBadRequest, "Cannot deactivate sector because it is currently referenced by one or more job roles or job titles")
-		}
-	}
-
 	existingSector.Name = req.Name
 	existingSector.IsActive = req.IsActive
 

@@ -172,28 +172,6 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 		return response.Error(http.StatusBadRequest, "Cannot reference an inactive sector")
 	}
 
-	// Deactivation safety check
-	if existingRole.IsActive && req.IsActive != nil && !*req.IsActive {
-		var assignedCount int64
-		if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.User{}).Where("assigned_role_id = ?", id).Count(&assignedCount).Error; err != nil {
-			logrus.Error("JobRole deactivation check error: ", err)
-			return response.Error(http.StatusInternalServerError, "Failed to verify job role references")
-		}
-		var m2mCount int64
-		if err := u.gormDbRepo.GetDB().WithContext(ctx).Table("user_has_job_roles").Where("job_role_id = ?", id).Count(&m2mCount).Error; err != nil {
-			logrus.Error("JobRole deactivation check m2m error: ", err)
-			return response.Error(http.StatusInternalServerError, "Failed to verify job role references")
-		}
-		var subrequestCount int64
-		if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.Subrequest{}).Where("job_role_id = ?", id).Count(&subrequestCount).Error; err != nil {
-			logrus.Error("JobRole deactivation check error: ", err)
-			return response.Error(http.StatusInternalServerError, "Failed to verify job role references")
-		}
-		if assignedCount > 0 || m2mCount > 0 || subrequestCount > 0 {
-			return response.Error(http.StatusBadRequest, "Cannot deactivate job role because it is currently referenced by one or more user profiles or subrequests")
-		}
-	}
-
 	// Overwrite modifiable components
 	existingRole.Name = req.Name
 	existingRole.SectorID = req.SectorID
@@ -237,6 +215,17 @@ func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
 
 	if m2mCount > 0 {
 		return response.Error(http.StatusBadRequest, "Tidak bisa menghapus posisi karena sedang dipilih oleh kandidat")
+	}
+
+	// Safety Check 3: Check Subrequest usage
+	var subrequestCount int64
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.Subrequest{}).Where("job_role_id = ?", id).Count(&subrequestCount).Error; err != nil {
+		logrus.Error("JobRole delete check subrequest error: ", err)
+		return response.Error(http.StatusInternalServerError, "Failed to check Job Role usage in subrequests")
+	}
+
+	if subrequestCount > 0 {
+		return response.Error(http.StatusBadRequest, "Tidak bisa menghapus posisi karena sedang digunakan oleh satu atau lebih subrequest")
 	}
 
 	if err := u.gormDbRepo.DeleteJobRole(ctx, id); err != nil {

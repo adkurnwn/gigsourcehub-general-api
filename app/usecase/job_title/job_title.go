@@ -172,18 +172,6 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 		return response.Error(http.StatusBadRequest, "Cannot reference an inactive sector")
 	}
 
-	// Deactivation safety check
-	if existingTitle.IsActive && req.IsActive != nil && !*req.IsActive {
-		var assignedCount int64
-		if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.User{}).Where("job_title_id = ?", id).Count(&assignedCount).Error; err != nil {
-			logrus.Error("JobTitle deactivation check error: ", err)
-			return response.Error(http.StatusInternalServerError, "Failed to verify job title references")
-		}
-		if assignedCount > 0 {
-			return response.Error(http.StatusBadRequest, "Cannot deactivate job title because it is currently referenced by one or more user profiles")
-		}
-	}
-
 	// Overwrite modifiable components
 	existingTitle.Name = req.Name
 	existingTitle.SectorID = req.SectorID
