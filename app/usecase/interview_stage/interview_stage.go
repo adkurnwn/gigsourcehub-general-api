@@ -163,6 +163,16 @@ func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
+	// Safety Check: Check if referenced by any interview
+	var interviewCount int64
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.Interview{}).Where("stage_id = ?", id).Count(&interviewCount).Error; err != nil {
+		logrus.Error("InterviewStage delete check error: ", err)
+		return response.Error(http.StatusInternalServerError, "Failed to verify interview stage references")
+	}
+	if interviewCount > 0 {
+		return response.Error(http.StatusBadRequest, "Cannot delete interview stage because it is currently referenced by one or more interviews")
+	}
+
 	if err := u.gormDbRepo.DeleteInterviewStage(ctx, id); err != nil {
 		logrus.Error("InterviewStage Delete error:", err)
 		helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "Interview Stage", id, nil, false)
