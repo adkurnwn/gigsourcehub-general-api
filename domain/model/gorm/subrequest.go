@@ -31,39 +31,49 @@ func (m *Subrequest) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 type SubrequestResp struct {
-	ID        string  `json:"id"`
-	RequestID string  `json:"request_id"`
-	ProjectName string `json:"project_name,omitempty"`
-	Level     *string `json:"level"`
-	JobRoleID *string `json:"job_role_id"`
-	JobRole   *string `json:"job_role"`
-	TechStack *string `json:"tech_stack"`
-	Notes     *string `json:"notes"`
-	IsFilled  bool    `json:"is_filled"`
-	Overview  *string `json:"overview"`
+	ID              string  `json:"id"`
+	RequestID       string  `json:"request_id"`
+	ProjectName     string  `json:"project_name,omitempty"`
+	ProjectDuration *string `json:"project_duration,omitempty"`
+	Level           *string `json:"level"`
+	JobRoleID       *string `json:"job_role_id"`
+	JobRole         *string `json:"job_role"`
+	Bidang          *string `json:"bidang,omitempty"`
+	TechStack       *string `json:"tech_stack"`
+	Notes           *string `json:"notes"`
+	IsFilled        bool    `json:"is_filled"`
+	Overview        *string `json:"overview"`
 }
 
 func (row *Subrequest) ToSubrequestResp() SubrequestResp {
 	var jobRoleName *string
+	var bidangName *string
 	if row.JobRole != nil {
 		jobRoleName = &row.JobRole.Name
+		if row.JobRole.Sector != nil {
+			bidangName = &row.JobRole.Sector.Name
+		}
 	}
 
 	var projectName *string
+	var projectDuration *string
 	if row.Request != nil {
 		projectName = &row.Request.ProjectName
+		projectDuration = row.Request.ProjectDuration
 	}
 
 	return SubrequestResp{
-		ID:        row.ID,
-		RequestID: row.RequestID,
-		ProjectName: func() string { if projectName!=nil { return *projectName }; return "" }(),
-		Level:     row.Level,
-		JobRoleID: row.JobRoleID,
-		JobRole:   jobRoleName,
-		TechStack: row.TechStack,
-		Notes:     row.Notes,
-		IsFilled:  row.IsFilled,
-		Overview:  row.Overview,
+		ID:              row.ID,
+		RequestID:       row.RequestID,
+		ProjectName:     func() string { if projectName != nil { return *projectName }; return "" }(),
+		ProjectDuration: projectDuration,
+		Level:           row.Level,
+		JobRoleID:       row.JobRoleID,
+		JobRole:         jobRoleName,
+		Bidang:          bidangName,
+		TechStack:       row.TechStack,
+		Notes:           row.Notes,
+		IsFilled:        row.IsFilled,
+		Overview:        row.Overview,
 	}
 }

@@ -1387,6 +1387,11 @@ enum "review_final_recommendation" {
   values = ["HIGHLY_RECOMMENDED", "RECOMMENDED", "CONSIDERED", "NOT_RECOMMENDED"]
 }
 
+enum "review_indicator" {
+  schema = schema.public
+  values = ["WORK_QUALITY", "TIMELINESS", "COMMUNICATION_COLLABORATION", "PROBLEM_SOLVING_INITIATIVE"]
+}
+
 table "reviews" {
   schema = schema.public
 
@@ -1408,22 +1413,6 @@ table "reviews" {
   column "onboard_history_id" {
     type = uuid
     null = false
-  }
-  column "work_quality" {
-    type = int
-    null = true
-  }
-  column "timeliness" {
-    type = int
-    null = true
-  }
-  column "communication_collaboration" {
-    type = int
-    null = true
-  }
-  column "problem_solving_initiative" {
-    type = int
-    null = true
   }
   column "final_recommendation" {
     type = enum.review_final_recommendation
@@ -1470,6 +1459,11 @@ table "reviews" {
     columns = [column.onboard_history_id]
   }
 
+  index "uq_reviews_onboard_employee" {
+    columns = [column.onboard_history_id, column.employee_user_id]
+    unique  = true
+  }
+
   foreign_key "reviews_subrequest_fk" {
     columns     = [column.subrequest_id]
     ref_columns = [table.subrequests.column.id]
@@ -1494,6 +1488,122 @@ table "reviews" {
   foreign_key "reviews_onboard_history_fk" {
     columns     = [column.onboard_history_id]
     ref_columns = [table.onboard_histories.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+}
+
+table "review_questions" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "indicator" {
+    type = enum.review_indicator
+    null = false
+  }
+  column "question_text" {
+    type = text
+    null = false
+  }
+  column "question_order" {
+    type = int
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_review_questions_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_review_questions_indicator" {
+    columns = [column.indicator]
+  }
+
+  index "uq_review_questions_indicator_order" {
+    columns = [column.indicator, column.question_order]
+    unique  = true
+  }
+}
+
+table "review_answers" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "review_id" {
+    type = uuid
+    null = false
+  }
+  column "question_id" {
+    type = uuid
+    null = false
+  }
+  column "score" {
+    type = int
+    null = false
+  }
+  column "created_at" {
+    type = timestamptz
+    null = false
+  }
+  column "updated_at" {
+    type = timestamptz
+    null = false
+  }
+  column "deleted_at" {
+    type = timestamptz
+    null = true
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  index "idx_review_answers_deleted_at" {
+    columns = [column.deleted_at]
+  }
+
+  index "idx_review_answers_review_id" {
+    columns = [column.review_id]
+  }
+
+  index "idx_review_answers_question_id" {
+    columns = [column.question_id]
+  }
+
+  index "uq_review_answers_review_question" {
+    columns = [column.review_id, column.question_id]
+    unique  = true
+  }
+
+  foreign_key "review_answers_review_fk" {
+    columns     = [column.review_id]
+    ref_columns = [table.reviews.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "review_answers_question_fk" {
+    columns     = [column.question_id]
+    ref_columns = [table.review_questions.column.id]
     on_update   = NO_ACTION
     on_delete   = CASCADE
   }

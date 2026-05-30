@@ -9,7 +9,11 @@ import (
 )
 
 func (r *gormRepo) FetchJobVacancy(ctx context.Context, options gorm_model.JobVacancyFilter) (cur *sql.Rows, err error) {
-	q := r.db.Model(&gorm_model.JobVacancy{}).Preload("Subrequest")
+	q := r.db.Model(&gorm_model.JobVacancy{}).
+		Preload("Subrequest").
+		Preload("Subrequest.Request").
+		Preload("Subrequest.JobRole").
+		Preload("Subrequest.JobRole.Sector")
 	options.Query(q)
 
 	cur, err = q.WithContext(ctx).Rows()
@@ -24,6 +28,9 @@ func (r *gormRepo) GetJobVacancyByID(ctx context.Context, id string) (*gorm_mode
 	var vacancy gorm_model.JobVacancy
 	err := r.db.WithContext(ctx).
 		Preload("Subrequest").
+		Preload("Subrequest.Request").
+		Preload("Subrequest.JobRole").
+		Preload("Subrequest.JobRole.Sector").
 		Where("id = ?", id).
 		First(&vacancy).Error
 	if err != nil {

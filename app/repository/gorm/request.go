@@ -40,6 +40,7 @@ func (r *gormRepo) FetchRequestsByEmployee(ctx context.Context, employeeID strin
 		Preload("AdminUser").
 		Preload("Subrequests").
 		Preload("Subrequests.JobRole").
+		Preload("Subrequests.JobRole.Sector").
 		Where("employee_user_id = ?", employeeID).
 		Order("created_at DESC").
 		Limit(int(limit)).Offset(int(offset))
@@ -68,6 +69,7 @@ func (r *gormRepo) FetchRequestsByAdmin(ctx context.Context, filter gorm_model.R
 		Preload("AdminUser").
 		Preload("Subrequests").
 		Preload("Subrequests.JobRole").
+		Preload("Subrequests.JobRole.Sector").
 		Order("created_at DESC").
 		Limit(int(limit)).Offset(int(offset))
 
@@ -98,6 +100,7 @@ func (r *gormRepo) GetRequestByID(ctx context.Context, id string) (*gorm_model.R
 		Preload("AdminUser").
 		Preload("Subrequests").
 		Preload("Subrequests.JobRole").
+		Preload("Subrequests.JobRole.Sector").
 		Where("id = ?", id).
 		First(&request).Error
 	if err != nil {

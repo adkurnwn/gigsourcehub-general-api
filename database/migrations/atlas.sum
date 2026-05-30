@@ -1,4 +1,4 @@
-h1:K8fYHl2xS+w9mx1tvDJ0PrqNwCOe0JAxjud6LhacUrw=
+h1:CQv5J4gc1y1l/YKO+90ng6yE7LuJUSmWCtisCUy280g=
 20260301081551_init.sql h1:+1bzghZ6e0PhFe8TIjoQdJ7hEp4CLUlBlyfVDOAe8o4=
 20260301081552_add_seeder_prov_kab_kota_indonesia.sql h1:nVsDxVEaww89UrDtE/uSp6OYHxMg+GIUDewzRV7Jsd8=
 20260301081553_add_seeder_reference_data.sql h1:8n9QgkmOPPSGIA7+2alcfi9pexAhMeQRduqZm46SchQ=
@@ -30,3 +30,4 @@ h1:K8fYHl2xS+w9mx1tvDJ0PrqNwCOe0JAxjud6LhacUrw=
 20260530033100_add_can_be_deleted_to_recruitment_statuses.sql h1:KTw2YLieA2dmVAJpufM0bXymzeyaF4ZM8qZ1W33QW+c=
 20260530035401_add_is_active_to_job_roles_and_job_titles.sql h1:33mF0zdBNE4zNnEqjO9uj9VDIyA4bcH70wzhF+9OSoE=
 20260530044420_remove_hex_code_from_sectors.sql h1:xMi/+4Mg0gPgOThabds3FP6ltH8u50fmxQTKopDVxg4=
+20260530122032_add_review_questions_answers.sql h1:g5Zejfvx6bX3E41PeN7MJF1enMWo6i6mnBlBTKoDB+Q=

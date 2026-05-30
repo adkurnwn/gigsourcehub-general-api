@@ -113,6 +113,12 @@ type AdminNoteAppUsecase interface {
 	FetchByCandidate(ctx context.Context, candidateID string) response.Base
 }
 
+type ReviewAppUsecase interface {
+	CreateOrUpdate(ctx context.Context, employeeID string, req request_model.CreateReviewRequest) response.Base
+	FetchByID(ctx context.Context, reviewID string) response.Base
+	FetchQuestions(ctx context.Context) response.Base
+}
+
 type RequestAppUsecase interface {
 	FetchAll(ctx context.Context, page, limit int64) response.Base
 	CreateByEmployee(ctx context.Context, employeeID string, req request_model.CreateRequestRequest) response.Base

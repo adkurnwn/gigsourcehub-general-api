@@ -285,6 +285,37 @@ definitions:
     - subrequests
     - urgency
     type: object
+  request_model.CreateReviewRequest:
+    properties:
+      communication_collaboration:
+        items:
+          type: integer
+        type: array
+      final_recommendation:
+        type: string
+      notes:
+        type: string
+      onboard_history_id:
+        type: string
+      problem_solving_initiative:
+        items:
+          type: integer
+        type: array
+      timeliness:
+        items:
+          type: integer
+        type: array
+      work_quality:
+        items:
+          type: integer
+        type: array
+    required:
+    - communication_collaboration
+    - onboard_history_id
+    - problem_solving_initiative
+    - timeliness
+    - work_quality
+    type: object
   request_model.CreateSectorRequest:
     properties:
       hex_code:
@@ -343,6 +374,19 @@ definitions:
       system_role_id:
         type: string
     type: object
+  request_model.FinalizeRecruitmentRequest:
+    properties:
+      candidate_user_id:
+        type: string
+      end_date:
+        description: 'format: "2006-01-02"'
+        type: string
+      start_date:
+        description: 'format: "2006-01-02"'
+        type: string
+      subrequest_id:
+        type: string
+    type: object
   request_model.ForgotPasswordRequest:
     properties:
       email:
@@ -353,6 +397,11 @@ definitions:
       email:
         type: string
       password:
+        type: string
+    type: object
+  request_model.LogoutRequest:
+    properties:
+      refresh_token:
         type: string
     type: object
   request_model.PatchInterviewStageRequest:
@@ -382,6 +431,11 @@ definitions:
       candidate_level:
         type: string
       recruitment_status_id:
+        type: string
+    type: object
+  request_model.RefreshTokenRequest:
+    properties:
+      refresh_token:
         type: string
     type: object
   request_model.RegisterRequest:
@@ -1168,6 +1222,12 @@ paths:
       consumes:
       - application/json
       description: Logout current user session
+      parameters:
+      - description: Logout Request
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/request_model.LogoutRequest'
       produces:
       - application/json
       responses:
@@ -1219,6 +1279,40 @@ paths:
       security:
       - BearerAuth: []
       summary: Detail user
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh access token using refresh token
+      parameters:
+      - description: Refresh Token Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Refresh token
       tags:
       - Auth
   /auth/register:
@@ -2013,6 +2107,47 @@ paths:
       security:
       - BearerAuth: []
       summary: Start a chat with an assigned candidate
+      tags:
+      - Chat
+  /chats/upload-offering:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a PDF offering file and store it as a chat message content
+        payload
+      parameters:
+      - description: Conversation ID
+        in: formData
+        name: conversation_id
+        required: true
+        type: string
+      - description: Offering PDF file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Upload offering file
       tags:
       - Chat
   /company-profile:
@@ -3559,6 +3694,141 @@ paths:
       summary: Create Admin Note
       tags:
       - Notes
+  /onboarding/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Fetch onboarding history for a specific candidate
+      parameters:
+      - description: Candidate User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Onboarding History By Candidate
+      tags:
+      - Onboarding
+  /onboarding/active-team:
+    get:
+      consumes:
+      - application/json
+      description: Fetch onboarding history for candidates submitted by the authenticated
+        employee
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Active Team Onboarding
+      tags:
+      - Onboarding
+  /onboarding/history:
+    get:
+      consumes:
+      - application/json
+      description: Fetch onboarding history for candidates whose end date has passed
+        for the authenticated employee
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Onboarding History
+      tags:
+      - Onboarding
   /profile:
     get:
       consumes:
@@ -4302,6 +4572,119 @@ paths:
       summary: Update an existing Subrequest specifically
       tags:
       - Employee Request
+  /review:
+    post:
+      consumes:
+      - application/json
+      description: Employee creates or updates a review for a candidate that has finished
+        onboarding
+      parameters:
+      - description: Review Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.CreateReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Create or update a review for a finished onboarding
+      tags:
+      - Review
+  /review/{id}:
+    get:
+      description: Fetch review details by review ID (Employee/Admin)
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get review details
+      tags:
+      - Review
+  /review/question:
+    get:
+      description: Get the list of review questions for the employee review form
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch review questions
+      tags:
+      - Review
   /roles:
     get:
       consumes:
@@ -4965,7 +5348,7 @@ paths:
     patch:
       consumes:
       - application/json
-      description: Cancel a candidate recruitment process and set status to Available
+      description: Cancel a candidate recruitment process and set status to Null
       parameters:
       - description: User ID
         in: path
@@ -5173,6 +5556,50 @@ paths:
       security:
       - BearerAuth: []
       summary: Fetch Candidates
+      tags:
+      - Users
+  /users/finalize-recruitment:
+    post:
+      consumes:
+      - application/json
+      description: Finalize a candidate recruitment and create onboarding history
+      parameters:
+      - description: Finalize Recruitment
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.FinalizeRecruitmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Finalize Recruitment
       tags:
       - Users
   /ws/chat:
