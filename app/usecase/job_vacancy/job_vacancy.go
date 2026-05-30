@@ -81,7 +81,11 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, filter gor
 
 	// Fetch paginated
 	var vacancies []gorm_model.JobVacancy
-	dbFetch := u.gormDbRepo.GetDB().WithContext(ctx).Preload("Subrequest")
+	dbFetch := u.gormDbRepo.GetDB().WithContext(ctx).
+		Preload("Subrequest").
+		Preload("Subrequest.Request").
+		Preload("Subrequest.JobRole").
+		Preload("Subrequest.JobRole.Sector")
 	filter.Query(dbFetch)
 	if err := dbFetch.Find(&vacancies).Error; err != nil {
 		logrus.Error("JobVacancy fetch error:", err)
@@ -280,7 +284,11 @@ func (u *appUsecase) FetchPublic(ctx context.Context, page, limit int64, filter 
 
 	// Fetch paginated
 	var vacancies []gorm_model.JobVacancy
-	dbFetch := u.gormDbRepo.GetDB().WithContext(ctx).Preload("Subrequest")
+	dbFetch := u.gormDbRepo.GetDB().WithContext(ctx).
+		Preload("Subrequest").
+		Preload("Subrequest.Request").
+		Preload("Subrequest.JobRole").
+		Preload("Subrequest.JobRole.Sector")
 	filter.Query(dbFetch)
 	if err := dbFetch.Find(&vacancies).Error; err != nil {
 		logrus.Error("JobVacancy FetchPublic fetch error:", err)
@@ -289,7 +297,7 @@ func (u *appUsecase) FetchPublic(ctx context.Context, page, limit int64, filter 
 
 	var results []interface{}
 	for _, v := range vacancies {
-		results = append(results, v.ToJobVacancyResp())
+		results = append(results, v.ToJobVacancyPublicResp())
 	}
 
 	var nextCursor *string
@@ -329,5 +337,5 @@ func (u *appUsecase) FetchPublicByID(ctx context.Context, id string) response.Ba
 		return response.Error(http.StatusNotFound, "Job Vacancy not found")
 	}
 
-	return response.Success(vacancy.ToJobVacancyResp())
+	return response.Success(vacancy.ToJobVacancyPublicResp())
 }
