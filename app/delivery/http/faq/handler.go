@@ -35,6 +35,7 @@ func NewFAQHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.FAQA
 	approvals.GET("", handler.FetchApprovals)
 	approvals.POST("/:id/approve", handler.ApproveRequest)
 	approvals.POST("/:id/reject", handler.RejectRequest)
+	approvals.POST("/:id/takedown", handler.TakedownRequest)
 
 	// Public routes — no auth required
 	pub := r.Group("/public/faqs")
@@ -266,5 +267,26 @@ func (h *routeHandler) FetchPublic(c *gin.Context) {
 func (h *routeHandler) FetchPublicByID(c *gin.Context) {
 	id := c.Param("id")
 	res := h.Usecase.FetchPublicByID(c.Request.Context(), id)
+	c.JSON(res.Status, res)
+}
+
+// Takedown FAQ Request (Superadmin)
+// @Security BearerAuth
+// @Summary Takedown FAQ Approval Request
+// @Description Superadmin takes down a FAQ and sets status to Draft
+// @Tags FAQ Approvals
+// @Accept json
+// @Produce json
+// @Param id path string true "Approval Request ID"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /faqs/approvals/{id}/takedown [post]
+func (h *routeHandler) TakedownRequest(c *gin.Context) {
+	id := c.Param("id")
+	claims := c.MustGet("token_data").(domain.JWTClaimUser)
+	res := h.Usecase.TakedownRequest(c.Request.Context(), claims.UserID, id)
 	c.JSON(res.Status, res)
 }

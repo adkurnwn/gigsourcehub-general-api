@@ -619,3 +619,44 @@ func (u *appUsecase) FetchPublicByID(ctx context.Context, id string) response.Ba
 
 	return response.Success(faq.ToFAQResp("PUBLISHED"))
 }
+
+// TakedownRequest — Superadmin takes down a FAQ and sets status back to PENDING (Draft).
+func (u *appUsecase) TakedownRequest(ctx context.Context, superadminID string, approvalID string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	approval, err := u.gormDbRepo.GetApprovalRequestByID(ctx, approvalID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return response.Error(http.StatusNotFound, "Approval request not found")
+		}
+		logrus.Error("FAQ TakedownRequest fetch error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to fetch approval request")
+	}
+
+	if approval.TableName != "faqs" {
+		return response.Error(http.StatusBadRequest, "This approval request is not for FAQs")
+	}
+
+	if approval.Status != "APPROVED" {
+		return response.Error(http.StatusBadRequest, "Only approved FAQ requests can be taken down")
+	}
+
+	// Delete from faqs table
+	if err := u.gormDbRepo.DeleteFAQ(ctx, approval.RecordID); err != nil {
+		logrus.Error("FAQ TakedownRequest GORM delete error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to delete active FAQ")
+	}
+
+	// Set status of approval request back to PENDING
+	approval.Status = "PENDING"
+	approval.ReviewedBySuperadminID = nil
+	if err := u.gormDbRepo.UpdateApprovalRequest(ctx, approval); err != nil {
+		logrus.Error("FAQ TakedownRequest status update error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to update approval status")
+	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Takedown", "FAQ", approval.RecordID, nil, true)
+	return response.Success(approval.ToApprovalRequestResp())
+}
+

@@ -186,6 +186,7 @@ type FAQAppUsecase interface {
 	FetchApprovals(ctx context.Context, page, limit int64) response.Base
 	ApproveRequest(ctx context.Context, superadminID string, approvalID string) response.Base
 	RejectRequest(ctx context.Context, superadminID string, approvalID string, req request_model.ReviewApprovalRequest) response.Base
+	TakedownRequest(ctx context.Context, superadminID string, approvalID string) response.Base
 
 	// Public — no auth
 	FetchPublic(ctx context.Context, page, limit int64, search *string) response.Base
@@ -224,6 +225,7 @@ type CareerDepartmentAppUsecase interface {
 	FetchApprovals(ctx context.Context, page, limit int64) response.Base
 	ApproveRequest(ctx context.Context, superadminID string, approvalID string) response.Base
 	RejectRequest(ctx context.Context, superadminID string, approvalID string, req request_model.ReviewApprovalRequest) response.Base
+	TakedownRequest(ctx context.Context, superadminID string, approvalID string) response.Base
 
 	// Public — no auth
 	FetchPublic(ctx context.Context, page, limit int64, search *string) response.Base
