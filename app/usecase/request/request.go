@@ -396,12 +396,16 @@ func (u *appUsecase) UpdateSubrequestByEmployee(ctx context.Context, employeeID 
 		return response.Error(http.StatusBadRequest, "Subrequest does not belong to the targeted Request ID")
 	}
 
-	var jr gorm_model.JobRole
-	if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jr, "id = ?", req.JobRoleID).Error; err != nil {
-		return response.Error(http.StatusBadRequest, "Invalid job role ID")
-	}
-	if !jr.IsActive {
-		return response.Error(http.StatusBadRequest, "Cannot reference an inactive job role")
+	if req.JobRoleID != nil && *req.JobRoleID != "" {
+		if existingSubReq.JobRoleID == nil || *existingSubReq.JobRoleID != *req.JobRoleID {
+			var jr gorm_model.JobRole
+			if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jr, "id = ?", *req.JobRoleID).Error; err != nil {
+				return response.Error(http.StatusBadRequest, "Invalid job role ID")
+			}
+			if !jr.IsActive {
+				return response.Error(http.StatusBadRequest, "Cannot reference an inactive job role")
+			}
+		}
 	}
 
 	// 6. Map updated fields

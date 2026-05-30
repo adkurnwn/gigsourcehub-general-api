@@ -159,17 +159,19 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 		return response.Error(http.StatusInternalServerError, "Failed to serialize Role data")
 	}
 
-	// Verify sector is active
-	var sector gorm_model.Sector
-	if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&sector, "id = ?", req.SectorID).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return response.Error(http.StatusBadRequest, "Sector not found")
+	// Verify sector is active if changed
+	if existingRole.SectorID != req.SectorID {
+		var sector gorm_model.Sector
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&sector, "id = ?", req.SectorID).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return response.Error(http.StatusBadRequest, "Sector not found")
+			}
+			logrus.Error("JobRole Update sector verify error:", err)
+			return response.Error(http.StatusInternalServerError, "Failed to verify sector status")
 		}
-		logrus.Error("JobRole Update sector verify error:", err)
-		return response.Error(http.StatusInternalServerError, "Failed to verify sector status")
-	}
-	if !sector.IsActive {
-		return response.Error(http.StatusBadRequest, "Cannot reference an inactive sector")
+		if !sector.IsActive {
+			return response.Error(http.StatusBadRequest, "Cannot reference an inactive sector")
+		}
 	}
 
 	// Overwrite modifiable components

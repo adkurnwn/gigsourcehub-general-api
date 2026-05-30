@@ -107,6 +107,7 @@ func (u *appUsecase) Create(ctx context.Context, req request_model.CreateSectorR
 	newSector := gorm_model.Sector{
 		ID:       uuid.New().String(),
 		Name:     req.Name,
+		IsActive: true,
 	}
 
 	if err := u.gormDbRepo.CreateSector(ctx, &newSector); err != nil {

@@ -220,12 +220,14 @@ func (u *appUsecase) Update(ctx context.Context, adminID string, id string, req 
 		return authRes
 	}
 
-	var stage gorm_model.InterviewStage
-	if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&stage, "id = ?", req.StageID).Error; err != nil {
-		return response.Error(http.StatusBadRequest, "Invalid interview stage ID")
-	}
-	if !stage.IsActive {
-		return response.Error(http.StatusBadRequest, "Cannot reference an inactive interview stage")
+	if existing.StageID != req.StageID {
+		var stage gorm_model.InterviewStage
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&stage, "id = ?", req.StageID).Error; err != nil {
+			return response.Error(http.StatusBadRequest, "Invalid interview stage ID")
+		}
+		if !stage.IsActive {
+			return response.Error(http.StatusBadRequest, "Cannot reference an inactive interview stage")
+		}
 	}
 
 	existing.StageID = req.StageID
@@ -270,12 +272,14 @@ func (u *appUsecase) PatchStage(ctx context.Context, adminID string, req request
 		return authRes
 	}
 
-	var stage gorm_model.InterviewStage
-	if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&stage, "id = ?", req.StageID).Error; err != nil {
-		return response.Error(http.StatusBadRequest, "Invalid interview stage ID")
-	}
-	if !stage.IsActive {
-		return response.Error(http.StatusBadRequest, "Cannot reference an inactive interview stage")
+	if interview.StageID != req.StageID {
+		var stage gorm_model.InterviewStage
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&stage, "id = ?", req.StageID).Error; err != nil {
+			return response.Error(http.StatusBadRequest, "Invalid interview stage ID")
+		}
+		if !stage.IsActive {
+			return response.Error(http.StatusBadRequest, "Cannot reference an inactive interview stage")
+		}
 	}
 
 	if err := u.gormDbRepo.PatchInterviewStage(ctx, req.InterviewID, req.StageID, req.Status); err != nil {

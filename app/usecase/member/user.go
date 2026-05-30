@@ -270,21 +270,25 @@ func (u *appUsecase) EditUserBySuperadmin(ctx context.Context, id string, req re
 	}
 
 	if req.JobTitleId != nil && *req.JobTitleId != "" {
-		var jt gorm_model.JobTitle
-		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jt, "id = ?", *req.JobTitleId).Error; err != nil {
-			return response.Error(http.StatusBadRequest, "Job title not found")
-		}
-		if !jt.IsActive {
-			return response.Error(http.StatusBadRequest, "Cannot reference an inactive job title")
+		if user.JobTitleId == nil || *user.JobTitleId != *req.JobTitleId {
+			var jt gorm_model.JobTitle
+			if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jt, "id = ?", *req.JobTitleId).Error; err != nil {
+				return response.Error(http.StatusBadRequest, "Job title not found")
+			}
+			if !jt.IsActive {
+				return response.Error(http.StatusBadRequest, "Cannot reference an inactive job title")
+			}
 		}
 	}
 	if req.AssignedRoleId != nil && *req.AssignedRoleId != "" {
-		var jr gorm_model.JobRole
-		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jr, "id = ?", *req.AssignedRoleId).Error; err != nil {
-			return response.Error(http.StatusBadRequest, "Assigned job role not found")
-		}
-		if !jr.IsActive {
-			return response.Error(http.StatusBadRequest, "Cannot reference an inactive job role")
+		if user.AssignedRoleId == nil || *user.AssignedRoleId != *req.AssignedRoleId {
+			var jr gorm_model.JobRole
+			if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jr, "id = ?", *req.AssignedRoleId).Error; err != nil {
+				return response.Error(http.StatusBadRequest, "Assigned job role not found")
+			}
+			if !jr.IsActive {
+				return response.Error(http.StatusBadRequest, "Cannot reference an inactive job role")
+			}
 		}
 	}
 
@@ -503,8 +507,12 @@ func (u *appUsecase) UpdateProfile(ctx context.Context, userID string, req reque
 			if err := u.gormDbRepo.GetDB().WithContext(ctx).Where("id IN ?", req.JobRoleIds).Find(&jobRoles).Error; err != nil {
 				logrus.Errorf("failed to fetch job roles: %v", err)
 			}
+			existingRoleMap := make(map[string]bool)
+			for _, r := range user.JobRoles {
+				existingRoleMap[r.ID] = true
+			}
 			for _, jr := range jobRoles {
-				if !jr.IsActive {
+				if !jr.IsActive && !existingRoleMap[jr.ID] {
 					return response.Error(http.StatusBadRequest, "Cannot reference inactive job role: " + jr.Name)
 				}
 			}
@@ -706,14 +714,16 @@ func (u *appUsecase) PatchUserRecruitmentStatus(ctx context.Context, id string, 
 		return response.Error(http.StatusNotFound, "User not found")
 	}
 
-	// Validate recruitment status ID if provided
+	// Validate recruitment status ID if provided and changed
 	if req.RecruitmentStatusId != nil && *req.RecruitmentStatusId != "" {
-		var recruitmentStatus gorm_model.RecruitmentStatus
-		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&recruitmentStatus, "id = ?", *req.RecruitmentStatusId).Error; err != nil {
-			return response.Error(http.StatusBadRequest, "Invalid recruitment status ID")
-		}
-		if !recruitmentStatus.IsActive {
-			return response.Error(http.StatusBadRequest, "Cannot reference an inactive recruitment status")
+		if user.RecruitmentStatusId == nil || *user.RecruitmentStatusId != *req.RecruitmentStatusId {
+			var recruitmentStatus gorm_model.RecruitmentStatus
+			if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&recruitmentStatus, "id = ?", *req.RecruitmentStatusId).Error; err != nil {
+				return response.Error(http.StatusBadRequest, "Invalid recruitment status ID")
+			}
+			if !recruitmentStatus.IsActive {
+				return response.Error(http.StatusBadRequest, "Cannot reference an inactive recruitment status")
+			}
 		}
 	}
 
