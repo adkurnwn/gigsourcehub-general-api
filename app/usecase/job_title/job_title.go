@@ -99,11 +99,30 @@ func (u *appUsecase) Create(ctx context.Context, req request_model.CreateJobTitl
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
+	// Verify sector is active
+	var sector gorm_model.Sector
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&sector, "id = ?", req.SectorID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return response.Error(http.StatusBadRequest, "Sector not found")
+		}
+		logrus.Error("JobTitle Create sector verify error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to verify sector status")
+	}
+	if !sector.IsActive {
+		return response.Error(http.StatusBadRequest, "Cannot reference an inactive sector")
+	}
+
+	isActive := true
+	if req.IsActive != nil {
+		isActive = *req.IsActive
+	}
+
 	// Initializing new JobTitle instance
 	newTitle := gorm_model.JobTitle{
 		ID:       uuid.New().String(),
 		SectorID: req.SectorID,
 		Name:     req.Name,
+		IsActive: isActive,
 	}
 
 	if err := u.gormDbRepo.CreateJobTitle(ctx, &newTitle); err != nil {
@@ -140,9 +159,37 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 		return response.Error(http.StatusInternalServerError, "Failed to serialize Title data")
 	}
 
+	// Verify sector is active
+	var sector gorm_model.Sector
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&sector, "id = ?", req.SectorID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return response.Error(http.StatusBadRequest, "Sector not found")
+		}
+		logrus.Error("JobTitle Update sector verify error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to verify sector status")
+	}
+	if !sector.IsActive {
+		return response.Error(http.StatusBadRequest, "Cannot reference an inactive sector")
+	}
+
+	// Deactivation safety check
+	if existingTitle.IsActive && req.IsActive != nil && !*req.IsActive {
+		var assignedCount int64
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.User{}).Where("job_title_id = ?", id).Count(&assignedCount).Error; err != nil {
+			logrus.Error("JobTitle deactivation check error: ", err)
+			return response.Error(http.StatusInternalServerError, "Failed to verify job title references")
+		}
+		if assignedCount > 0 {
+			return response.Error(http.StatusBadRequest, "Cannot deactivate job title because it is currently referenced by one or more user profiles")
+		}
+	}
+
 	// Overwrite modifiable components
 	existingTitle.Name = req.Name
 	existingTitle.SectorID = req.SectorID
+	if req.IsActive != nil {
+		existingTitle.IsActive = *req.IsActive
+	}
 
 	// Write modifications to DB
 	if err := u.gormDbRepo.UpdateJobTitle(ctx, &existingTitle); err != nil {

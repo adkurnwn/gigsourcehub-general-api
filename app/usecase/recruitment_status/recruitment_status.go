@@ -152,6 +152,17 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 	}
 
 	// Overwrite modifiable components
+	if existingRecruitmentStatus.IsActive && req.IsActive != nil && !*req.IsActive {
+		var userCount int64
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.User{}).Where("recruitment_status_id = ?", id).Count(&userCount).Error; err != nil {
+			logrus.Error("RecruitmentStatus deactivation check error: ", err)
+			return response.Error(http.StatusInternalServerError, "Failed to verify recruitment status references")
+		}
+		if userCount > 0 {
+			return response.Error(http.StatusBadRequest, "Cannot deactivate recruitment status because it is currently referenced by one or more users")
+		}
+	}
+
 	existingRecruitmentStatus.Name = req.Name
 	existingRecruitmentStatus.HexCode = req.HexCode
 	if req.IsActive != nil {

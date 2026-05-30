@@ -189,6 +189,25 @@ func (u *appUsecase) CreateBySuperadmin(ctx context.Context, req request_model.C
 		return response.Error(http.StatusInternalServerError, "Failed to hash password")
 	}
 
+	if req.JobTitleId != nil && *req.JobTitleId != "" {
+		var jt gorm_model.JobTitle
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jt, "id = ?", *req.JobTitleId).Error; err != nil {
+			return response.Error(http.StatusBadRequest, "Job title not found")
+		}
+		if !jt.IsActive {
+			return response.Error(http.StatusBadRequest, "Cannot reference an inactive job title")
+		}
+	}
+	if req.AssignedRoleId != nil && *req.AssignedRoleId != "" {
+		var jr gorm_model.JobRole
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jr, "id = ?", *req.AssignedRoleId).Error; err != nil {
+			return response.Error(http.StatusBadRequest, "Assigned job role not found")
+		}
+		if !jr.IsActive {
+			return response.Error(http.StatusBadRequest, "Cannot reference an inactive job role")
+		}
+	}
+
 	// Strict Validation for HR Restriction
 	if req.SystemRoleId != nil && req.JobTitleId != nil {
 		var role gorm_model.SystemRole
@@ -248,6 +267,25 @@ func (u *appUsecase) EditUserBySuperadmin(ctx context.Context, id string, req re
 	}
 	if user == nil {
 		return response.Error(http.StatusNotFound, "User not found")
+	}
+
+	if req.JobTitleId != nil && *req.JobTitleId != "" {
+		var jt gorm_model.JobTitle
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jt, "id = ?", *req.JobTitleId).Error; err != nil {
+			return response.Error(http.StatusBadRequest, "Job title not found")
+		}
+		if !jt.IsActive {
+			return response.Error(http.StatusBadRequest, "Cannot reference an inactive job title")
+		}
+	}
+	if req.AssignedRoleId != nil && *req.AssignedRoleId != "" {
+		var jr gorm_model.JobRole
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jr, "id = ?", *req.AssignedRoleId).Error; err != nil {
+			return response.Error(http.StatusBadRequest, "Assigned job role not found")
+		}
+		if !jr.IsActive {
+			return response.Error(http.StatusBadRequest, "Cannot reference an inactive job role")
+		}
 	}
 
 	// Strict Validation for HR Restriction during Edit
@@ -465,6 +503,11 @@ func (u *appUsecase) UpdateProfile(ctx context.Context, userID string, req reque
 			if err := u.gormDbRepo.GetDB().WithContext(ctx).Where("id IN ?", req.JobRoleIds).Find(&jobRoles).Error; err != nil {
 				logrus.Errorf("failed to fetch job roles: %v", err)
 			}
+			for _, jr := range jobRoles {
+				if !jr.IsActive {
+					return response.Error(http.StatusBadRequest, "Cannot reference inactive job role: " + jr.Name)
+				}
+			}
 		}
 
 		if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(user).Association("JobRoles").Replace(jobRoles); err != nil {
@@ -668,6 +711,9 @@ func (u *appUsecase) PatchUserRecruitmentStatus(ctx context.Context, id string, 
 		var recruitmentStatus gorm_model.RecruitmentStatus
 		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&recruitmentStatus, "id = ?", *req.RecruitmentStatusId).Error; err != nil {
 			return response.Error(http.StatusBadRequest, "Invalid recruitment status ID")
+		}
+		if !recruitmentStatus.IsActive {
+			return response.Error(http.StatusBadRequest, "Cannot reference an inactive recruitment status")
 		}
 	}
 

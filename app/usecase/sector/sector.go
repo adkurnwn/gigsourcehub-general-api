@@ -107,7 +107,6 @@ func (u *appUsecase) Create(ctx context.Context, req request_model.CreateSectorR
 	newSector := gorm_model.Sector{
 		ID:       uuid.New().String(),
 		Name:     req.Name,
-		HexCode: req.HexCode,
 	}
 
 	if err := u.gormDbRepo.CreateSector(ctx, &newSector); err != nil {
@@ -145,8 +144,24 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 	}
 
 	// Overwrite modifiable components
+	if existingSector.IsActive && !req.IsActive {
+		var jobRoleCount int64
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.JobRole{}).Where("sector_id = ?", id).Count(&jobRoleCount).Error; err != nil {
+			logrus.Error("Sector deactivation check error: ", err)
+			return response.Error(http.StatusInternalServerError, "Failed to verify sector references")
+		}
+		var jobTitleCount int64
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.JobTitle{}).Where("sector_id = ?", id).Count(&jobTitleCount).Error; err != nil {
+			logrus.Error("Sector deactivation check error: ", err)
+			return response.Error(http.StatusInternalServerError, "Failed to verify sector references")
+		}
+		if jobRoleCount > 0 || jobTitleCount > 0 {
+			return response.Error(http.StatusBadRequest, "Cannot deactivate sector because it is currently referenced by one or more job roles or job titles")
+		}
+	}
+
 	existingSector.Name = req.Name
-	existingSector.HexCode = req.HexCode
+	existingSector.IsActive = req.IsActive
 
 	// Write modifications to DB
 	if err := u.gormDbRepo.UpdateSector(ctx, &existingSector); err != nil {
@@ -163,6 +178,20 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
+
+	var jobRoleCount int64
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.JobRole{}).Where("sector_id = ?", id).Count(&jobRoleCount).Error; err != nil {
+		logrus.Error("Sector delete check error: ", err)
+		return response.Error(http.StatusInternalServerError, "Failed to verify sector references")
+	}
+	var jobTitleCount int64
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.JobTitle{}).Where("sector_id = ?", id).Count(&jobTitleCount).Error; err != nil {
+		logrus.Error("Sector delete check error: ", err)
+		return response.Error(http.StatusInternalServerError, "Failed to verify sector references")
+	}
+	if jobRoleCount > 0 || jobTitleCount > 0 {
+		return response.Error(http.StatusBadRequest, "Cannot delete sector because it is currently referenced by one or more job roles or job titles")
+	}
 
 	if err := u.gormDbRepo.DeleteSector(ctx, id); err != nil {
 		logrus.Error("Sector Delete error:", err)

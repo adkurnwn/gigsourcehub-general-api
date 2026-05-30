@@ -99,11 +99,30 @@ func (u *appUsecase) Create(ctx context.Context, req request_model.CreateJobRole
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
+	// Verify sector is active
+	var sector gorm_model.Sector
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&sector, "id = ?", req.SectorID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return response.Error(http.StatusBadRequest, "Sector not found")
+		}
+		logrus.Error("JobRole Create sector verify error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to verify sector status")
+	}
+	if !sector.IsActive {
+		return response.Error(http.StatusBadRequest, "Cannot reference an inactive sector")
+	}
+
+	isActive := true
+	if req.IsActive != nil {
+		isActive = *req.IsActive
+	}
+
 	// Initializing new JobRole instance
 	newRole := gorm_model.JobRole{
 		ID:       uuid.New().String(),
 		SectorID: req.SectorID,
 		Name:     req.Name,
+		IsActive: isActive,
 	}
 
 	if err := u.gormDbRepo.CreateJobRole(ctx, &newRole); err != nil {
@@ -140,9 +159,47 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 		return response.Error(http.StatusInternalServerError, "Failed to serialize Role data")
 	}
 
+	// Verify sector is active
+	var sector gorm_model.Sector
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&sector, "id = ?", req.SectorID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return response.Error(http.StatusBadRequest, "Sector not found")
+		}
+		logrus.Error("JobRole Update sector verify error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to verify sector status")
+	}
+	if !sector.IsActive {
+		return response.Error(http.StatusBadRequest, "Cannot reference an inactive sector")
+	}
+
+	// Deactivation safety check
+	if existingRole.IsActive && req.IsActive != nil && !*req.IsActive {
+		var assignedCount int64
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.User{}).Where("assigned_role_id = ?", id).Count(&assignedCount).Error; err != nil {
+			logrus.Error("JobRole deactivation check error: ", err)
+			return response.Error(http.StatusInternalServerError, "Failed to verify job role references")
+		}
+		var m2mCount int64
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).Table("user_has_job_roles").Where("job_role_id = ?", id).Count(&m2mCount).Error; err != nil {
+			logrus.Error("JobRole deactivation check m2m error: ", err)
+			return response.Error(http.StatusInternalServerError, "Failed to verify job role references")
+		}
+		var subrequestCount int64
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.Subrequest{}).Where("job_role_id = ?", id).Count(&subrequestCount).Error; err != nil {
+			logrus.Error("JobRole deactivation check error: ", err)
+			return response.Error(http.StatusInternalServerError, "Failed to verify job role references")
+		}
+		if assignedCount > 0 || m2mCount > 0 || subrequestCount > 0 {
+			return response.Error(http.StatusBadRequest, "Cannot deactivate job role because it is currently referenced by one or more user profiles or subrequests")
+		}
+	}
+
 	// Overwrite modifiable components
 	existingRole.Name = req.Name
 	existingRole.SectorID = req.SectorID
+	if req.IsActive != nil {
+		existingRole.IsActive = *req.IsActive
+	}
 
 	// Write modifications to DB
 	if err := u.gormDbRepo.UpdateJobRole(ctx, &existingRole); err != nil {

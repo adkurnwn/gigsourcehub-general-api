@@ -304,10 +304,6 @@ table "sectors" {
     default = true
     null    = false
   }
-  column "hex_code" {
-    type = varchar(10)
-    null = true
-  }
   column "created_at" {
     type = timestamptz
     null = false
@@ -376,6 +372,11 @@ table "job_roles" {
     type = uuid
     null = false
   }
+  column "is_active" {
+    type    = boolean
+    default = true
+    null    = false
+  }
   column "created_at" {
     type = timestamptz
     null = false
@@ -422,6 +423,11 @@ table "job_titles" {
   column "sector_id" {
     type = uuid
     null = false
+  }
+  column "is_active" {
+    type    = boolean
+    default = true
+    null    = false
   }
   column "created_at" {
     type = timestamptz

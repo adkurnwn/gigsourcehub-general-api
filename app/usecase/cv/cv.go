@@ -125,7 +125,6 @@ func getOrCreateUndefinedSector(db *gorm.DB) (*gorm_model.Sector, error) {
 	sector = gorm_model.Sector{
 		ID:       uuid.New().String(),
 		Name:     "Undefined",
-		HexCode:  "#808080",
 		IsActive: true,
 	}
 	if err := db.Create(&sector).Error; err != nil {
@@ -143,7 +142,6 @@ func getOrCreateSectorByName(db *gorm.DB, name string) (*gorm_model.Sector, erro
 	sector = gorm_model.Sector{
 		ID:       uuid.New().String(),
 		Name:     toTitleCase(name),
-		HexCode:  "#808080", // Default gray for new sectors
 		IsActive: true,
 	}
 	if err := db.Create(&sector).Error; err != nil {

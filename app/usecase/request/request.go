@@ -60,6 +60,14 @@ func (u *appUsecase) CreateByEmployee(ctx context.Context, employeeID string, re
 			}
 		}
 
+		var jr gorm_model.JobRole
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jr, "id = ?", sub.JobRoleID).Error; err != nil {
+			return response.Error(http.StatusBadRequest, "Invalid job role ID")
+		}
+		if !jr.IsActive {
+			return response.Error(http.StatusBadRequest, "Cannot reference an inactive job role")
+		}
+
 		subReq := gorm_model.Subrequest{
 			Level:     &sub.Level,
 			JobRoleID: sub.JobRoleID,
@@ -388,6 +396,14 @@ func (u *appUsecase) UpdateSubrequestByEmployee(ctx context.Context, employeeID 
 		return response.Error(http.StatusBadRequest, "Subrequest does not belong to the targeted Request ID")
 	}
 
+	var jr gorm_model.JobRole
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jr, "id = ?", req.JobRoleID).Error; err != nil {
+		return response.Error(http.StatusBadRequest, "Invalid job role ID")
+	}
+	if !jr.IsActive {
+		return response.Error(http.StatusBadRequest, "Cannot reference an inactive job role")
+	}
+
 	// 6. Map updated fields
 	var techStackJSON *string
 	if len(req.TechStack) > 0 {
@@ -434,6 +450,14 @@ func (u *appUsecase) AddSubrequestByEmployee(ctx context.Context, employeeID str
 	// 3. Validate Status
 	if existingReq.Status != "PENDING" && existingReq.Status != "WAITING" {
 		return response.Error(http.StatusConflict, "Subrequests can only be added to PENDING requests")
+	}
+
+	var jr gorm_model.JobRole
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jr, "id = ?", req.JobRoleID).Error; err != nil {
+		return response.Error(http.StatusBadRequest, "Invalid job role ID")
+	}
+	if !jr.IsActive {
+		return response.Error(http.StatusBadRequest, "Cannot reference an inactive job role")
 	}
 
 	// 4. Map Payload
