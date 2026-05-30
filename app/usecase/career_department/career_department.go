@@ -832,8 +832,49 @@ func (u *appUsecase) FetchPublicByID(ctx context.Context, id string) response.Ba
 	return response.Success(dept.ToCareerDepartmentResp("PUBLISHED"))
 }
 
+// TakedownRequest — Superadmin takes down a Career Department and sets status back to PENDING (Draft).
+func (u *appUsecase) TakedownRequest(ctx context.Context, superadminID string, approvalID string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	approval, err := u.gormDbRepo.GetApprovalRequestByID(ctx, approvalID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return response.Error(http.StatusNotFound, "Approval request not found")
+		}
+		logrus.Error("CareerDepartment TakedownRequest fetch error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to fetch approval request")
+	}
+
+	if approval.TableName != "career_departments" {
+		return response.Error(http.StatusBadRequest, "This approval request is not for career departments")
+	}
+
+	if approval.Status != "APPROVED" {
+		return response.Error(http.StatusBadRequest, "Only approved Career Department requests can be taken down")
+	}
+
+	// Delete from career_departments table
+	if err := u.gormDbRepo.DeleteCareerDepartment(ctx, approval.RecordID); err != nil {
+		logrus.Error("CareerDepartment TakedownRequest GORM delete error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to delete active career department")
+	}
+
+	// Set status of approval request back to PENDING
+	approval.Status = "PENDING"
+	approval.ReviewedBySuperadminID = nil
+	if err := u.gormDbRepo.UpdateApprovalRequest(ctx, approval); err != nil {
+		logrus.Error("CareerDepartment TakedownRequest status update error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to update approval status")
+	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Takedown", "CareerDepartment", approval.RecordID, nil, true)
+	return response.Success(approval.ToApprovalRequestResp())
+}
+
 // ---------- helpers ----------
 
 func getS3PublicURL() string {
 	return os.Getenv("S3_PUBLIC_URL")
 }
+
