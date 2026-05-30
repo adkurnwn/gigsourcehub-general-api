@@ -7,13 +7,14 @@ import (
 )
 
 type RecruitmentStatus struct {
-	ID        string         `gorm:"column:id;primarykey;type:uuid;default:uuid_generate_v4()"`
-	Name      string         `gorm:"column:name;type:varchar(150);not null"`
-	HexCode   string         `gorm:"column:hex_code;type:varchar(10)"`
-	IsActive  bool           `gorm:"column:is_active;type:boolean;default:true"`
-	CreatedAt time.Time      `gorm:"column:created_at;autoCreateTime"`
-	UpdatedAt time.Time      `gorm:"column:updated_at;autoUpdateTime"`
-	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;index"`
+	ID           string         `gorm:"column:id;primarykey;type:uuid;default:uuid_generate_v4()"`
+	Name         string         `gorm:"column:name;type:varchar(150);not null"`
+	HexCode      string         `gorm:"column:hex_code;type:varchar(10)"`
+	IsActive     bool           `gorm:"column:is_active;type:boolean;default:true"`
+	CanBeDeleted bool           `gorm:"column:can_be_deleted;type:boolean;default:true"`
+	CreatedAt    time.Time      `gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt    time.Time      `gorm:"column:updated_at;autoUpdateTime"`
+	DeletedAt    gorm.DeletedAt `gorm:"column:deleted_at;index"`
 }
 
 var RecruitmentStatusAllowedSort = []string{"name", "created_at", "updated_at"}
@@ -42,21 +43,23 @@ func (f *RecruitmentStatusFilter) Query(q *gorm.DB) {
 }
 
 type RecruitmentStatusResp struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	HexCode   string    `json:"hex_code"`
-	IsActive  bool      `json:"is_active"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	HexCode      string    `json:"hex_code"`
+	IsActive     bool      `json:"is_active"`
+	CanBeDeleted bool      `json:"can_be_deleted"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 func (row *RecruitmentStatus) ToRecruitmentStatusResp() RecruitmentStatusResp {
 	return RecruitmentStatusResp{
-		ID:        row.ID,
-		Name:      row.Name,
-		HexCode:   row.HexCode,
-		IsActive:  row.IsActive,
-		CreatedAt: row.CreatedAt,
-		UpdatedAt: row.UpdatedAt,
+		ID:           row.ID,
+		Name:         row.Name,
+		HexCode:      row.HexCode,
+		IsActive:     row.IsActive,
+		CanBeDeleted: row.CanBeDeleted,
+		CreatedAt:    row.CreatedAt,
+		UpdatedAt:    row.UpdatedAt,
 	}
 }

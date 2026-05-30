@@ -110,10 +110,11 @@ func (u *appUsecase) Create(ctx context.Context, req request_model.CreateRecruit
 
 	// Initializing new RecruitmentStatus instance
 	newRecruitmentStatus := gorm_model.RecruitmentStatus{
-		ID:      uuid.New().String(),
-		Name:    req.Name,
-		HexCode: req.HexCode,
-		IsActive: isActive,
+		ID:           uuid.New().String(),
+		Name:         req.Name,
+		HexCode:      req.HexCode,
+		IsActive:     isActive,
+		CanBeDeleted: true,
 	}
 
 	if err := u.gormDbRepo.CreateRecruitmentStatus(ctx, &newRecruitmentStatus); err != nil {
@@ -172,6 +173,29 @@ func (u *appUsecase) Update(ctx context.Context, id string, req request_model.Up
 func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
+
+	// Locate existing record
+	data, err := u.gormDbRepo.FetchRecruitmentStatus(ctx, gorm_model.RecruitmentStatusFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch recruitment status")
+	}
+	defer data.Close()
+
+	if !data.Next() {
+		return response.Error(http.StatusNotFound, "RecruitmentStatus not found")
+	}
+
+	var existingRecruitmentStatus gorm_model.RecruitmentStatus
+	if err := u.gormDbRepo.StructScan(data, &existingRecruitmentStatus); err != nil {
+		logrus.Error("RecruitmentStatus struct map error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to serialize RecruitmentStatus data")
+	}
+
+	if !existingRecruitmentStatus.CanBeDeleted {
+		return response.Error(http.StatusBadRequest, "This recruitment status is default seed data and cannot be deleted")
+	}
 
 	if err := u.gormDbRepo.DeleteRecruitmentStatus(ctx, id); err != nil {
 		logrus.Error("RecruitmentStatus Delete error:", err)

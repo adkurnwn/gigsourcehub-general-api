@@ -1,4 +1,4 @@
-h1:VZ5+kTSKFBIVjJ4IVzZ+D6/tQ4Bdq4YADBbjLg+6cSg=
+h1:rPhRpDu3MVluI6Z11YukPxRZC+hM6bwhf79PnQoUJgM=
 20260301081551_init.sql h1:+1bzghZ6e0PhFe8TIjoQdJ7hEp4CLUlBlyfVDOAe8o4=
 20260301081552_add_seeder_prov_kab_kota_indonesia.sql h1:nVsDxVEaww89UrDtE/uSp6OYHxMg+GIUDewzRV7Jsd8=
 20260301081553_add_seeder_reference_data.sql h1:8n9QgkmOPPSGIA7+2alcfi9pexAhMeQRduqZm46SchQ=
@@ -27,3 +27,4 @@ h1:VZ5+kTSKFBIVjJ4IVzZ+D6/tQ4Bdq4YADBbjLg+6cSg=
 20260525081755_add_career_departments_tables.sql h1:A1kr6Km7DGHJGZC45i9Zp1A7Ojy8GJRZgFKdjnx5Wmg=
 20260527124144_alter_table_contracts_and_onboarding.sql h1:tE7R5QCcp4r030TuO8T5MQP7aQ8bIvczKNhLe1wTq04=
 20260529122032_update_job_vacancies_description_and_fields.sql h1:chGpq4fbV3E78WZV+DwcWyiFCtus605Jsq+qhXyCuqE=
+20260530033100_add_can_be_deleted_to_recruitment_statuses.sql h1:KTw2YLieA2dmVAJpufM0bXymzeyaF4ZM8qZ1W33QW+c=

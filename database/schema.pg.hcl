@@ -475,6 +475,11 @@ table "recruitment_statuses" {
     default = true
     null    = false
   }
+  column "can_be_deleted" {
+    type    = boolean
+    default = true
+    null    = false
+  }
   column "created_at" {
     type = timestamptz
     null = false
