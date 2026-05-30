@@ -34,6 +34,7 @@ import (
 	http_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/provinsi"
 	http_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/recruitment_status"
 	httpdelivery_request "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/request"
+	http_review "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/review"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
 	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
 	http_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/system_setting"
@@ -61,6 +62,7 @@ import (
 	usecase_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/provinsi"
 	usecase_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/recruitment_status"
 	usecase_request "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/request"
+	usecase_review "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/review"
 	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
 	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
 	usecase_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/system_setting"
@@ -255,6 +257,11 @@ func main() {
 		GormDbRepo: repo,
 	}, timeoutContext)
 
+	// init review usecase
+	ucReview := usecase_review.NewAppUsecase(usecase_review.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
 	// init ai chat usecase
 	ucAIChat := usecase_aichat.NewAIChatUsecase(repo, timeoutContext)
 
@@ -362,6 +369,7 @@ func main() {
 	http_recruitment_status.NewRecruitmentStatusHandler(apiGroup, mdl, ucRecruitmentStatus)
 	http_bookmark.NewBookmarkHandler(apiGroup, mdl, ucBookmark)
 	http_admin_note.NewAdminNoteHandler(apiGroup, mdl, ucAdminNote)
+	http_review.NewReviewHandler(apiGroup, mdl, ucReview)
 	http_aichat.NewAIChatHandler(apiGroup, mdl, ucAIChat)
 	http_activity_log.NewActivityLogHandler(apiGroup, mdl, ucActivityLog)
 	http_system_setting.NewSystemSettingHandler(apiGroup, mdl, ucSystemSetting)

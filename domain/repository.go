@@ -113,12 +113,19 @@ type GormRepo interface {
 	CountOnboardHistoriesByEmployee(ctx context.Context, employeeID string) (int64, error)
 	FetchOnboardHistoriesByEmployeeHistory(ctx context.Context, employeeID string, beforeDate time.Time, limit, offset int64) ([]gorm_model.OnboardHistory, error)
 	CountOnboardHistoriesByEmployeeHistory(ctx context.Context, employeeID string, beforeDate time.Time) (int64, error)
+	GetOnboardHistoryByID(ctx context.Context, id string) (*gorm_model.OnboardHistory, error)
 
 	GetDB() *gorm.DB
 
 	// GetReviewScoresByUserIDs fetches aggregated (AVG) review scores for a list of candidate user IDs.
 	// Returns a map of userID -> ReviewAggregateScore. Users without any review are omitted from the map.
 	GetReviewScoresByUserIDs(ctx context.Context, userIDs []string) (map[string]ReviewAggregateScore, error)
+	GetReviewByID(ctx context.Context, id string) (*gorm_model.Review, error)
+	GetReviewByOnboardEmployee(ctx context.Context, onboardHistoryID, employeeUserID string) (*gorm_model.Review, error)
+	CreateReview(ctx context.Context, model *gorm_model.Review) error
+	UpdateReview(ctx context.Context, model *gorm_model.Review) error
+	FetchReviewQuestions(ctx context.Context) ([]gorm_model.ReviewQuestion, error)
+	ReplaceReviewAnswers(ctx context.Context, reviewID string, answers []gorm_model.ReviewAnswer) error
 	// GetJobRolesByUserIDs fetches names of job roles for a list of user IDs.
 	// Returns a map of userID -> list of job role names.
 	GetJobRolesByUserIDs(ctx context.Context, userIDs []string) (map[string][]string, error)
