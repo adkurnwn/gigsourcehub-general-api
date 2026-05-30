@@ -111,3 +111,13 @@ func (r *gormRepo) CountOnboardHistoriesByEmployeeHistory(ctx context.Context, e
 
 	return total, nil
 }
+
+func (r *gormRepo) GetOnboardHistoryByID(ctx context.Context, id string) (*gorm_model.OnboardHistory, error) {
+	var row gorm_model.OnboardHistory
+	if err := r.db.WithContext(ctx).
+		Where("id = ?", id).
+		First(&row).Error; err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
