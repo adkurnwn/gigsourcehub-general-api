@@ -15,6 +15,7 @@ func (r *gormRepo) FetchOnboardHistoriesByCandidate(ctx context.Context, candida
 		Model(&gorm_model.OnboardHistory{}).
 		Preload("CandidateUser").
 		Preload("CandidateUser.SystemRole").
+		Preload("Review").
 		Where("candidate_user_id = ?", candidateID).
 		Order("start_date DESC NULLS LAST, created_at DESC").
 		Limit(int(limit)).Offset(int(offset)).
@@ -49,6 +50,7 @@ func (r *gormRepo) FetchOnboardHistoriesByEmployee(ctx context.Context, employee
 		Model(&gorm_model.OnboardHistory{}).
 		Preload("CandidateUser").
 		Preload("CandidateUser.SystemRole").
+		Preload("Review").
 		Where("snapshot ->> 'employee_user_id' = ?", employeeID).
 		Order("start_date DESC NULLS LAST, created_at DESC").
 		Limit(int(limit)).Offset(int(offset)).
@@ -83,6 +85,7 @@ func (r *gormRepo) FetchOnboardHistoriesByEmployeeHistory(ctx context.Context, e
 		Model(&gorm_model.OnboardHistory{}).
 		Preload("CandidateUser").
 		Preload("CandidateUser.SystemRole").
+		Preload("Review").
 		Where("snapshot ->> 'employee_user_id' = ?", employeeID).
 		Where("end_date < ?", beforeDate).
 		Order("start_date DESC NULLS LAST, created_at DESC").

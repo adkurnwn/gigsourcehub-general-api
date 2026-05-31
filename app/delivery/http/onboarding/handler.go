@@ -25,6 +25,10 @@ func NewOnboardingHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc doma
 	onboarding.GET("/active-team", handler.FetchActiveTeam)
 	onboarding.GET("/history", handler.FetchHistory)
 	onboarding.GET("/:id", handler.FetchByCandidate)
+
+	adminOnboarding := r.Group("/onboarding", mdl.Auth(), mdl.AuthAdmin())
+	adminOnboarding.GET("/active", handler.FetchActive)
+	adminOnboarding.GET("/archive", handler.FetchArchive)
 }
 
 // FetchByCandidate
@@ -108,5 +112,45 @@ func (h *routeHandler) FetchHistory(c *gin.Context) {
 
 	pagination := helpers.GetPagination(c)
 	res := h.Usecase.FetchOnboardingHistory(c.Request.Context(), tokenData.UserID, pagination.Page, pagination.Limit, pagination.Cursor)
+	c.JSON(res.Status, res)
+}
+
+// FetchActive
+// @Summary Get Active Onboarding
+// @Description Fetch onboarding history for candidates currently within their onboarding period
+// @Tags Onboarding
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Limit per page" default(10)
+// @Success 200 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /onboarding/active [get]
+// @Security BearerAuth
+func (h *routeHandler) FetchActive(c *gin.Context) {
+	pagination := helpers.GetPagination(c)
+	res := h.Usecase.FetchOnboardingActive(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor)
+	c.JSON(res.Status, res)
+}
+
+// FetchArchive
+// @Summary Get Archived Onboarding
+// @Description Fetch onboarding history for candidates whose onboarding period has ended
+// @Tags Onboarding
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Limit per page" default(10)
+// @Success 200 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /onboarding/archive [get]
+// @Security BearerAuth
+func (h *routeHandler) FetchArchive(c *gin.Context) {
+	pagination := helpers.GetPagination(c)
+	res := h.Usecase.FetchOnboardingArchive(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor)
 	c.JSON(res.Status, res)
 }

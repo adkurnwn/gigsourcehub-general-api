@@ -16,6 +16,8 @@ definitions:
     properties:
       id:
         type: string
+      is_active:
+        type: boolean
       name:
         type: string
       sector:
@@ -33,8 +35,6 @@ definitions:
   gorm_model.SectorResp:
     properties:
       created_at:
-        type: string
-      hex_code:
         type: string
       id:
         type: string
@@ -206,6 +206,8 @@ definitions:
     type: object
   request_model.CreateJobRoleRequest:
     properties:
+      is_active:
+        type: boolean
       name:
         type: string
       sector_id:
@@ -216,6 +218,8 @@ definitions:
     type: object
   request_model.CreateJobTitleRequest:
     properties:
+      is_active:
+        type: boolean
       name:
         type: string
       sector_id:
@@ -318,8 +322,6 @@ definitions:
     type: object
   request_model.CreateSectorRequest:
     properties:
-      hex_code:
-        type: string
       name:
         type: string
     type: object
@@ -556,6 +558,8 @@ definitions:
     type: object
   request_model.UpdateJobRoleRequest:
     properties:
+      is_active:
+        type: boolean
       name:
         type: string
       sector_id:
@@ -566,6 +570,8 @@ definitions:
     type: object
   request_model.UpdateJobTitleRequest:
     properties:
+      is_active:
+        type: boolean
       name:
         type: string
       sector_id:
@@ -670,8 +676,6 @@ definitions:
     type: object
   request_model.UpdateSectorRequest:
     properties:
-      hex_code:
-        type: string
       is_active:
         type: boolean
       name:
@@ -1873,6 +1877,45 @@ paths:
       summary: Reject Career Department Approval Request
       tags:
       - Career Department Approvals
+  /career-departments/approvals/{id}/takedown:
+    post:
+      consumes:
+      - application/json
+      description: Superadmin takes down a career department and sets status to Draft
+      parameters:
+      - description: Approval Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Takedown Career Department Approval Request
+      tags:
+      - Career Department Approvals
   /chats:
     get:
       description: Get paginated list of conversations for the authenticated user
@@ -2778,6 +2821,45 @@ paths:
       security:
       - BearerAuth: []
       summary: Reject FAQ Approval Request
+      tags:
+      - FAQ Approvals
+  /faqs/approvals/{id}/takedown:
+    post:
+      consumes:
+      - application/json
+      description: Superadmin takes down a FAQ and sets status to Draft
+      parameters:
+      - description: Approval Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Takedown FAQ Approval Request
       tags:
       - FAQ Approvals
   /interview:
@@ -3747,6 +3829,47 @@ paths:
       summary: Get Onboarding History By Candidate
       tags:
       - Onboarding
+  /onboarding/active:
+    get:
+      consumes:
+      - application/json
+      description: Fetch onboarding history for candidates currently within their
+        onboarding period
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Active Onboarding
+      tags:
+      - Onboarding
   /onboarding/active-team:
     get:
       consumes:
@@ -3786,6 +3909,47 @@ paths:
       security:
       - BearerAuth: []
       summary: Get Active Team Onboarding
+      tags:
+      - Onboarding
+  /onboarding/archive:
+    get:
+      consumes:
+      - application/json
+      description: Fetch onboarding history for candidates whose onboarding period
+        has ended
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get Archived Onboarding
       tags:
       - Onboarding
   /onboarding/history:
@@ -5516,6 +5680,88 @@ paths:
       security:
       - BearerAuth: []
       summary: Patch User Recruitment Status and Candidate Level
+      tags:
+      - Users
+  /users/candidate-bookmarked:
+    get:
+      consumes:
+      - application/json
+      description: Fetch a paginated list of candidates bookmarked by the authenticated
+        admin
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch Candidate Bookmarked
+      tags:
+      - Users
+  /users/candidate-recruitment:
+    get:
+      consumes:
+      - application/json
+      description: Fetch a paginated list of candidate users whose recruitment status
+        is set
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch Candidate Recruitment
       tags:
       - Users
   /users/candidates:

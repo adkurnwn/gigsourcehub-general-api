@@ -94,6 +94,148 @@ func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor s
 	})
 }
 
+func (u *appUsecase) FetchCandidateRecruitment(ctx context.Context, page, limit int64, cursor string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	offset := (page - 1) * limit
+
+	query := u.gormDbRepo.GetDB().WithContext(ctx).
+		Model(&gorm_model.User{}).
+		Joins("JOIN system_roles sr ON sr.id = users.system_role_id").
+		Where("sr.name = ? AND users.recruitment_status_id IS NOT NULL", "Candidate")
+
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to count candidates")
+	}
+
+	var users []gorm_model.User
+	if err := query.
+		Preload("SystemRole").
+		Preload("RecruitmentStatus").
+		Preload("KabupatenKota.Provinsi").
+		Preload("JobTitle.Sector").
+		Preload("AssignedRole.Sector").
+		Preload("JobRoles.Sector").
+		Order("users.created_at DESC").
+		Limit(int(limit)).Offset(int(offset)).
+		Find(&users).Error; err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch candidates")
+	}
+
+	results := make([]interface{}, 0, len(users))
+	for _, user := range users {
+		info, err := u.gormDbRepo.GetActiveSubrequestByCandidateID(ctx, user.ID)
+		if err != nil {
+			return response.Error(http.StatusInternalServerError, "Failed to fetch candidate subrequest")
+		}
+
+		resp := user.ToCandidateTableResp(info)
+		results = append(results, resp)
+	}
+
+	var nextCursor *string
+	if offset+limit < total {
+		nextStr := strconv.FormatInt(page+1, 10)
+		nextCursor = &nextStr
+	}
+
+	return response.Success(response.List{
+		List:   results,
+		Limit:  limit,
+		Page:   page,
+		Total:  total,
+		Cursor: nextCursor,
+	})
+}
+
+func (u *appUsecase) FetchCandidateBookmarked(ctx context.Context, adminID string, page, limit int64, cursor string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	if adminID == "" {
+		return response.Error(http.StatusBadRequest, "admin_id is required")
+	}
+
+	offset := (page - 1) * limit
+
+	bookmarkQuery := u.gormDbRepo.GetDB().WithContext(ctx).
+		Model(&gorm_model.Bookmark{}).
+		Where("admin_id = ?", adminID)
+
+	var total int64
+	if err := bookmarkQuery.Count(&total).Error; err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to count bookmarked candidates")
+	}
+
+	var bookmarks []gorm_model.Bookmark
+	if err := bookmarkQuery.
+		Order("created_at DESC").
+		Limit(int(limit)).Offset(int(offset)).
+		Find(&bookmarks).Error; err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch bookmarked candidates")
+	}
+
+	bookmarkedIDs := make([]string, 0, len(bookmarks))
+	for _, bookmark := range bookmarks {
+		bookmarkedIDs = append(bookmarkedIDs, bookmark.CandidateID)
+	}
+
+	usersByID := make(map[string]gorm_model.User)
+	if len(bookmarkedIDs) > 0 {
+		var users []gorm_model.User
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).
+			Model(&gorm_model.User{}).
+			Where("id IN ?", bookmarkedIDs).
+			Preload("SystemRole").
+			Preload("RecruitmentStatus").
+			Preload("KabupatenKota.Provinsi").
+			Preload("JobTitle.Sector").
+			Preload("AssignedRole.Sector").
+			Preload("JobRoles.Sector").
+			Find(&users).Error; err != nil {
+			return response.Error(http.StatusInternalServerError, "Failed to fetch bookmarked candidate data")
+		}
+
+		for _, user := range users {
+			usersByID[user.ID] = user
+		}
+	}
+
+	results := make([]interface{}, 0, len(bookmarkedIDs))
+	for _, candidateID := range bookmarkedIDs {
+		user, ok := usersByID[candidateID]
+		if !ok {
+			continue
+		}
+
+		info, err := u.gormDbRepo.GetActiveSubrequestByCandidateID(ctx, candidateID)
+		if err != nil {
+			return response.Error(http.StatusInternalServerError, "Failed to fetch candidate subrequest")
+		}
+
+		resp := user.ToCandidateTableResp(info)
+		isBookmark := true
+		resp.IsBookmark = &isBookmark
+		results = append(results, resp)
+	}
+
+	var nextCursor *string
+	if offset+limit < total {
+		nextStr := strconv.FormatInt(page+1, 10)
+		nextCursor = &nextStr
+	}
+
+	return response.Success(response.List{
+		List:   results,
+		Limit:  limit,
+		Page:   page,
+		Total:  total,
+		Cursor: nextCursor,
+	})
+}
+
 func (u *appUsecase) FetchUserDetail(ctx context.Context, id string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()

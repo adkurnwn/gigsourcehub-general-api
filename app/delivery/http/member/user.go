@@ -15,6 +15,8 @@ func (h *routeHandler) handleUserRoute(path string) {
 
 	// candidates list: Admin & Superadmin
 	userGroup.GET("/candidates", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin", "Employee"), h.FetchCandidates)
+	userGroup.GET("/candidate-recruitment", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.FetchCandidateRecruitment)
+	userGroup.GET("/candidate-bookmarked", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Employee"), h.FetchCandidateBookmarked)
 
 	// users list: Superadmin
 	userGroup.GET("", h.Middleware.Auth(), h.Middleware.AuthSuperadmin(), h.FetchAllUsers)
@@ -111,6 +113,54 @@ func (h *routeHandler) FetchCandidates(c *gin.Context) {
 	}
 
 	res := h.Usecase.FetchUsers(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, searchPtr, &roleName, adminID)
+	c.JSON(res.Status, res)
+}
+
+// FetchCandidateRecruitment
+// @Summary Fetch Candidate Recruitment
+// @Description Fetch a paginated list of candidate users whose recruitment status is set
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Limit per page" default(10)
+// @Success 200 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /users/candidate-recruitment [get]
+// @Security BearerAuth
+func (h *routeHandler) FetchCandidateRecruitment(c *gin.Context) {
+	pagination := helpers.GetPagination(c)
+	res := h.Usecase.FetchCandidateRecruitment(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor)
+	c.JSON(res.Status, res)
+}
+
+// FetchCandidateBookmarked
+// @Summary Fetch Candidate Bookmarked
+// @Description Fetch a paginated list of candidates bookmarked by the authenticated admin
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Limit per page" default(10)
+// @Success 200 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /users/candidate-bookmarked [get]
+// @Security BearerAuth
+func (h *routeHandler) FetchCandidateBookmarked(c *gin.Context) {
+	pagination := helpers.GetPagination(c)
+	claims, ok := c.Get("token_data")
+	if !ok {
+		res := response.Error(http.StatusUnauthorized, "Unauthorized")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	tokenData := claims.(domain.JWTClaimUser)
+	res := h.Usecase.FetchCandidateBookmarked(c.Request.Context(), tokenData.UserID, pagination.Page, pagination.Limit, pagination.Cursor)
 	c.JSON(res.Status, res)
 }
 
