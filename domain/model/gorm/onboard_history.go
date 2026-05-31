@@ -19,6 +19,7 @@ type OnboardHistory struct {
 	CreatedAt       time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt       time.Time      `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt       gorm.DeletedAt `gorm:"column:deleted_at;index"`
+	Review          *Review        `gorm:"foreignKey:OnboardHistoryID"`
 }
 
 type OnboardHistoryResp struct {
@@ -31,6 +32,7 @@ type OnboardHistoryResp struct {
 	Snapshot        *string    `json:"snapshot,omitempty"`
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`
+	ReviewID        *string    `json:"review_id"`
 }
 
 func (m *OnboardHistory) BeforeCreate(tx *gorm.DB) (err error) {
@@ -47,6 +49,11 @@ func (m *OnboardHistory) ToOnboardHistoryResp() OnboardHistoryResp {
 		candidateResp = &resp
 	}
 
+	var reviewID *string
+	if m.Review != nil {
+		reviewID = &m.Review.ID
+	}
+
 	return OnboardHistoryResp{
 		ID:              m.ID,
 		CandidateUserID: m.CandidateUserID,
@@ -57,5 +64,6 @@ func (m *OnboardHistory) ToOnboardHistoryResp() OnboardHistoryResp {
 		Snapshot:        m.Snapshot,
 		CreatedAt:       m.CreatedAt,
 		UpdatedAt:       m.UpdatedAt,
+		ReviewID:        reviewID,
 	}
 }
