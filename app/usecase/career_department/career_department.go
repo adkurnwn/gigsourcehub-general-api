@@ -51,15 +51,16 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, search *st
 
 	// 3. Merge them
 	type tempDept struct {
-		ID          string
-		Name        string
-		Description string
-		ImagePath   *string
-		Author      string
-		Status      string
-		PublishedAt *time.Time
-		CreatedAt   time.Time
-		UpdatedAt   time.Time
+		ID             string
+		Name           string
+		Description    string
+		ImagePath      *string
+		Author         string
+		Status         string
+		RejectedReason *string
+		PublishedAt    *time.Time
+		CreatedAt      time.Time
+		UpdatedAt      time.Time
 	}
 
 	// Build map of approved departments by ID
@@ -67,14 +68,15 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, search *st
 	for _, d := range allApproved {
 		var pub *time.Time = &d.CreatedAt
 		approvedMap[d.ID] = tempDept{
-			ID:          d.ID,
-			Name:        d.Name,
-			Description: d.Description,
-			ImagePath:   d.ImagePath,
-			Status:      "PUBLISHED",
-			PublishedAt: pub,
-			CreatedAt:   d.CreatedAt,
-			UpdatedAt:   d.UpdatedAt,
+			ID:             d.ID,
+			Name:           d.Name,
+			Description:    d.Description,
+			ImagePath:      d.ImagePath,
+			Status:         "PUBLISHED",
+			RejectedReason: nil,
+			PublishedAt:    pub,
+			CreatedAt:      d.CreatedAt,
+			UpdatedAt:      d.UpdatedAt,
 		}
 	}
 
@@ -117,27 +119,33 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, search *st
 				}
 
 				finalMap[recordID] = tempDept{
-					ID:          recordID,
-					Name:        proposed["name"],
-					Description: proposed["description"],
-					ImagePath:   dept.ImagePath,
-					Author:      authorName,
-					Status:      "DRAFT",
-					PublishedAt: dept.PublishedAt,
-					CreatedAt:   dept.CreatedAt,
-					UpdatedAt:   app.UpdatedAt,
+					ID:             recordID,
+					Name:           proposed["name"],
+					Description:    proposed["description"],
+					ImagePath:      dept.ImagePath,
+					Author:         authorName,
+					Status:         "DRAFT",
+					RejectedReason: nil,
+					PublishedAt:    dept.PublishedAt,
+					CreatedAt:      dept.CreatedAt,
+					UpdatedAt:      app.UpdatedAt,
 				}
 			} else {
+				var rejectedReason *string
+				if hasApproval && app.Status == "REJECTED" {
+					rejectedReason = app.RejectedReason
+				}
 				finalMap[recordID] = tempDept{
-					ID:          recordID,
-					Name:        dept.Name,
-					Description: dept.Description,
-					ImagePath:   dept.ImagePath,
-					Author:      authorName,
-					Status:      "PUBLISHED",
-					PublishedAt: dept.PublishedAt,
-					CreatedAt:   dept.CreatedAt,
-					UpdatedAt:   dept.UpdatedAt,
+					ID:             recordID,
+					Name:           dept.Name,
+					Description:    dept.Description,
+					ImagePath:      dept.ImagePath,
+					Author:         authorName,
+					Status:         "PUBLISHED",
+					RejectedReason: rejectedReason,
+					PublishedAt:    dept.PublishedAt,
+					CreatedAt:      dept.CreatedAt,
+					UpdatedAt:      dept.UpdatedAt,
 				}
 			}
 		} else {
@@ -164,15 +172,16 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, search *st
 				}
 
 				finalMap[recordID] = tempDept{
-					ID:          recordID,
-					Name:        proposed["name"],
-					Description: proposed["description"],
-					ImagePath:   imgPath,
-					Author:      authorName,
-					Status:      status,
-					PublishedAt: nil,
-					CreatedAt:   app.CreatedAt,
-					UpdatedAt:   app.UpdatedAt,
+					ID:             recordID,
+					Name:           proposed["name"],
+					Description:    proposed["description"],
+					ImagePath:      imgPath,
+					Author:         authorName,
+					Status:         status,
+					RejectedReason: app.RejectedReason,
+					PublishedAt:    nil,
+					CreatedAt:      app.CreatedAt,
+					UpdatedAt:      app.UpdatedAt,
 				}
 			}
 		}
@@ -234,15 +243,16 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, search *st
 		}
 
 		results = append(results, gorm_model.CareerDepartmentResp{
-			ID:          item.ID,
-			Name:        item.Name,
-			Description: item.Description,
-			ImageURL:    imageURL,
-			Author:      authorPtr,
-			Status:      &statusVal,
-			PublishedAt: item.PublishedAt,
-			CreatedAt:   item.CreatedAt,
-			UpdatedAt:   item.UpdatedAt,
+			ID:             item.ID,
+			Name:           item.Name,
+			Description:    item.Description,
+			ImageURL:       imageURL,
+			Author:         authorPtr,
+			Status:         &statusVal,
+			RejectedReason: item.RejectedReason,
+			PublishedAt:    item.PublishedAt,
+			CreatedAt:      item.CreatedAt,
+			UpdatedAt:      item.UpdatedAt,
 		})
 	}
 
@@ -298,13 +308,14 @@ func (u *appUsecase) FetchData(ctx context.Context, id string) response.Base {
 				statusVal = "REJECTED"
 			}
 			return response.Success(gorm_model.CareerDepartmentResp{
-				ID:          id,
-				Name:        data["name"],
-				Description: data["description"],
-				ImageURL:    imageURL,
-				Status:      &statusVal,
-				CreatedAt:   appReq.CreatedAt,
-				UpdatedAt:   appReq.UpdatedAt,
+				ID:             id,
+				Name:           data["name"],
+				Description:    data["description"],
+				ImageURL:       imageURL,
+				Status:         &statusVal,
+				RejectedReason: appReq.RejectedReason,
+				CreatedAt:      appReq.CreatedAt,
+				UpdatedAt:      appReq.UpdatedAt,
 			})
 		}
 		logrus.Error("CareerDepartment FetchData error:", err)
@@ -312,6 +323,7 @@ func (u *appUsecase) FetchData(ctx context.Context, id string) response.Base {
 	}
 
 	status := "PUBLISHED"
+	var rejectedReason *string
 	approvals, err := u.gormDbRepo.FetchApprovalRequests(ctx, gorm_model.ApprovalRequestFilter{
 		RecordID: &id,
 	})
@@ -326,10 +338,13 @@ func (u *appUsecase) FetchData(ctx context.Context, id string) response.Base {
 			status = "DRAFT"
 		} else if latest.Status == "REJECTED" {
 			status = "REJECTED"
+			rejectedReason = latest.RejectedReason
 		}
 	}
 
-	return response.Success(dept.ToCareerDepartmentResp(status))
+	resp := dept.ToCareerDepartmentResp(status)
+	resp.RejectedReason = rejectedReason
+	return response.Success(resp)
 }
 
 // ---------- Admin only ----------
@@ -418,24 +433,61 @@ func (u *appUsecase) Update(ctx context.Context, adminID string, id string, req 
 	return response.Success(approval.ToApprovalRequestResp())
 }
 
-// Delete — Admin directly soft-deletes a CareerDepartment (no approval needed).
+// Delete — Admin deletes a CareerDepartment based on its status.
 func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
+	// 1. Check if CareerDepartment exists in the main table
 	existing, err := u.gormDbRepo.GetCareerDepartmentByID(ctx, id)
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return response.Error(http.StatusNotFound, "Career department not found")
+	hasMainRecord := err == nil && existing != nil
+
+	// 2. Check if there is a pending approval request
+	pendingApp, errApp := u.gormDbRepo.GetPendingApprovalByRecord(ctx, "career_departments", id)
+	hasPendingApproval := errApp == nil && pendingApp != nil
+
+	if !hasMainRecord {
+		// It's a Draft/Rejected CREATE request (not yet in the main table)
+		// We delete all approval requests with this record_id
+		approvals, fetchErr := u.gormDbRepo.FetchApprovalRequests(ctx, gorm_model.ApprovalRequestFilter{
+			RecordID: &id,
+		})
+		if fetchErr == nil {
+			for _, app := range approvals {
+				_ = u.gormDbRepo.DeleteApprovalRequest(ctx, app.ID)
+			}
 		}
-		logrus.Error("CareerDepartment Delete fetch error:", err)
-		return response.Error(http.StatusInternalServerError, "Failed to fetch career department")
+		helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "CareerDepartment", "Draft/Rejected CareerDepartment", nil, true)
+		return response.Success(nil)
 	}
 
+	if hasPendingApproval {
+		// It's a Draft (pending update) on a published CareerDepartment
+		// We only delete the pending approval request
+		if err := u.gormDbRepo.DeleteApprovalRequest(ctx, pendingApp.ID); err != nil {
+			logrus.Error("CareerDepartment Delete pending approval error:", err)
+			return response.Error(http.StatusInternalServerError, "Failed to delete career department draft request")
+		}
+		helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "CareerDepartment", existing.Name+" (Draft Request)", nil, true)
+		return response.Success(nil)
+	}
+
+	// It's Published and has no pending update request
+	// We delete the CareerDepartment from the main table
 	if err := u.gormDbRepo.DeleteCareerDepartment(ctx, id); err != nil {
 		logrus.Error("CareerDepartment Delete error:", err)
 		helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "CareerDepartment", existing.Name, nil, false)
 		return response.Error(http.StatusInternalServerError, "Failed to delete career department")
+	}
+
+	// And we delete all approval requests associated with this record_id
+	approvals, fetchErr := u.gormDbRepo.FetchApprovalRequests(ctx, gorm_model.ApprovalRequestFilter{
+		RecordID: &id,
+	})
+	if fetchErr == nil {
+		for _, app := range approvals {
+			_ = u.gormDbRepo.DeleteApprovalRequest(ctx, app.ID)
+		}
 	}
 
 	helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "CareerDepartment", existing.Name, nil, true)

@@ -44,14 +44,15 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, search *st
 
 	// 3. Merge them
 	type tempFAQ struct {
-		ID          string
-		Question    string
-		Answer      string
-		Author      string
-		Status      string
-		PublishedAt *time.Time
-		CreatedAt   time.Time
-		UpdatedAt   time.Time
+		ID             string
+		Question       string
+		Answer         string
+		Author         string
+		Status         string
+		RejectedReason *string
+		PublishedAt    *time.Time
+		CreatedAt      time.Time
+		UpdatedAt      time.Time
 	}
 
 	// Build map of approved FAQs by ID
@@ -59,13 +60,14 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, search *st
 	for _, f := range allApproved {
 		var pub *time.Time = &f.CreatedAt
 		approvedMap[f.ID] = tempFAQ{
-			ID:          f.ID,
-			Question:    f.Question,
-			Answer:      f.Answer,
-			Status:      "PUBLISHED",
-			PublishedAt: pub,
-			CreatedAt:   f.CreatedAt,
-			UpdatedAt:   f.UpdatedAt,
+			ID:             f.ID,
+			Question:       f.Question,
+			Answer:         f.Answer,
+			Status:         "PUBLISHED",
+			RejectedReason: nil,
+			PublishedAt:    pub,
+			CreatedAt:      f.CreatedAt,
+			UpdatedAt:      f.UpdatedAt,
 		}
 	}
 
@@ -108,28 +110,34 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, search *st
 				}
 
 				finalMap[recordID] = tempFAQ{
-					ID:          recordID,
-					Question:    proposed["question"],
-					Answer:      proposed["answer"],
-					Author:      authorName,
-					Status:      "DRAFT", // pending update is shown as DRAFT/Pending
-					PublishedAt: faq.PublishedAt,
-					CreatedAt:   faq.CreatedAt,
-					UpdatedAt:   app.UpdatedAt,
+					ID:             recordID,
+					Question:       proposed["question"],
+					Answer:         proposed["answer"],
+					Author:         authorName,
+					Status:         "DRAFT", // pending update is shown as DRAFT/Pending
+					RejectedReason: nil,
+					PublishedAt:    faq.PublishedAt,
+					CreatedAt:      faq.CreatedAt,
+					UpdatedAt:      app.UpdatedAt,
 				}
 			} else {
 				// No pending update (or update was approved/rejected).
 				// If it was rejected, we still show the published FAQ as PUBLISHED.
 				// If it was approved, it is already updated in the faqs table, so we show it as PUBLISHED.
+				var rejectedReason *string
+				if hasApproval && app.Status == "REJECTED" {
+					rejectedReason = app.RejectedReason
+				}
 				finalMap[recordID] = tempFAQ{
-					ID:          recordID,
-					Question:    faq.Question,
-					Answer:      faq.Answer,
-					Author:      authorName,
-					Status:      "PUBLISHED",
-					PublishedAt: faq.PublishedAt,
-					CreatedAt:   faq.CreatedAt,
-					UpdatedAt:   faq.UpdatedAt,
+					ID:             recordID,
+					Question:       faq.Question,
+					Answer:         faq.Answer,
+					Author:         authorName,
+					Status:         "PUBLISHED",
+					RejectedReason: rejectedReason,
+					PublishedAt:    faq.PublishedAt,
+					CreatedAt:      faq.CreatedAt,
+					UpdatedAt:      faq.UpdatedAt,
 				}
 			}
 		} else {
@@ -153,14 +161,15 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, search *st
 				}
 
 				finalMap[recordID] = tempFAQ{
-					ID:          recordID,
-					Question:    proposed["question"],
-					Answer:      proposed["answer"],
-					Author:      authorName,
-					Status:      status,
-					PublishedAt: nil,
-					CreatedAt:   app.CreatedAt,
-					UpdatedAt:   app.UpdatedAt,
+					ID:             recordID,
+					Question:       proposed["question"],
+					Answer:         proposed["answer"],
+					Author:         authorName,
+					Status:         status,
+					RejectedReason: app.RejectedReason,
+					PublishedAt:    nil,
+					CreatedAt:      app.CreatedAt,
+					UpdatedAt:      app.UpdatedAt,
 				}
 			}
 		}
@@ -211,14 +220,15 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, search *st
 		}
 		statusVal := item.Status
 		results = append(results, gorm_model.FAQResp{
-			ID:          item.ID,
-			Question:    item.Question,
-			Answer:      item.Answer,
-			Author:      authorPtr,
-			Status:      &statusVal,
-			PublishedAt: item.PublishedAt,
-			CreatedAt:   item.CreatedAt,
-			UpdatedAt:   item.UpdatedAt,
+			ID:             item.ID,
+			Question:       item.Question,
+			Answer:         item.Answer,
+			Author:         authorPtr,
+			Status:         &statusVal,
+			RejectedReason: item.RejectedReason,
+			PublishedAt:    item.PublishedAt,
+			CreatedAt:      item.CreatedAt,
+			UpdatedAt:      item.UpdatedAt,
 		})
 	}
 
@@ -252,6 +262,7 @@ func (u *appUsecase) FetchData(ctx context.Context, id string) response.Base {
 	}
 
 	status := "PUBLISHED"
+	var rejectedReason *string
 	approvals, err := u.gormDbRepo.FetchApprovalRequests(ctx, gorm_model.ApprovalRequestFilter{
 		RecordID: &id,
 	})
@@ -266,10 +277,13 @@ func (u *appUsecase) FetchData(ctx context.Context, id string) response.Base {
 			status = "DRAFT"
 		} else if latest.Status == "REJECTED" {
 			status = "REJECTED"
+			rejectedReason = latest.RejectedReason
 		}
 	}
 
-	return response.Success(faq.ToFAQResp(status))
+	resp := faq.ToFAQResp(status)
+	resp.RejectedReason = rejectedReason
+	return response.Success(resp)
 }
 
 // ---------- Admin only ----------
@@ -358,24 +372,61 @@ func (u *appUsecase) Update(ctx context.Context, adminID string, id string, req 
 	return response.Success(approval.ToApprovalRequestResp())
 }
 
-// Delete — Admin directly soft-deletes a FAQ (no approval needed).
+// Delete — Admin deletes a FAQ based on its status.
 func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
+	// 1. Check if FAQ exists in the main table
 	existing, err := u.gormDbRepo.GetFAQByID(ctx, id)
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return response.Error(http.StatusNotFound, "FAQ not found")
+	hasMainRecord := err == nil && existing != nil
+
+	// 2. Check if there is a pending approval request
+	pendingApp, errApp := u.gormDbRepo.GetPendingApprovalByRecord(ctx, "faqs", id)
+	hasPendingApproval := errApp == nil && pendingApp != nil
+
+	if !hasMainRecord {
+		// It's a Draft/Rejected CREATE request (not yet in the main table)
+		// We delete all approval requests with this record_id
+		approvals, fetchErr := u.gormDbRepo.FetchApprovalRequests(ctx, gorm_model.ApprovalRequestFilter{
+			RecordID: &id,
+		})
+		if fetchErr == nil {
+			for _, app := range approvals {
+				_ = u.gormDbRepo.DeleteApprovalRequest(ctx, app.ID)
+			}
 		}
-		logrus.Error("FAQ Delete fetch error:", err)
-		return response.Error(http.StatusInternalServerError, "Failed to fetch FAQ")
+		helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "FAQ", "Draft/Rejected FAQ", nil, true)
+		return response.Success(nil)
 	}
 
+	if hasPendingApproval {
+		// It's a Draft (pending update) on a published FAQ
+		// We only delete the pending approval request
+		if err := u.gormDbRepo.DeleteApprovalRequest(ctx, pendingApp.ID); err != nil {
+			logrus.Error("FAQ Delete pending approval error:", err)
+			return response.Error(http.StatusInternalServerError, "Failed to delete FAQ draft request")
+		}
+		helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "FAQ", existing.Question+" (Draft Request)", nil, true)
+		return response.Success(nil)
+	}
+
+	// It's Published and has no pending update request
+	// We delete the FAQ from the main table
 	if err := u.gormDbRepo.DeleteFAQ(ctx, id); err != nil {
 		logrus.Error("FAQ Delete error:", err)
 		helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "FAQ", existing.Question, nil, false)
 		return response.Error(http.StatusInternalServerError, "Failed to delete FAQ")
+	}
+
+	// And we delete all approval requests associated with this record_id
+	approvals, fetchErr := u.gormDbRepo.FetchApprovalRequests(ctx, gorm_model.ApprovalRequestFilter{
+		RecordID: &id,
+	})
+	if fetchErr == nil {
+		for _, app := range approvals {
+			_ = u.gormDbRepo.DeleteApprovalRequest(ctx, app.ID)
+		}
 	}
 
 	helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "FAQ", existing.Question, nil, true)
