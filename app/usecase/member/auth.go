@@ -2,6 +2,7 @@ package usecase_member
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -274,6 +275,77 @@ func (u *appUsecase) VerifyAccount(ctx context.Context, token string) response.B
 
 	return response.Success(map[string]string{
 		"message": "Account verified successfully! You can now log in.",
+	})
+}
+
+func (u *appUsecase) ResendVerification(ctx context.Context, req request_model.ResendVerificationRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	// 1. Fetch User
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		Email: &req.Email,
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+
+	if user == nil {
+		// Return generic success to prevent email enumeration exploit
+		return response.Success(map[string]string{
+			"message": "If that email matches an unverified account, we have sent a verification link.",
+		})
+	}
+
+	// 2. Check if user is already verified
+	if user.VerifiedAt != nil {
+		return response.Error(http.StatusBadRequest, "Email is already verified. Please log in.")
+	}
+
+	// 3. Rate limiting: Check for existing verification token cooldown
+	var existingToken gorm_model.UserToken
+	err = u.gormDbRepo.GetDB().WithContext(ctx).
+		Where("user_id = ? AND type = ?", user.ID, gorm_model.TokenTypeVerification).
+		Order("created_at desc").
+		First(&existingToken).Error
+
+	if err == nil {
+		// Enforce a 60-second cooldown
+		cooldown := 60 * time.Second
+		timeElapsed := time.Since(existingToken.CreatedAt)
+		if timeElapsed < cooldown {
+			secondsLeft := int((cooldown - timeElapsed).Seconds())
+			if secondsLeft < 1 {
+				secondsLeft = 1
+			}
+			return response.Error(http.StatusTooManyRequests, fmt.Sprintf("Please wait %d seconds before requesting another verification email.", secondsLeft))
+		}
+	}
+
+	// 4. Delete old verification tokens to keep database clean
+	_ = u.gormDbRepo.DeleteUserTokensByUserID(ctx, user.ID, gorm_model.TokenTypeVerification)
+
+	// 5. Create new verification token
+	verifyToken := uuid.New().String()
+	userToken := gorm_model.NewUserToken(
+		user.ID,
+		gorm_model.TokenTypeVerification,
+		verifyToken,
+		time.Now().Add(24*time.Hour),
+	)
+	err = u.gormDbRepo.CreateUserToken(ctx, &userToken)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to generate verification token")
+	}
+
+	// 6. Send verification email
+	err = u.mailerRepo.SendVerificationEmail(user.Email, user.Name, verifyToken)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to send verification email")
+	}
+
+	return response.Success(map[string]string{
+		"message": "Verification link sent successfully! Please check your email.",
 	})
 }
 
