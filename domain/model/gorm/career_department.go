@@ -46,15 +46,16 @@ func (f *CareerDepartmentFilter) Query(q *gorm.DB) {
 // --- Response ---
 
 type CareerDepartmentResp struct {
-	ID          string     `json:"id"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	ImageURL    *string    `json:"image_url"`
-	Author      *string    `json:"author"`
-	Status      *string    `json:"status"`
-	PublishedAt *time.Time `json:"published_at"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
+	ID             string     `json:"id"`
+	Name           string     `json:"name"`
+	Description    string     `json:"description"`
+	ImageURL       *string    `json:"image_url"`
+	Author         *string    `json:"author"`
+	Status         *string    `json:"status"`
+	RejectedReason *string    `json:"rejected_reason,omitempty"`
+	PublishedAt    *time.Time `json:"published_at"`
+	CreatedAt      time.Time  `json:"created_at"`
+	UpdatedAt      time.Time  `json:"updated_at"`
 }
 
 func (row *CareerDepartment) ToCareerDepartmentResp(status string) CareerDepartmentResp {
@@ -71,13 +72,14 @@ func (row *CareerDepartment) ToCareerDepartmentResp(status string) CareerDepartm
 	}
 
 	return CareerDepartmentResp{
-		ID:          row.ID,
-		Name:        row.Name,
-		Description: row.Description,
-		ImageURL:    imageURL,
-		Status:      &status,
-		PublishedAt: publishedAt,
-		CreatedAt:   row.CreatedAt,
-		UpdatedAt:   row.UpdatedAt,
+		ID:             row.ID,
+		Name:           row.Name,
+		Description:    row.Description,
+		ImageURL:       imageURL,
+		Status:         &status,
+		RejectedReason: nil,
+		PublishedAt:    publishedAt,
+		CreatedAt:      row.CreatedAt,
+		UpdatedAt:      row.UpdatedAt,
 	}
 }

@@ -52,10 +52,24 @@ func validateSchema(s *string) bool {
 	return false
 }
 
+// updateExpiredStatus automatically updates the status of published job vacancies to ARCHIVED if their takedown_date has passed.
+func (u *appUsecase) updateExpiredStatus(ctx context.Context) {
+	now := time.Now().Truncate(24 * time.Hour)
+	err := u.gormDbRepo.GetDB().WithContext(ctx).
+		Model(&gorm_model.JobVacancy{}).
+		Where("status = 'PUBLISHED' AND takedown_date < ?", now).
+		Update("status", "ARCHIVED").Error
+	if err != nil {
+		logrus.Error("JobVacancy updateExpiredStatus error:", err)
+	}
+}
+
 // FetchAll — CMS list with pagination, for Admin & Superadmin.
 func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, filter gorm_model.JobVacancyFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
+
+	u.updateExpiredStatus(ctx)
 
 	limitPtr := &limit
 	offset := (page - 1) * limit
@@ -116,6 +130,8 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, filter gor
 func (u *appUsecase) FetchData(ctx context.Context, id string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
+
+	u.updateExpiredStatus(ctx)
 
 	vacancy, err := u.gormDbRepo.GetJobVacancyByID(ctx, id)
 	if err != nil {
@@ -257,6 +273,8 @@ func (u *appUsecase) FetchPublic(ctx context.Context, page, limit int64, filter 
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
+	u.updateExpiredStatus(ctx)
+
 	// Force public filter
 	filter.OnlyPublicValid = true
 
@@ -319,6 +337,8 @@ func (u *appUsecase) FetchPublic(ctx context.Context, page, limit int64, filter 
 func (u *appUsecase) FetchPublicByID(ctx context.Context, id string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
+
+	u.updateExpiredStatus(ctx)
 
 	vacancy, err := u.gormDbRepo.GetJobVacancyByID(ctx, id)
 	if err != nil {
