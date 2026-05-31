@@ -6,6 +6,7 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
+	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/gin-gonic/gin"
 )
@@ -55,7 +56,7 @@ func (h *routeHandler) handleUserRoute(path string) {
 	userGroup.POST("/finalize-recruitment", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.FinalizeRecruitment)
 
 	// get active subrequest for candidate by admin/superadmin
-	userGroup.GET("/:id/active-subrequest", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin"), h.GetActiveSubrequest)
+	userGroup.GET("/:id/active-subrequest", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin", "Candidate"), h.GetActiveSubrequest)
 
 	// get profile picture by id
 	userGroup.GET("/:id/profile-picture", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin"), h.FetchUserThumb)
@@ -559,6 +560,44 @@ func (h *routeHandler) GetActiveSubrequest(c *gin.Context) {
 		return
 	}
 
+	claims, ok := c.Get("token_data")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, response.Error(http.StatusUnauthorized, "Unauthorized"))
+		return
+	}
+	tokenData := claims.(domain.JWTClaimUser)
+
+	// Fetch caller's details to verify candidate restriction
+	callerBase := h.Usecase.FetchUserDetail(c.Request.Context(), tokenData.UserID)
+	if callerBase.Status != http.StatusOK {
+		c.JSON(callerBase.Status, callerBase)
+		return
+	}
+
+	var roleName string
+	if detail, ok := callerBase.Data.(gorm_model.UserDetailResp); ok && detail.SystemRoleName != nil {
+		roleName = *detail.SystemRoleName
+	} else if detailPtr, ok := callerBase.Data.(*gorm_model.UserDetailResp); ok && detailPtr.SystemRoleName != nil {
+		roleName = *detailPtr.SystemRoleName
+	}
+
+	if roleName == "Candidate" && tokenData.UserID != id {
+		res := response.Error(http.StatusForbidden, "You can only view your own active subrequest")
+		c.JSON(res.Status, res)
+		return
+	}
+
 	res := h.Usecase.GetActiveSubrequest(c.Request.Context(), id)
+
+	// Clear project details if user is Candidate
+	if res.Status == http.StatusOK && roleName == "Candidate" {
+		if info, ok := res.Data.(*gorm_model.ActiveSubrequestInfo); ok && info != nil {
+			// Copy to a new struct so we don't modify repository caches/shared pointers directly if any
+			infoCopy := *info
+			infoCopy.ProjectName = ""
+			res.Data = &infoCopy
+		}
+	}
+
 	c.JSON(res.Status, res)
 }
