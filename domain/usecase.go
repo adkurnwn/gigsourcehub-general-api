@@ -32,6 +32,10 @@ type MemberAppUsecase interface {
 	FetchOnboardingByCandidate(ctx context.Context, candidateID string, page, limit int64, cursor string) response.Base
 	FetchOnboardingActiveTeam(ctx context.Context, employeeID string, page, limit int64, cursor string) response.Base
 	FetchOnboardingHistory(ctx context.Context, employeeID string, page, limit int64, cursor string) response.Base
+	FetchCandidateRecruitment(ctx context.Context, page, limit int64, cursor string) response.Base
+	FetchCandidateBookmarked(ctx context.Context, adminID string, page, limit int64, cursor string) response.Base
+	FetchOnboardingActive(ctx context.Context, page, limit int64, cursor string) response.Base
+	FetchOnboardingArchive(ctx context.Context, page, limit int64, cursor string) response.Base
 
 	VerifyAccount(ctx context.Context, token string) response.Base
 	ForgotPassword(ctx context.Context, req request_model.ForgotPasswordRequest) response.Base
