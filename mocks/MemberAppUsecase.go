@@ -598,6 +598,100 @@ func (_c *MemberAppUsecase_UploadProfilePicture_Call) RunAndReturn(run func(cont
 	return _c
 }
 
+// DeclineRecruitment provides a mock function with given fields: ctx, id
+func (_m *MemberAppUsecase) DeclineRecruitment(ctx context.Context, id string) response.Base {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeclineRecruitment")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string) response.Base); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_DeclineRecruitment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeclineRecruitment'
+type MemberAppUsecase_DeclineRecruitment_Call struct {
+	*mock.Call
+}
+
+// DeclineRecruitment is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *MemberAppUsecase_Expecter) DeclineRecruitment(ctx interface{}, id interface{}) *MemberAppUsecase_DeclineRecruitment_Call {
+	return &MemberAppUsecase_DeclineRecruitment_Call{Call: _e.mock.On("DeclineRecruitment", ctx, id)}
+}
+
+func (_c *MemberAppUsecase_DeclineRecruitment_Call) Run(run func(ctx context.Context, id string)) *MemberAppUsecase_DeclineRecruitment_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_DeclineRecruitment_Call) Return(_a0 response.Base) *MemberAppUsecase_DeclineRecruitment_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_DeclineRecruitment_Call) RunAndReturn(run func(context.Context, string) response.Base) *MemberAppUsecase_DeclineRecruitment_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ConfirmDeclineRecruitment provides a mock function with given fields: ctx, id
+func (_m *MemberAppUsecase) ConfirmDeclineRecruitment(ctx context.Context, id string) response.Base {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConfirmDeclineRecruitment")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string) response.Base); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_ConfirmDeclineRecruitment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ConfirmDeclineRecruitment'
+type MemberAppUsecase_ConfirmDeclineRecruitment_Call struct {
+	*mock.Call
+}
+
+// ConfirmDeclineRecruitment is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *MemberAppUsecase_Expecter) ConfirmDeclineRecruitment(ctx interface{}, id interface{}) *MemberAppUsecase_ConfirmDeclineRecruitment_Call {
+	return &MemberAppUsecase_ConfirmDeclineRecruitment_Call{Call: _e.mock.On("ConfirmDeclineRecruitment", ctx, id)}
+}
+
+func (_c *MemberAppUsecase_ConfirmDeclineRecruitment_Call) Run(run func(ctx context.Context, id string)) *MemberAppUsecase_ConfirmDeclineRecruitment_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_ConfirmDeclineRecruitment_Call) Return(_a0 response.Base) *MemberAppUsecase_ConfirmDeclineRecruitment_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_ConfirmDeclineRecruitment_Call) RunAndReturn(run func(context.Context, string) response.Base) *MemberAppUsecase_ConfirmDeclineRecruitment_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CancelRecruitment provides a mock function with given fields: ctx, id
 func (_m *MemberAppUsecase) CancelRecruitment(ctx context.Context, id string) response.Base {
 	ret := _m.Called(ctx, id)

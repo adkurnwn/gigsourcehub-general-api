@@ -244,9 +244,17 @@ func (r *gormRepo) SoftDeleteSubrequestCandidatesByCandidateID(ctx context.Conte
 func (r *gormRepo) CancelRecruitmentByCandidateID(ctx context.Context, candidateID string) error {
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var subReqID *string
-		tx.Model(&gorm_model.SubrequestCandidate{}).
+		var latestSubrequestID string
+		if err := tx.Model(&gorm_model.SubrequestCandidate{}).
 			Where("candidate_user_id = ? AND deleted_at IS NULL", candidateID).
-			Pluck("subrequest_id", &subReqID)
+			Order("created_at DESC").
+			Limit(1).
+			Pluck("subrequest_id", &latestSubrequestID).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		if latestSubrequestID != "" {
+			subReqID = &latestSubrequestID
+		}
 
 		now := time.Now()
 		if err := tx.Model(&gorm_model.SubrequestCandidate{}).

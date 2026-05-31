@@ -42,6 +42,12 @@ func (h *routeHandler) handleUserRoute(path string) {
 	// patch user recruitment status and candidate level by admin
 	userGroup.PATCH("/:id/recruitment-status", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.PatchUserRecruitmentStatus)
 
+	// candidate declines recruitment for self
+	userGroup.PATCH("/:id/decline", h.Middleware.Auth(), h.Middleware.AuthCandidate(), h.DeclineRecruitment)
+
+	// admin confirms decline and clears candidate recruitment data
+	userGroup.PATCH("/:id/decline-confirmation", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.ConfirmDeclineRecruitment)
+
 	// cancel recruitment process for candidate by admin
 	userGroup.PATCH("/:id/cancel-recruitment", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.CancelRecruitment)
 
@@ -398,6 +404,74 @@ func (h *routeHandler) PatchUserRecruitmentStatus(c *gin.Context) {
 	}
 
 	res := h.Usecase.PatchUserRecruitmentStatus(c.Request.Context(), id, req)
+	c.JSON(res.Status, res)
+}
+
+// DeclineRecruitment
+// @Summary Decline Recruitment
+// @Description Mark the authenticated candidate's recruitment status as Decline
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /users/{id}/decline [patch]
+// @Security BearerAuth
+func (h *routeHandler) DeclineRecruitment(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		res := response.Error(http.StatusBadRequest, "Invalid ID parameter")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	claims, ok := c.Get("token_data")
+	if !ok {
+		res := response.Error(http.StatusUnauthorized, "Unauthorized")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	tokenData := claims.(domain.JWTClaimUser)
+	if tokenData.UserID != id {
+		res := response.Error(http.StatusForbidden, "You can only decline your own recruitment status")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	res := h.Usecase.DeclineRecruitment(c.Request.Context(), id)
+	c.JSON(res.Status, res)
+}
+
+// ConfirmDeclineRecruitment
+// @Summary Confirm Decline Recruitment
+// @Description Reset a declined candidate recruitment status to null and soft delete subrequest candidate rows
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /users/{id}/decline-confirmation [patch]
+// @Security BearerAuth
+func (h *routeHandler) ConfirmDeclineRecruitment(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		res := response.Error(http.StatusBadRequest, "Invalid ID parameter")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	res := h.Usecase.ConfirmDeclineRecruitment(c.Request.Context(), id)
 	c.JSON(res.Status, res)
 }
 
