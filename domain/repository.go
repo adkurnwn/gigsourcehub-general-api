@@ -213,6 +213,15 @@ type GormRepo interface {
 	UpdateApprovalRequest(ctx context.Context, model *gorm_model.ApprovalRequest) error
 	GetPendingApprovalByRecord(ctx context.Context, tableName, recordID string) (*gorm_model.ApprovalRequest, error)
 	DeleteApprovalRequest(ctx context.Context, id string) error
+
+	// Dashboard & Analytics
+	CreateCandidateStatusHistory(ctx context.Context, model *gorm_model.CandidateStatusHistory) error
+	FetchUpcomingInterviewsForAdmin(ctx context.Context, adminID string, limit int) ([]gorm_model.Interview, error)
+	FetchRequestsSummaryStats(ctx context.Context) (gorm_model.RequestsSummaryResp, error)
+	FetchDashboardAlertsForAdmin(ctx context.Context, adminID string) (gorm_model.DashboardAlertResp, error)
+	FetchRecentActivitiesForAdmin(ctx context.Context, limit int) ([]gorm_model.LogActivity, error)
+	FetchDashboardAnalytics(ctx context.Context, period string) (gorm_model.DashboardAnalyticsResp, error)
+	FetchSuperadminDashboardStats(ctx context.Context) (gorm_model.SuperadminDashboardResp, error)
 }
 
 type CacheRepo interface {

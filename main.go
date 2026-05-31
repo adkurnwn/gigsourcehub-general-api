@@ -14,6 +14,7 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/app/consumer"
 	delivery_grpc "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/grpc"
 	http_activity_log "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/activity_log"
+	http_dashboard "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/dashboard"
 	http_admin_note "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/admin_note"
 	http_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/ai_chat"
 	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
@@ -51,6 +52,7 @@ import (
 	usecase_chat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/chat"
 	usecase_company_profile "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/company_profile"
 	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
+	usecase_dashboard "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/dashboard"
 	usecase_faq "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/faq"
 	usecase_interview "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/interview"
 	usecase_interview_stage "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/interview_stage"
@@ -312,6 +314,9 @@ func main() {
 		StorageRepo: storageRepo,
 	}, timeoutContext)
 
+	// init dashboard usecase
+	ucDashboard := usecase_dashboard.NewDashboardUsecase(repo, timeoutContext)
+
 	// start consumer
 	if mqRepo != nil {
 		cvConsumer := consumer.NewCVParserConsumer(mqRepo, repo)
@@ -379,6 +384,7 @@ func main() {
 	http_career_department.NewCareerDepartmentHandler(apiGroup, mdl, ucCareerDepartment)
 	http_interview_stage.NewInterviewStageHandler(apiGroup, mdl, ucInterviewStage)
 	http_interview.NewInterviewHandler(apiGroup, mdl, ucInterview)
+	http_dashboard.NewDashboardHandler(apiGroup, mdl, ucDashboard)
 
 	// init chat
 	chatHub := http_chat.NewHub()

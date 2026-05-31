@@ -7,6 +7,7 @@ import (
 	"time"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -195,6 +196,19 @@ func (r *gormRepo) AssignCandidateToSubrequest(ctx context.Context, model *gorm_
 			return err
 		}
 
+		changerID := helpers.GetActorID(ctx)
+		if changerID != "" {
+			history := &gorm_model.CandidateStatusHistory{
+				CandidateUserID:     model.CandidateUserID,
+				RecruitmentStatusID: &recruitmentStatusID,
+				SubrequestID:        &model.SubrequestID,
+				ChangedByUserID:     changerID,
+			}
+			if err := tx.Create(history).Error; err != nil {
+				return err
+			}
+		}
+
 		return nil
 	})
 
@@ -229,6 +243,11 @@ func (r *gormRepo) SoftDeleteSubrequestCandidatesByCandidateID(ctx context.Conte
 
 func (r *gormRepo) CancelRecruitmentByCandidateID(ctx context.Context, candidateID string) error {
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var subReqID *string
+		tx.Model(&gorm_model.SubrequestCandidate{}).
+			Where("candidate_user_id = ? AND deleted_at IS NULL", candidateID).
+			Pluck("subrequest_id", &subReqID)
+
 		now := time.Now()
 		if err := tx.Model(&gorm_model.SubrequestCandidate{}).
 			Where("candidate_user_id = ? AND deleted_at IS NULL", candidateID).
@@ -240,6 +259,19 @@ func (r *gormRepo) CancelRecruitmentByCandidateID(ctx context.Context, candidate
 			Where("id = ?", candidateID).
 			Update("recruitment_status_id", nil).Error; err != nil {
 			return err
+		}
+
+		changerID := helpers.GetActorID(ctx)
+		if changerID != "" {
+			history := &gorm_model.CandidateStatusHistory{
+				CandidateUserID:     candidateID,
+				RecruitmentStatusID: nil,
+				SubrequestID:        subReqID,
+				ChangedByUserID:     changerID,
+			}
+			if err := tx.Create(history).Error; err != nil {
+				return err
+			}
 		}
 
 		return nil

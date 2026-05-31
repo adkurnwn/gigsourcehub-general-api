@@ -6,6 +6,7 @@ import (
 	"time"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -59,6 +60,26 @@ func (r *gormRepo) FinalizeRecruitment(ctx context.Context, candidateID, subrequ
 			return err
 		}
 
+		changerID := helpers.GetActorID(ctx)
+		if changerID != "" {
+			history := &gorm_model.CandidateStatusHistory{
+				CandidateUserID:     candidateID,
+				RecruitmentStatusID: &acceptedStatusID,
+				SubrequestID:        &subrequestID,
+				ChangedByUserID:     changerID,
+			}
+			if err := tx.Create(history).Error; err != nil {
+				logrus.Errorf("FinalizeRecruitment create status history DB Error: %v", err)
+				return err
+			}
+		}
+
+		// Fetch other candidates IDs to log their status change to nil
+		var otherCandidateIDs []string
+		tx.Model(&gorm_model.SubrequestCandidate{}).
+			Where("subrequest_id = ? AND candidate_user_id <> ? AND deleted_at IS NULL", subrequestID, candidateID).
+			Pluck("candidate_user_id", &otherCandidateIDs)
+
 		subQuery := tx.Table("subrequest_candidates").
 			Select("candidate_user_id").
 			Where("subrequest_id = ? AND candidate_user_id <> ? AND deleted_at IS NULL", subrequestID, candidateID)
@@ -68,6 +89,21 @@ func (r *gormRepo) FinalizeRecruitment(ctx context.Context, candidateID, subrequ
 			Update("recruitment_status_id", nil).Error; err != nil {
 			logrus.Errorf("FinalizeRecruitment update other candidates status DB Error: %v", err)
 			return err
+		}
+
+		if changerID != "" && len(otherCandidateIDs) > 0 {
+			for _, otherID := range otherCandidateIDs {
+				history := &gorm_model.CandidateStatusHistory{
+					CandidateUserID:     otherID,
+					RecruitmentStatusID: nil,
+					SubrequestID:        &subrequestID,
+					ChangedByUserID:     changerID,
+				}
+				if err := tx.Create(history).Error; err != nil {
+					logrus.Errorf("FinalizeRecruitment create other status history DB Error: %v", err)
+					return err
+				}
+			}
 		}
 
 		now := time.Now()

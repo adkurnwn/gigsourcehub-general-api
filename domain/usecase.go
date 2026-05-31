@@ -231,4 +231,8 @@ type CareerDepartmentAppUsecase interface {
 	FetchPublic(ctx context.Context, page, limit int64, search *string) response.Base
 	FetchPublicByID(ctx context.Context, id string) response.Base
 }
-
+type DashboardAppUsecase interface {
+	GetAdminDashboardSummary(ctx context.Context, adminID string) response.Base
+	GetAdminDashboardAnalytics(ctx context.Context, period string) response.Base
+	GetSuperadminDashboardSummary(ctx context.Context) response.Base
+}
