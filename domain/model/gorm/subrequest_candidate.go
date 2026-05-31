@@ -20,10 +20,11 @@ type SubrequestCandidate struct {
 }
 
 type ActiveSubrequestInfo struct {
-	SubrequestID string `gorm:"column:subrequest_id" json:"subrequest_id"`
-	RequestID    string `gorm:"column:request_id" json:"request_id"`
-	ProjectName  string `gorm:"column:project_name" json:"project_name"`
-	JobRole      string `gorm:"column:job_role" json:"job_role"`
+	SubrequestID string    `gorm:"column:subrequest_id" json:"subrequest_id"`
+	RequestID    string    `gorm:"column:request_id" json:"request_id"`
+	ProjectName  string    `gorm:"column:project_name" json:"project_name"`
+	JobRole      string    `gorm:"column:job_role" json:"job_role"`
+	CreatedAt    time.Time `gorm:"column:created_at" json:"created_at"`
 }
 
 func (m *SubrequestCandidate) BeforeCreate(tx *gorm.DB) (err error) {

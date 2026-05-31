@@ -295,7 +295,7 @@ func (r *gormRepo) GetActiveSubrequestByCandidateID(ctx context.Context, candida
 	var info gorm_model.ActiveSubrequestInfo
 	err := r.db.WithContext(ctx).
 		Table("subrequest_candidates").
-		Select("subrequest_candidates.subrequest_id, subrequests.request_id, requests.project_name, job_roles.name as job_role").
+		Select("subrequest_candidates.subrequest_id, subrequests.request_id, requests.project_name, job_roles.name as job_role, subrequest_candidates.created_at").
 		Joins("JOIN subrequests ON subrequests.id = subrequest_candidates.subrequest_id").
 		Joins("JOIN requests ON requests.id = subrequests.request_id").
 		Joins("LEFT JOIN job_roles ON job_roles.id = subrequests.job_role_id").
