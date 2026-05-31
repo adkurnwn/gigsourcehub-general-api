@@ -40,6 +40,7 @@ type MemberAppUsecase interface {
 	FetchOnboardingArchive(ctx context.Context, page, limit int64, cursor string) response.Base
 
 	VerifyAccount(ctx context.Context, token string) response.Base
+	ResendVerification(ctx context.Context, req request_model.ResendVerificationRequest) response.Base
 	ForgotPassword(ctx context.Context, req request_model.ForgotPasswordRequest) response.Base
 	ResetPassword(ctx context.Context, req request_model.ResetPasswordRequest) response.Base
 	UpdatePassword(ctx context.Context, userID string, req request_model.UpdatePasswordRequest) response.Base

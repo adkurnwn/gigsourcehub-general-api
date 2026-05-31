@@ -18,6 +18,7 @@ func (h *routeHandler) handleAuthRoute(prefixPath string) {
 	api.POST("/refresh", h.RefreshToken)
 
 	api.GET("/verify", h.VerifyAccount)
+	api.POST("/resend-verification", h.ResendVerification)
 	api.POST("/forgot-password", h.ForgotPassword)
 	api.POST("/reset-password", h.ResetPassword)
 
@@ -47,6 +48,33 @@ func (r *routeHandler) VerifyAccount(c *gin.Context) {
 	}
 
 	response := r.Usecase.VerifyAccount(ctx, token)
+	c.JSON(response.Status, response)
+}
+
+// Resend Verification
+//
+//	@Summary		Resend verification email
+//	@Description	Resend account verification token to user's email
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		request_model.ResendVerificationRequest	true	"Resend Verification Request"
+//	@Success		200		{object}	response.Base
+//	@Failure		400		{object}	response.Base
+//	@Failure		429		{object}	response.Base
+//	@Failure		500		{object}	response.Base
+//	@Router			/auth/resend-verification [post]
+func (r *routeHandler) ResendVerification(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	payload := request_model.ResendVerificationRequest{}
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "invalid email format or empty request"))
+		return
+	}
+
+	response := r.Usecase.ResendVerification(ctx, payload)
 	c.JSON(response.Status, response)
 }
 
