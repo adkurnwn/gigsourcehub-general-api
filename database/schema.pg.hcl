@@ -2271,3 +2271,68 @@ table "ai_messages" {
     on_delete   = CASCADE
   }
 }
+
+table "candidate_status_histories" {
+  schema = schema.public
+
+  column "id" {
+    type = uuid
+  }
+  column "candidate_user_id" {
+    type = uuid
+    null = false
+  }
+  column "recruitment_status_id" {
+    type = uuid
+    null = true
+  }
+  column "subrequest_id" {
+    type = uuid
+    null = true
+  }
+  column "changed_by_user_id" {
+    type = uuid
+    null = false
+  }
+  column "changed_at" {
+    type    = timestamptz
+    null    = false
+    default = sql("now()")
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+
+  foreign_key "status_history_candidate_fk" {
+    columns     = [column.candidate_user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = CASCADE
+  }
+
+  foreign_key "status_history_status_fk" {
+    columns     = [column.recruitment_status_id]
+    ref_columns = [table.recruitment_statuses.column.id]
+    on_update   = NO_ACTION
+    on_delete   = RESTRICT
+  }
+
+  foreign_key "status_history_subrequest_fk" {
+    columns     = [column.subrequest_id]
+    ref_columns = [table.subrequests.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
+  }
+
+  foreign_key "status_history_changer_fk" {
+    columns     = [column.changed_by_user_id]
+    ref_columns = [table.users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = RESTRICT
+  }
+
+  index "idx_candidate_status_histories_candidate_id" {
+    columns = [column.candidate_user_id]
+  }
+}

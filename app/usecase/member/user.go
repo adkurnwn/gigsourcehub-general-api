@@ -735,6 +735,27 @@ func (u *appUsecase) PatchUserRecruitmentStatus(ctx context.Context, id string, 
 	// Update recruitment status ID if provided
 	if req.RecruitmentStatusId != nil {
 		user.RecruitmentStatusId = req.RecruitmentStatusId
+
+		changerID := helpers.GetActorID(ctx)
+		if changerID != "" {
+			var subReqID *string
+			if activeSR, errSR := u.gormDbRepo.GetActiveSubrequestByCandidateID(ctx, user.ID); errSR == nil && activeSR != nil {
+				subReqID = &activeSR.SubrequestID
+			}
+			var statusID *string
+			if *req.RecruitmentStatusId != "" {
+				statusID = req.RecruitmentStatusId
+			}
+			history := &gorm_model.CandidateStatusHistory{
+				CandidateUserID:     user.ID,
+				RecruitmentStatusID: statusID,
+				SubrequestID:        subReqID,
+				ChangedByUserID:     changerID,
+			}
+			if errHist := u.gormDbRepo.CreateCandidateStatusHistory(ctx, history); errHist != nil {
+				logrus.Errorf("failed to create status history: %v", errHist)
+			}
+		}
 	}
 
 	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {

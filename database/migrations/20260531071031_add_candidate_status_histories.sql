@@ -1,0 +1,6 @@
+-- Modify "review_answers" table
+ALTER TABLE "public"."review_answers" DROP CONSTRAINT "review_answers_score_check";
+-- Create "candidate_status_histories" table
+CREATE TABLE "public"."candidate_status_histories" ("id" uuid NOT NULL, "candidate_user_id" uuid NOT NULL, "recruitment_status_id" uuid NULL, "subrequest_id" uuid NULL, "changed_by_user_id" uuid NOT NULL, "changed_at" timestamptz NOT NULL DEFAULT now(), PRIMARY KEY ("id"), CONSTRAINT "status_history_candidate_fk" FOREIGN KEY ("candidate_user_id") REFERENCES "public"."users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE, CONSTRAINT "status_history_changer_fk" FOREIGN KEY ("changed_by_user_id") REFERENCES "public"."users" ("id") ON UPDATE NO ACTION ON DELETE RESTRICT, CONSTRAINT "status_history_status_fk" FOREIGN KEY ("recruitment_status_id") REFERENCES "public"."recruitment_statuses" ("id") ON UPDATE NO ACTION ON DELETE RESTRICT, CONSTRAINT "status_history_subrequest_fk" FOREIGN KEY ("subrequest_id") REFERENCES "public"."subrequests" ("id") ON UPDATE NO ACTION ON DELETE SET NULL);
+-- Create index "idx_candidate_status_histories_candidate_id" to table: "candidate_status_histories"
+CREATE INDEX "idx_candidate_status_histories_candidate_id" ON "public"."candidate_status_histories" ("candidate_user_id");
