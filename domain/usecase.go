@@ -25,6 +25,8 @@ type MemberAppUsecase interface {
 	UploadProfilePicture(ctx context.Context, userID string, file *multipart.FileHeader) response.Base
 	FetchUserThumb(ctx context.Context, id string) response.Base
 	UpdateProfile(ctx context.Context, userID string, req request_model.UpdateProfileRequest) response.Base
+	DeclineRecruitment(ctx context.Context, id string) response.Base
+	ConfirmDeclineRecruitment(ctx context.Context, id string) response.Base
 	PatchUserRecruitmentStatus(ctx context.Context, id string, req request_model.PatchUserRecruitmentStatusRequest) response.Base
 	CancelRecruitment(ctx context.Context, id string) response.Base
 	GetActiveSubrequest(ctx context.Context, id string) response.Base

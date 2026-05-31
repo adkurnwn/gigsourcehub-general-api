@@ -909,6 +909,86 @@ func (u *appUsecase) PatchUserRecruitmentStatus(ctx context.Context, id string, 
 	return response.Success(user.ToUserResp())
 }
 
+func (u *appUsecase) getRecruitmentStatusByName(ctx context.Context, statusName string) (*gorm_model.RecruitmentStatus, error) {
+	var recruitmentStatus gorm_model.RecruitmentStatus
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).
+		Where("name = ? AND deleted_at IS NULL", statusName).
+		First(&recruitmentStatus).Error; err != nil {
+		return nil, err
+	}
+
+	return &recruitmentStatus, nil
+}
+
+func (u *appUsecase) DeclineRecruitment(ctx context.Context, id string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+	if user.SystemRole == nil || user.SystemRole.Name != "Candidate" {
+		return response.Error(http.StatusBadRequest, "User is not a candidate")
+	}
+
+	declineStatus, err := u.getRecruitmentStatusByName(ctx, "Decline")
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Decline recruitment status not found")
+	}
+	if !declineStatus.IsActive {
+		return response.Error(http.StatusBadRequest, "Cannot reference an inactive recruitment status")
+	}
+
+	user.RecruitmentStatusId = &declineStatus.ID
+	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
+		helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, nil, false)
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, nil, true)
+	return response.SuccessAction("User", user.Email, "recruitment declined")
+}
+
+func (u *appUsecase) ConfirmDeclineRecruitment(ctx context.Context, id string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+	if user.SystemRole == nil || user.SystemRole.Name != "Candidate" {
+		return response.Error(http.StatusBadRequest, "User is not a candidate")
+	}
+
+	statusName, err := u.gormDbRepo.GetCandidateRecruitmentStatusName(ctx, user.ID)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch candidate recruitment status")
+	}
+	if statusName != "Decline" {
+		return response.Error(http.StatusBadRequest, "User recruitment status must be Decline")
+	}
+
+	if err := u.gormDbRepo.CancelRecruitmentByCandidateID(ctx, user.ID); err != nil {
+		logrus.Errorf("ConfirmDeclineRecruitment failed for user %s: %v", user.ID, err)
+		return response.Error(http.StatusInternalServerError, "Failed to confirm decline")
+	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, nil, true)
+	return response.SuccessAction("User", user.Email, "decline confirmed")
+}
+
 func (u *appUsecase) CancelRecruitment(ctx context.Context, id string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
