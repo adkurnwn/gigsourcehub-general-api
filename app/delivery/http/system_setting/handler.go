@@ -25,6 +25,7 @@ func NewSystemSettingHandler(api *gin.RouterGroup, mdl middleware.Middleware, uc
 		// Superadmin only
 		group.GET("", mdl.Auth(), mdl.AuthSuperadmin(), h.Fetch)
 		group.PUT("", mdl.Auth(), mdl.AuthSuperadmin(), h.Update)
+		group.POST("/cv-template", mdl.Auth(), mdl.AuthSuperadmin(), h.UploadCVTemplate)
 	}
 }
 
@@ -35,8 +36,9 @@ func (h *SystemSettingHandler) FetchAiMode(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Success(map[string]bool{
+	c.JSON(http.StatusOK, response.Success(map[string]any{
 		"is_ai_mode_enabled": data.IsAIModeEnabled,
+		"cv_template_url":    data.CVTemplateURL,
 	}))
 }
 
@@ -64,4 +66,34 @@ func (h *SystemSettingHandler) Update(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response.Success(nil))
+}
+
+// UploadCVTemplate uploads a new CV template (.docx) to public S3
+// @Security BearerAuth
+// @Summary Upload CV Template (Superadmin)
+// @Description Superadmin uploads a new CV Template in docx format to S3
+// @Tags System Setting
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "Docx file"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /system-settings/cv-template [post]
+func (h *SystemSettingHandler) UploadCVTemplate(c *gin.Context) {
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "docx file is required"))
+		return
+	}
+
+	url, err := h.uc.UploadCVTemplate(c.Request.Context(), fileHeader)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, response.Error(http.StatusInternalServerError, err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Success(map[string]string{
+		"cv_template_url": url,
+	}))
 }

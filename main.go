@@ -290,7 +290,8 @@ func main() {
 
 	// init system setting usecase
 	ucSystemSetting := usecase_system_setting.NewAppUsecase(usecase_system_setting.RepoInjection{
-		GormDbRepo: repo,
+		GormDbRepo:  repo,
+		StorageRepo: storageRepo,
 	}, timeoutContext)
 
 	// init job vacancy usecase

@@ -1625,6 +1625,10 @@ table "system_settings" {
     default = false
     null    = false
   }
+  column "cv_template_path" {
+    type = varchar(255)
+    null = true
+  }
   column "created_at" {
     type = timestamptz
     null = false
