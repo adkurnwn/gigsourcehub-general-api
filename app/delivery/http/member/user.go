@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
+	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
-	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/gin-gonic/gin"
 )
@@ -48,6 +48,9 @@ func (h *routeHandler) handleUserRoute(path string) {
 
 	// admin confirms decline and clears candidate recruitment data
 	userGroup.PATCH("/:id/decline-confirmation", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.ConfirmDeclineRecruitment)
+
+	// admin stops onboarding, clears status, and marks the candidate pivot as stopped
+	userGroup.PATCH("/:id/stop-onboarding", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.StopOnboarding)
 
 	// cancel recruitment process for candidate by admin
 	userGroup.PATCH("/:id/cancel-recruitment", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.CancelRecruitment)
@@ -473,6 +476,33 @@ func (h *routeHandler) ConfirmDeclineRecruitment(c *gin.Context) {
 	}
 
 	res := h.Usecase.ConfirmDeclineRecruitment(c.Request.Context(), id)
+	c.JSON(res.Status, res)
+}
+
+// StopOnboarding
+// @Summary Stop Onboarding
+// @Description Stop an accepted candidate onboarding, clear recruitment status, soft delete the pivot row, and send an apology email
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} response.Base
+// @Failure 400 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /users/{id}/stop-onboarding [patch]
+// @Security BearerAuth
+func (h *routeHandler) StopOnboarding(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		res := response.Error(http.StatusBadRequest, "Invalid ID parameter")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	res := h.Usecase.StopOnboarding(c.Request.Context(), id)
 	c.JSON(res.Status, res)
 }
 

@@ -2145,6 +2145,53 @@ func (_e *GormRepo_Expecter) SoftDeleteSubrequestCandidatesByCandidateID(ctx int
 	return &GormRepo_SoftDeleteSubrequestCandidatesByCandidateID_Call{Call: _e.mock.On("SoftDeleteSubrequestCandidatesByCandidateID", ctx, candidateID)}
 }
 
+// StopOnboardingByCandidateID provides a mock function with given fields: ctx, candidateID
+func (_m *GormRepo) StopOnboardingByCandidateID(ctx context.Context, candidateID string) error {
+	ret := _m.Called(ctx, candidateID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StopOnboardingByCandidateID")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, candidateID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GormRepo_StopOnboardingByCandidateID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StopOnboardingByCandidateID'
+type GormRepo_StopOnboardingByCandidateID_Call struct {
+	*mock.Call
+}
+
+// StopOnboardingByCandidateID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - candidateID string
+func (_e *GormRepo_Expecter) StopOnboardingByCandidateID(ctx interface{}, candidateID interface{}) *GormRepo_StopOnboardingByCandidateID_Call {
+	return &GormRepo_StopOnboardingByCandidateID_Call{Call: _e.mock.On("StopOnboardingByCandidateID", ctx, candidateID)}
+}
+
+func (_c *GormRepo_StopOnboardingByCandidateID_Call) Run(run func(ctx context.Context, candidateID string)) *GormRepo_StopOnboardingByCandidateID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GormRepo_StopOnboardingByCandidateID_Call) Return(_a0 error) *GormRepo_StopOnboardingByCandidateID_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GormRepo_StopOnboardingByCandidateID_Call) RunAndReturn(run func(context.Context, string) error) *GormRepo_StopOnboardingByCandidateID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 func (_c *GormRepo_SoftDeleteSubrequestCandidatesByCandidateID_Call) Run(run func(ctx context.Context, candidateID string)) *GormRepo_SoftDeleteSubrequestCandidatesByCandidateID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string))

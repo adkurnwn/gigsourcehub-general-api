@@ -989,6 +989,46 @@ func (u *appUsecase) ConfirmDeclineRecruitment(ctx context.Context, id string) r
 	return response.SuccessAction("User", user.Email, "decline confirmed")
 }
 
+func (u *appUsecase) StopOnboarding(ctx context.Context, id string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: id},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+	if user.SystemRole == nil || user.SystemRole.Name != "Candidate" {
+		return response.Error(http.StatusBadRequest, "User is not a candidate")
+	}
+
+	statusName, err := u.gormDbRepo.GetCandidateRecruitmentStatusName(ctx, user.ID)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch candidate recruitment status")
+	}
+	if statusName != "Accepted" {
+		return response.Error(http.StatusBadRequest, "User recruitment status must be Accepted")
+	}
+
+	if err := u.gormDbRepo.StopOnboardingByCandidateID(ctx, user.ID); err != nil {
+		logrus.Errorf("StopOnboarding failed for user %s: %v", user.ID, err)
+		return response.Error(http.StatusInternalServerError, "Failed to stop onboarding")
+	}
+
+	go func(email, name string) {
+		if err := u.mailerRepo.SendStopOnboardingEmail(email, name); err != nil {
+			logrus.Errorf("Failed to send stop onboarding email to %s: %v", email, err)
+		}
+	}(user.Email, user.Name)
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, nil, true)
+	return response.SuccessAction("User", user.Email, "onboarding stopped")
+}
+
 func (u *appUsecase) CancelRecruitment(ctx context.Context, id string) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()

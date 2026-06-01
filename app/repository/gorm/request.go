@@ -241,6 +241,48 @@ func (r *gormRepo) SoftDeleteSubrequestCandidatesByCandidateID(ctx context.Conte
 	return err
 }
 
+func (r *gormRepo) StopOnboardingByCandidateID(ctx context.Context, candidateID string) error {
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var onboardHistoryID string
+		if err := tx.Model(&gorm_model.OnboardHistory{}).
+			Where("candidate_user_id = ? AND deleted_at IS NULL", candidateID).
+			Order("created_at DESC").
+			Limit(1).
+			Pluck("id", &onboardHistoryID).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		if onboardHistoryID == "" {
+			return gorm.ErrRecordNotFound
+		}
+
+		if err := tx.Model(&gorm_model.OnboardHistory{}).
+			Where("id = ?", onboardHistoryID).
+			Update("is_stopped", true).Error; err != nil {
+			return err
+		}
+
+		now := time.Now()
+		if err := tx.Model(&gorm_model.SubrequestCandidate{}).
+			Where("candidate_user_id = ? AND deleted_at IS NULL", candidateID).
+			Update("deleted_at", now).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&gorm_model.User{}).
+			Where("id = ?", candidateID).
+			Update("recruitment_status_id", nil).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		logrus.Errorf("StopOnboardingByCandidateID DB Error: %v", err)
+	}
+	return err
+}
+
 func (r *gormRepo) CancelRecruitmentByCandidateID(ctx context.Context, candidateID string) error {
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var subReqID *string

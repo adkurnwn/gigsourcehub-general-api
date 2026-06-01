@@ -1326,6 +1326,11 @@ table "onboard_histories" {
     type = uuid
     null = true
   }
+  column "is_stopped" {
+    type    = boolean
+    default = false
+    null    = false
+  }
   column "start_date" {
     type = date
     null = true
