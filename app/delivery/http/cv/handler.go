@@ -45,11 +45,13 @@ func (h *CVHandler) Upload(c *gin.Context) {
 		return
 	}
 
+	skipParsing := c.DefaultQuery("skip_parsing", "false") == "true" || c.PostForm("skip_parsing") == "true"
+
 	// 2. Get Current User (from Middleware)
 	userClaim := c.MustGet("token_data").(domain.JWTClaimUser)
 
 	// 3. Call Usecase
-	resp := h.Usecase.UploadCV(c.Request.Context(), userClaim.UserID, file)
+	resp := h.Usecase.UploadCV(c.Request.Context(), userClaim.UserID, file, skipParsing)
 	c.JSON(resp.Status, resp)
 }
 

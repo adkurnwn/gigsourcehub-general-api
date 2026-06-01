@@ -151,7 +151,7 @@ func getOrCreateSectorByName(db *gorm.DB, name string) (*gorm_model.Sector, erro
 }
 
 type CVUsecase interface {
-	UploadCV(ctx context.Context, userID string, fileHeader *multipart.FileHeader) response.Base
+	UploadCV(ctx context.Context, userID string, fileHeader *multipart.FileHeader, skipParsing bool) response.Base
 	GetParsedCV(ctx context.Context, userID string) response.Base
 	ConfirmCV(ctx context.Context, userID string, editedData map[string]interface{}) response.Base
 	GenerateCVLink(ctx context.Context, userID string) response.Base
@@ -173,7 +173,7 @@ func NewCVUsecase(gormRepo domain.GormRepo, storageRepo domain.StorageRepo, mqRe
 	}
 }
 
-func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *multipart.FileHeader) response.Base {
+func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *multipart.FileHeader, skipParsing bool) response.Base {
 	// 1. Open File
 	file, err := fileHeader.Open()
 	if err != nil {
@@ -193,11 +193,16 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 	existingCV, err := u.gormRepo.GetCVByUserID(ctx, userID)
 	if err != nil {
 		// CV not found, insert new
+		status := "UPLOADED"
+		if skipParsing {
+			status = "CONFIRMED"
+		}
 		cv := &gorm_model.CV{
 			ID:       uuid.New().String(),
 			UserID:   userID,
 			Filename: fileHeader.Filename,
 			Path:     objectKey, // Store relative path
+			Status:   status,
 			// ParsedData is omitted so it correctly inserts NULL
 		}
 
@@ -206,53 +211,68 @@ func (u *cvUsecase) UploadCV(ctx context.Context, userID string, fileHeader *mul
 			return response.Error(http.StatusInternalServerError, "db save failed")
 		}
 		existingCV = cv
-		SetCVProgress(existingCV.ID, 20)
+		if !skipParsing {
+			SetCVProgress(existingCV.ID, 20)
+		}
 	} else {
 		// CV exists, update it
 		existingCV.Filename = fileHeader.Filename
 		existingCV.Path = objectKey
-		existingCV.ParsedData = nil    // Reset parsed data
-		existingCV.Status = "UPLOADED" // Reset status
+		if !skipParsing {
+			existingCV.ParsedData = nil    // Reset parsed data
+			existingCV.Status = "UPLOADED" // Reset status
+		}
 
 		if err := u.gormRepo.UpdateCV(ctx, existingCV); err != nil {
 			helpers.LogActivity(ctx, u.gormRepo, "Upload", "CV", userID, nil, false)
 			return response.Error(http.StatusInternalServerError, "db update failed")
 		}
-		SetCVProgress(existingCV.ID, 20)
+		if !skipParsing {
+			SetCVProgress(existingCV.ID, 20)
+		}
 	}
 
 	helpers.LogActivity(ctx, u.gormRepo, "Upload", "CV", userID, nil, true)
 
-	// 4. Publish Event (Only if AI Module is Enabled)
-	go func(cv *gorm_model.CV) {
-		bgCtx := context.Background()
+	// 4. Publish Event (Only if AI Module is Enabled and skipParsing is false)
+	if !skipParsing {
+		go func(cv *gorm_model.CV) {
+			bgCtx := context.Background()
 
-		// Check if AI module is enabled
-		settings, err := u.gormRepo.GetSystemSetting(bgCtx)
-		if err != nil || !settings.IsAIModeEnabled {
-			fmt.Println("AI Module is disabled or failed to fetch settings, skipping parsing event")
-			return
-		}
+			// Check if AI module is enabled
+			settings, err := u.gormRepo.GetSystemSetting(bgCtx)
+			if err != nil || !settings.IsAIModeEnabled {
+				fmt.Println("AI Module is disabled or failed to fetch settings, skipping parsing event")
+				cv.Status = "FAILED"
+				if err := u.gormRepo.UpdateCV(bgCtx, cv); err != nil {
+					fmt.Printf("failed to update CV status to FAILED: %v\n", err)
+				}
+				return
+			}
 
-		if u.mqRepo == nil {
-			fmt.Println("mqRepo is nil, skipping event publishing")
-			return
-		}
+			if u.mqRepo == nil {
+				fmt.Println("mqRepo is nil, skipping event publishing")
+				return
+			}
 
-		// Here we just fire and forget with a new context.
-		err = u.mqRepo.Publish(bgCtx, os.Getenv("RABBITMQ_QUEUE_CV_UPLOAD"), map[string]interface{}{
-			"event":       "cv_uploaded",
-			"user_id":     cv.UserID,
-			"cv_id":       cv.ID,
-			"path":        cv.Path,
-			"uploaded_at": time.Now(),
-		})
-		if err != nil {
-			fmt.Printf("failed to publish message: %v\n", err)
-		}
-	}(existingCV)
+			// Here we just fire and forget with a new context.
+			err = u.mqRepo.Publish(bgCtx, os.Getenv("RABBITMQ_QUEUE_CV_UPLOAD"), map[string]interface{}{
+				"event":       "cv_uploaded",
+				"user_id":     cv.UserID,
+				"cv_id":       cv.ID,
+				"path":        cv.Path,
+				"uploaded_at": time.Now(),
+			})
+			if err != nil {
+				fmt.Printf("failed to publish message: %v\n", err)
+			}
+		}(existingCV)
 
-	existingCV.Progress = 20
+		existingCV.Progress = 20
+	} else {
+		DeleteCVProgress(existingCV.ID)
+	}
+
 	return response.Success(existingCV.ToCVResp())
 }
 
@@ -265,6 +285,14 @@ func (u *cvUsecase) GetParsedCV(ctx context.Context, userID string) response.Bas
 	// Double check for logic safety
 	if cv.UserID != userID {
 		return response.Error(http.StatusForbidden, "not authorized to view this cv")
+	}
+
+	// Backend-driven timeout: if CV is in UPLOADED or PARSING status and stuck for > 30 seconds, fail it.
+	if (cv.Status == "UPLOADED" || cv.Status == "PARSING") && time.Since(cv.UpdatedAt) > 30*time.Second {
+		cv.Status = "FAILED"
+		if err := u.gormRepo.UpdateCV(ctx, cv); err == nil {
+			DeleteCVProgress(cv.ID)
+		}
 	}
 
 	var parsedData interface{}
