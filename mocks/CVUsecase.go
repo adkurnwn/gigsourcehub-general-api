@@ -166,17 +166,17 @@ func (_c *CVUsecase_GetParsedCV_Call) RunAndReturn(run func(context.Context, str
 	return _c
 }
 
-// UploadCV provides a mock function with given fields: ctx, userID, fileHeader
-func (_m *CVUsecase) UploadCV(ctx context.Context, userID string, fileHeader *multipart.FileHeader) response.Base {
-	ret := _m.Called(ctx, userID, fileHeader)
+// UploadCV provides a mock function with given fields: ctx, userID, fileHeader, skipParsing
+func (_m *CVUsecase) UploadCV(ctx context.Context, userID string, fileHeader *multipart.FileHeader, skipParsing bool) response.Base {
+	ret := _m.Called(ctx, userID, fileHeader, skipParsing)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UploadCV")
 	}
 
 	var r0 response.Base
-	if rf, ok := ret.Get(0).(func(context.Context, string, *multipart.FileHeader) response.Base); ok {
-		r0 = rf(ctx, userID, fileHeader)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *multipart.FileHeader, bool) response.Base); ok {
+		r0 = rf(ctx, userID, fileHeader, skipParsing)
 	} else {
 		r0 = ret.Get(0).(response.Base)
 	}
@@ -193,13 +193,14 @@ type CVUsecase_UploadCV_Call struct {
 //   - ctx context.Context
 //   - userID string
 //   - fileHeader *multipart.FileHeader
-func (_e *CVUsecase_Expecter) UploadCV(ctx interface{}, userID interface{}, fileHeader interface{}) *CVUsecase_UploadCV_Call {
-	return &CVUsecase_UploadCV_Call{Call: _e.mock.On("UploadCV", ctx, userID, fileHeader)}
+//   - skipParsing bool
+func (_e *CVUsecase_Expecter) UploadCV(ctx interface{}, userID interface{}, fileHeader interface{}, skipParsing interface{}) *CVUsecase_UploadCV_Call {
+	return &CVUsecase_UploadCV_Call{Call: _e.mock.On("UploadCV", ctx, userID, fileHeader, skipParsing)}
 }
 
-func (_c *CVUsecase_UploadCV_Call) Run(run func(ctx context.Context, userID string, fileHeader *multipart.FileHeader)) *CVUsecase_UploadCV_Call {
+func (_c *CVUsecase_UploadCV_Call) Run(run func(ctx context.Context, userID string, fileHeader *multipart.FileHeader, skipParsing bool)) *CVUsecase_UploadCV_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(*multipart.FileHeader))
+		run(args[0].(context.Context), args[1].(string), args[2].(*multipart.FileHeader), args[3].(bool))
 	})
 	return _c
 }
@@ -209,7 +210,7 @@ func (_c *CVUsecase_UploadCV_Call) Return(_a0 response.Base) *CVUsecase_UploadCV
 	return _c
 }
 
-func (_c *CVUsecase_UploadCV_Call) RunAndReturn(run func(context.Context, string, *multipart.FileHeader) response.Base) *CVUsecase_UploadCV_Call {
+func (_c *CVUsecase_UploadCV_Call) RunAndReturn(run func(context.Context, string, *multipart.FileHeader, bool) response.Base) *CVUsecase_UploadCV_Call {
 	_c.Call.Return(run)
 	return _c
 }
