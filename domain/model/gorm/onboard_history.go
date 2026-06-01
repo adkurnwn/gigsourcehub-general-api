@@ -14,6 +14,7 @@ type OnboardHistory struct {
 	CandidateUser   *User          `gorm:"foreignKey:CandidateUserID"`
 	OfferingID      *string        `gorm:"column:offering_id;type:uuid"`
 	Offering        *Offering      `gorm:"foreignKey:OfferingID"`
+	IsStopped       bool           `gorm:"column:is_stopped;type:boolean;default:false;not null"`
 	StartDate       *time.Time     `gorm:"column:start_date;type:date"`
 	EndDate         *time.Time     `gorm:"column:end_date;type:date"`
 	Snapshot        *string        `gorm:"column:snapshot;type:jsonb"`

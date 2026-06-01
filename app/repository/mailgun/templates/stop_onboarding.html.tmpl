@@ -1,0 +1,36 @@
+{{ define "stop_onboarding" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ .Subject }}</title>
+  <style>{{ template "email_styles" . }}</style>
+</head>
+<body>
+  <table role="presentation" width="100%" class="outer" style="background-color:#f4f7f9; width:100%;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" class="card" style="max-width:680px; width:100%; background-color:#ffffff; border-radius:24px; box-shadow:0 24px 60px rgba(15,23,42,0.08);">
+          {{ template "email_header" . }}
+          <tr>
+            <td class="content-cell" style="padding: 24px 40px 0; text-align:center;">
+              <p class="hero-heading" style="margin:0;">Hi {{ .Name }}!</p>
+              <p class="body-copy" style="margin:24px auto 0; max-width:520px; font-size:16px; line-height:1.8; color:#505050;">We are sorry, but we have to cancel your onboarding contract at this time.</p>
+              <p class="body-copy" style="margin:24px auto 0; max-width:520px; font-size:16px; line-height:1.8; color:#505050;">Your onboarding record has been stopped and the related recruitment data has been closed.</p>
+              <p class="body-copy" style="margin:24px auto 0; max-width:520px; font-size:16px; line-height:1.8; color:#505050;">If you need clarification, please reply to this email and our team will follow up.</p>
+            </td>
+          </tr>
+          <tr>
+            <td class="content-cell" style="padding: 0 40px 32px; text-align:center;">
+              <p class="body-copy" style="margin:0 auto; max-width:520px;">Best regards,<br>GigSourceHub Team</p>
+            </td>
+          </tr>
+          {{ template "email_footer" . }}
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+{{ end }}

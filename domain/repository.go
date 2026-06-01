@@ -103,6 +103,7 @@ type GormRepo interface {
 	AssignCandidateToSubrequest(ctx context.Context, model *gorm_model.SubrequestCandidate, recruitmentStatusID string) error
 	CountActiveSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) (int64, error)
 	SoftDeleteSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) error
+	StopOnboardingByCandidateID(ctx context.Context, candidateID string) error
 	CancelRecruitmentByCandidateID(ctx context.Context, candidateID string) error
 	GetActiveSubrequestByCandidateID(ctx context.Context, candidateID string) (*gorm_model.ActiveSubrequestInfo, error)
 	GetFinalizeSnapshotData(ctx context.Context, subrequestID string) (*gorm_model.FinalizeRecruitmentSnapshot, error)

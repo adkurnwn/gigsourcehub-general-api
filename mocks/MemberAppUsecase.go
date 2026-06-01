@@ -692,6 +692,53 @@ func (_c *MemberAppUsecase_ConfirmDeclineRecruitment_Call) RunAndReturn(run func
 	return _c
 }
 
+// StopOnboarding provides a mock function with given fields: ctx, id
+func (_m *MemberAppUsecase) StopOnboarding(ctx context.Context, id string) response.Base {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StopOnboarding")
+	}
+
+	var r0 response.Base
+	if rf, ok := ret.Get(0).(func(context.Context, string) response.Base); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(response.Base)
+	}
+
+	return r0
+}
+
+// MemberAppUsecase_StopOnboarding_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StopOnboarding'
+type MemberAppUsecase_StopOnboarding_Call struct {
+	*mock.Call
+}
+
+// StopOnboarding is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *MemberAppUsecase_Expecter) StopOnboarding(ctx interface{}, id interface{}) *MemberAppUsecase_StopOnboarding_Call {
+	return &MemberAppUsecase_StopOnboarding_Call{Call: _e.mock.On("StopOnboarding", ctx, id)}
+}
+
+func (_c *MemberAppUsecase_StopOnboarding_Call) Run(run func(ctx context.Context, id string)) *MemberAppUsecase_StopOnboarding_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MemberAppUsecase_StopOnboarding_Call) Return(_a0 response.Base) *MemberAppUsecase_StopOnboarding_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MemberAppUsecase_StopOnboarding_Call) RunAndReturn(run func(context.Context, string) response.Base) *MemberAppUsecase_StopOnboarding_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CancelRecruitment provides a mock function with given fields: ctx, id
 func (_m *MemberAppUsecase) CancelRecruitment(ctx context.Context, id string) response.Base {
 	ret := _m.Called(ctx, id)
