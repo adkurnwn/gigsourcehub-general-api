@@ -24,6 +24,7 @@ func NewRouteHandler(route *gin.RouterGroup, middleware middleware.Middleware, u
 	handler.handleUserRoute("/users")
 	route.GET("/profile", middleware.Auth(), handler.GetProfile)
 	route.PUT("/profile", middleware.Auth(), handler.UpdateProfile)
+	route.DELETE("/profile", middleware.Auth(), handler.DeleteAccount)
 	route.PUT("/profile/password", middleware.Auth(), handler.UpdatePassword)
 	route.PUT("/profile/change-password", middleware.Auth(), handler.UpdatePassword)
 	route.POST("/profile/picture", middleware.Auth(), handler.UploadProfilePicture)

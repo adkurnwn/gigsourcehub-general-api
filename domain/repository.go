@@ -31,6 +31,7 @@ type GormRepo interface {
 	CreateUser(ctx context.Context, model *gorm_model.User) (err error)
 	CreateUserBySuperadmin(ctx context.Context, model *gorm_model.User) (err error)
 	UpdateUser(ctx context.Context, model *gorm_model.User) (err error)
+	SoftDeleteUser(ctx context.Context, userID string) error
 	GetRoleNameByUserID(ctx context.Context, userID string) (string, error)
 	GetUserAccountStatus(ctx context.Context, userID string) (string, error)
 

@@ -119,6 +119,12 @@ func (m *appMiddleware) Auth() gin.HandlerFunc {
 			return
 		}
 
+		if status == "Deleted" {
+			response := response.Error(http.StatusUnauthorized, "Your account has been deleted.")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
 		// Real-time verification check
 		verifiedAt, errVerified := m.repo.GetUserVerifiedAt(c.Request.Context(), claims.UserID)
 		if errVerified != nil {

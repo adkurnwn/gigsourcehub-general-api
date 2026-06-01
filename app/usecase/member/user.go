@@ -1207,3 +1207,48 @@ func (u *appUsecase) GetActiveSubrequest(ctx context.Context, id string) respons
 
 	return response.Success(info)
 }
+
+func (u *appUsecase) DeleteAccount(ctx context.Context, userID string, req request_model.DeleteAccountRequest) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	if req.Password == "" {
+		return response.Error(http.StatusBadRequest, "Password is required")
+	}
+
+	user, err := u.gormDbRepo.FetchOneUser(ctx, gorm_model.UserFilter{
+		DefaultFilter: gorm_model.DefaultFilter{ID: userID},
+	})
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		return response.Error(http.StatusNotFound, "User not found")
+	}
+
+	// Only Candidate can self-delete
+	roleName, errRole := u.gormDbRepo.GetRoleNameByUserID(ctx, user.ID)
+	if errRole != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to verify user role")
+	}
+	if roleName != "Candidate" {
+		return response.Error(http.StatusForbidden, "Only candidates can delete their own account")
+	}
+
+	// Verify password confirmation
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		return response.Error(http.StatusBadRequest, "Password is incorrect")
+	}
+
+	// Soft-delete the user (sets deleted_at via GORM)
+	if err := u.gormDbRepo.SoftDeleteUser(ctx, user.ID); err != nil {
+		helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "Account", user.Email, nil, false)
+		return response.Error(http.StatusInternalServerError, "Failed to delete account")
+	}
+
+	// Revoke all refresh tokens so new access tokens cannot be generated
+	_ = u.gormDbRepo.DeleteUserTokensByUserID(ctx, user.ID, gorm_model.TokenTypeRefresh)
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "Account", user.Email, nil, true)
+	return response.SuccessAction("Account", user.Email, "deleted")
+}

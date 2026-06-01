@@ -81,6 +81,65 @@ func (_c *SearchServiceServer_Search_Call) RunAndReturn(run func(context.Context
 	return _c
 }
 
+// UpdateCandidate provides a mock function with given fields: _a0, _a1
+func (_m *SearchServiceServer) UpdateCandidate(_a0 context.Context, _a1 *proto.UpdateCandidateRequest) (*proto.UpdateCandidateResponse, error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateCandidate")
+	}
+
+	var r0 *proto.UpdateCandidateResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *proto.UpdateCandidateRequest) (*proto.UpdateCandidateResponse, error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *proto.UpdateCandidateRequest) *proto.UpdateCandidateResponse); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*proto.UpdateCandidateResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *proto.UpdateCandidateRequest) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SearchServiceServer_UpdateCandidate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateCandidate'
+type SearchServiceServer_UpdateCandidate_Call struct {
+	*mock.Call
+}
+
+// UpdateCandidate is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *proto.UpdateCandidateRequest
+func (_e *SearchServiceServer_Expecter) UpdateCandidate(_a0 interface{}, _a1 interface{}) *SearchServiceServer_UpdateCandidate_Call {
+	return &SearchServiceServer_UpdateCandidate_Call{Call: _e.mock.On("UpdateCandidate", _a0, _a1)}
+}
+
+func (_c *SearchServiceServer_UpdateCandidate_Call) Run(run func(_a0 context.Context, _a1 *proto.UpdateCandidateRequest)) *SearchServiceServer_UpdateCandidate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*proto.UpdateCandidateRequest))
+	})
+	return _c
+}
+
+func (_c *SearchServiceServer_UpdateCandidate_Call) Return(_a0 *proto.UpdateCandidateResponse, _a1 error) *SearchServiceServer_UpdateCandidate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SearchServiceServer_UpdateCandidate_Call) RunAndReturn(run func(context.Context, *proto.UpdateCandidateRequest) (*proto.UpdateCandidateResponse, error)) *SearchServiceServer_UpdateCandidate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // mustEmbedUnimplementedSearchServiceServer provides a mock function with no fields
 func (_m *SearchServiceServer) mustEmbedUnimplementedSearchServiceServer() {
 	_m.Called()
