@@ -123,14 +123,11 @@ func (r *gormRepo) FetchDashboardAnalytics(ctx context.Context, period string) (
 	var interviewsCompleted int64
 	r.db.WithContext(ctx).Model(&gorm_model.Interview{}).Where("status = 'COMPLETED'").Count(&interviewsCompleted)
 
-	var offeringsCount int64
-	r.db.WithContext(ctx).Model(&gorm_model.Offering{}).Count(&offeringsCount)
-
 	var onboardedCount int64
 	r.db.WithContext(ctx).Model(&gorm_model.OnboardHistory{}).Count(&onboardedCount)
 
-	stages := []string{"Applied", "Interview Scheduled", "Interview Completed", "Offer Extended", "Onboarded"}
-	counts := []int64{applicantsCount, interviewsScheduled, interviewsCompleted, offeringsCount, onboardedCount}
+	stages := []string{"Applied", "Interview Scheduled", "Interview Completed", "Onboarded"}
+	counts := []int64{applicantsCount, interviewsScheduled, interviewsCompleted, onboardedCount}
 
 	analytics.Funnel = make([]gorm_model.AnalyticsFunnelStage, len(stages))
 	for i, name := range stages {
