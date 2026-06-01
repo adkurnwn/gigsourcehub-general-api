@@ -117,14 +117,24 @@ func (r *gormRepo) GetRoleNameByUserID(ctx context.Context, userID string) (role
 func (r *gormRepo) GetUserAccountStatus(ctx context.Context, userID string) (status string, err error) {
 	err = r.db.WithContext(ctx).
 		Table("users").
-		Where("id = ?", userID).
+		Where("id = ? AND deleted_at IS NULL", userID).
 		Select("account_status").
 		Row().
 		Scan(&status)
 	if err == sql.ErrNoRows {
-		return "", nil
+		// User either does not exist or has been soft-deleted
+		return "Deleted", nil
 	}
 	return status, err
+}
+
+func (r *gormRepo) SoftDeleteUser(ctx context.Context, userID string) error {
+	err := r.db.WithContext(ctx).Where("id = ?", userID).Delete(&gorm_model.User{}).Error
+	if err != nil {
+		logrus.Error("SoftDeleteUser Exec:", err)
+		return err
+	}
+	return nil
 }
 
 func (r *gormRepo) GetUserVerifiedAt(ctx context.Context, userID string) (verifiedAt *time.Time, err error) {

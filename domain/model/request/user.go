@@ -44,3 +44,7 @@ type FinalizeRecruitmentRequest struct {
 	StartDate       *string `json:"start_date"` // format: "2006-01-02"
 	EndDate         *string `json:"end_date"`   // format: "2006-01-02"
 }
+
+type DeleteAccountRequest struct {
+	Password string `json:"password"`
+}

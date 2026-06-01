@@ -47,6 +47,7 @@ type MemberAppUsecase interface {
 	UpdatePassword(ctx context.Context, userID string, req request_model.UpdatePasswordRequest) response.Base
 	Logout(ctx context.Context, claim JWTClaimUser, refreshToken string) response.Base
 	RefreshToken(ctx context.Context, payload request_model.RefreshTokenRequest) response.Base
+	DeleteAccount(ctx context.Context, userID string, req request_model.DeleteAccountRequest) response.Base
 }
 
 type JobRoleAppUsecase interface {

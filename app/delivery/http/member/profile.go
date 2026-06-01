@@ -109,3 +109,32 @@ func (r *routeHandler) UpdatePassword(c *gin.Context) {
 	resp := r.Usecase.UpdatePassword(c.Request.Context(), userClaim.UserID, req)
 	c.JSON(resp.Status, resp)
 }
+
+// Delete Account
+//
+//	@Summary		Delete Account
+//	@Description	Delete the current candidate user's account. Requires password confirmation.
+//	@Tags			Profile
+//	@Accept			json
+//	@Produce		json
+//	@Param			req		body		request_model.DeleteAccountRequest	true	"Password confirmation data"
+//	@Success		200		{object}	response.Base
+//	@Failure		400		{object}	response.Base
+//	@Failure		401		{object}	response.Base
+//	@Failure		403		{object}	response.Base
+//	@Failure		500		{object}	response.Base
+//	@Router			/profile [delete]
+//
+//	@Security		BearerAuth
+func (r *routeHandler) DeleteAccount(c *gin.Context) {
+	var req request_model.DeleteAccountRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, map[string]any{"status": 400, "message": err.Error()})
+		return
+	}
+
+	userClaim := c.MustGet("token_data").(domain.JWTClaimUser)
+	resp := r.Usecase.DeleteAccount(c.Request.Context(), userClaim.UserID, req)
+	c.JSON(resp.Status, resp)
+}
+
