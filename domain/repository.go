@@ -251,4 +251,5 @@ type MessageBroker interface {
 type AISearchRepository interface {
 	Search(ctx context.Context, query string) ([]model.SearchResult, error)
 	UpdateCandidate(ctx context.Context, req *pb.UpdateCandidateRequest) error
+	DeleteCandidate(ctx context.Context, userID string) error
 }
