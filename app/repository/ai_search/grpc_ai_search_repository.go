@@ -89,3 +89,25 @@ func (r *aiSearchRepository) UpdateCandidate(ctx context.Context, req *pb.Update
 	logrus.Infof("[gRPC] UpdateCandidate Request Success: %s", resp.Message)
 	return nil
 }
+
+func (r *aiSearchRepository) DeleteCandidate(ctx context.Context, userID string) error {
+	logrus.Infof("[gRPC] Sending DeleteCandidate Request: user_id=%s", userID)
+
+	req := &pb.DeleteCandidateRequest{
+		UserId: userID,
+	}
+
+	resp, err := r.client.DeleteCandidate(ctx, req)
+	if err != nil {
+		logrus.Errorf("[gRPC] DeleteCandidate Request Failed: %v", err)
+		return err
+	}
+
+	if !resp.Success {
+		logrus.Errorf("[gRPC] DeleteCandidate Request Failed: %s", resp.Message)
+		return fmt.Errorf("AI API failed to delete candidate: %s", resp.Message)
+	}
+
+	logrus.Infof("[gRPC] DeleteCandidate Request Success: %s", resp.Message)
+	return nil
+}

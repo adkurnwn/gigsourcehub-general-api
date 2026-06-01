@@ -9,6 +9,7 @@ import "google/protobuf/struct.proto";
 service SearchService {
   rpc Search (SearchRequest) returns (SearchResponse);
   rpc UpdateCandidate (UpdateCandidateRequest) returns (UpdateCandidateResponse);
+  rpc DeleteCandidate (DeleteCandidateRequest) returns (DeleteCandidateResponse);
 }
 
 service CandidateService {
@@ -98,6 +99,15 @@ message UpdateCVProgressRequest {
 }
 
 message UpdateCVProgressResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message DeleteCandidateRequest {
+  string user_id = 1;
+}
+
+message DeleteCandidateResponse {
   bool success = 1;
   string message = 2;
 }

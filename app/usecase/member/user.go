@@ -1246,6 +1246,16 @@ func (u *appUsecase) DeleteAccount(ctx context.Context, userID string, req reque
 		return response.Error(http.StatusInternalServerError, "Failed to delete account")
 	}
 
+	// Synchronise deletion with Qdrant
+	go func() {
+		syncCtx := context.Background()
+		if u.aiSearchRepo != nil {
+			if err := u.aiSearchRepo.DeleteCandidate(syncCtx, user.ID); err != nil {
+				logrus.Errorf("failed to synchronize candidate deletion to AI API: %v", err)
+			}
+		}
+	}()
+
 	// Revoke all refresh tokens so new access tokens cannot be generated
 	_ = u.gormDbRepo.DeleteUserTokensByUserID(ctx, user.ID, gorm_model.TokenTypeRefresh)
 
