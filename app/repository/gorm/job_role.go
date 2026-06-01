@@ -33,3 +33,9 @@ func (r *gormRepo) UpdateJobRole(ctx context.Context, model *gorm_model.JobRole)
 func (r *gormRepo) DeleteJobRole(ctx context.Context, id string) error {
 	return r.db.WithContext(ctx).Delete(&gorm_model.JobRole{}, "id = ?", id).Error
 }
+
+func (r *gormRepo) GetActiveJobRoles(ctx context.Context) ([]gorm_model.JobRole, error) {
+	var roles []gorm_model.JobRole
+	err := r.db.WithContext(ctx).Where("is_active = ?", true).Order("name asc").Find(&roles).Error
+	return roles, err
+}

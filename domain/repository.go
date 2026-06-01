@@ -46,6 +46,7 @@ type GormRepo interface {
 	CreateJobRole(ctx context.Context, model *gorm_model.JobRole) error
 	UpdateJobRole(ctx context.Context, model *gorm_model.JobRole) error
 	DeleteJobRole(ctx context.Context, id string) error
+	GetActiveJobRoles(ctx context.Context) ([]gorm_model.JobRole, error)
 
 	FetchJobTitle(ctx context.Context, options gorm_model.JobTitleFilter) (*sql.Rows, error)
 	CreateJobTitle(ctx context.Context, model *gorm_model.JobTitle) error

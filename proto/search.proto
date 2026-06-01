@@ -15,6 +15,18 @@ service CandidateService {
   rpc GetEnrichmentData (EnrichmentRequest) returns (EnrichmentResponse);
   rpc GetSectors (GetSectorsRequest) returns (GetSectorsResponse);
   rpc UpdateCVProgress (UpdateCVProgressRequest) returns (UpdateCVProgressResponse);
+  rpc GetJobRoles (GetJobRolesRequest) returns (GetJobRolesResponse);
+}
+
+message GetJobRolesRequest {}
+
+message JobRoleInfo {
+  string id = 1;
+  string name = 2;
+}
+
+message GetJobRolesResponse {
+  repeated JobRoleInfo job_roles = 1;
 }
 
 message GetSectorsRequest {}

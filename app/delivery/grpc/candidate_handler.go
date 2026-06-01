@@ -95,6 +95,25 @@ func (h *CandidateHandler) GetSectors(ctx context.Context, req *pb.GetSectorsReq
 	}, nil
 }
 
+func (h *CandidateHandler) GetJobRoles(ctx context.Context, req *pb.GetJobRolesRequest) (*pb.GetJobRolesResponse, error) {
+	roles, err := h.gormRepo.GetActiveJobRoles(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var pbRoles []*pb.JobRoleInfo
+	for _, r := range roles {
+		pbRoles = append(pbRoles, &pb.JobRoleInfo{
+			Id:   r.ID,
+			Name: r.Name,
+		})
+	}
+
+	return &pb.GetJobRolesResponse{
+		JobRoles: pbRoles,
+	}, nil
+}
+
 func (h *CandidateHandler) UpdateCVProgress(ctx context.Context, req *pb.UpdateCVProgressRequest) (*pb.UpdateCVProgressResponse, error) {
 	cvID := req.GetCvId()
 	progress := req.GetProgress()
