@@ -154,3 +154,28 @@ func (r *mailgunRepo) SendCancelRecruitmentEmail(to, name string) error {
 	_, _, err = r.mg.Send(ctx, mgMessage)
 	return err
 }
+
+func (r *mailgunRepo) SendStopOnboardingEmail(to, name string) error {
+	subject := "Update on Your Onboarding Contract - GigSourceHub"
+
+	data := r.makeEmailTemplateData(subject, name, "", "")
+
+	htmlBody, err := r.renderHTMLTemplate("stop_onboarding", data)
+	if err != nil {
+		return err
+	}
+
+	plainBody := fmt.Sprintf(
+		"Hi %s,\n\nWe are sorry, but we have to cancel your onboarding contract at this time. Your onboarding record has been stopped and any related HR process will be updated accordingly.\n\nIf you need clarification, please reply to this email.\n\nBest regards,\nGigSourceHub Team",
+		name,
+	)
+
+	mgMessage := r.mg.NewMessage(fmt.Sprintf("%s <%s>", r.fromName, r.from), subject, plainBody, to)
+	mgMessage.SetHtml(htmlBody)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	_, _, err = r.mg.Send(ctx, mgMessage)
+	return err
+}

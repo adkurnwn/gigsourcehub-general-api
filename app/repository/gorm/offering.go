@@ -44,6 +44,7 @@ func (r *gormRepo) FinalizeRecruitment(ctx context.Context, candidateID, subrequ
 		history := &gorm_model.OnboardHistory{
 			CandidateUserID: candidateID,
 			OfferingID:      offeringID,
+			IsStopped:       false,
 			StartDate:       startDate,
 			EndDate:         endDate,
 			Snapshot:        &snapshotJSON,
