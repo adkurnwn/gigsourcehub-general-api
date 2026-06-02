@@ -1,0 +1,114 @@
+syntax = "proto3";
+
+package search;
+
+option go_package = "gigsourcehub-ai-api/proto";
+
+import "google/protobuf/struct.proto";
+
+service SearchService {
+  rpc Search (SearchRequest) returns (SearchResponse);
+  rpc UpdateCandidate (UpdateCandidateRequest) returns (UpdateCandidateResponse);
+  rpc DeleteCandidate (DeleteCandidateRequest) returns (DeleteCandidateResponse);
+}
+
+service CandidateService {
+  rpc GetEnrichmentData (EnrichmentRequest) returns (EnrichmentResponse);
+  rpc GetSectors (GetSectorsRequest) returns (GetSectorsResponse);
+  rpc UpdateCVProgress (UpdateCVProgressRequest) returns (UpdateCVProgressResponse);
+  rpc GetJobRoles (GetJobRolesRequest) returns (GetJobRolesResponse);
+}
+
+message GetJobRolesRequest {}
+
+message JobRoleInfo {
+  string id = 1;
+  string name = 2;
+}
+
+message GetJobRolesResponse {
+  repeated JobRoleInfo job_roles = 1;
+}
+
+message GetSectorsRequest {}
+
+message SectorInfo {
+  string id = 1;
+  string name = 2;
+}
+
+message GetSectorsResponse {
+  repeated SectorInfo sectors = 1;
+}
+
+message EnrichmentRequest {
+  repeated string user_ids = 1;
+}
+
+message EnrichmentData {
+  string user_id = 1;
+  repeated string job_roles = 2;
+  string candidate_level = 3;
+  double avg_work_quality = 4;
+  double avg_timeliness = 5;
+  double avg_communication_collaboration = 6;
+  double avg_problem_solving_initiative = 7;
+  bool has_score = 8;
+}
+
+message EnrichmentResponse {
+  repeated EnrichmentData data = 1;
+}
+
+message SearchRequest {
+  string query = 1;
+}
+
+message SearchResult {
+  string id = 1;
+  google.protobuf.Struct content = 2;
+  float score = 3;
+}
+
+message SearchResponse {
+  repeated SearchResult results = 1;
+  string message = 2;
+}
+
+message UpdateCandidateRequest {
+  string user_id = 1;
+  string name = 2;
+  repeated string roles = 3;
+  string summary = 4;
+  string education_major = 5;
+  double gpa = 6;
+  string location = 7;
+  repeated string tech_stack = 8;
+  int32 years_experience = 9;
+}
+
+message UpdateCandidateResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message UpdateCVProgressRequest {
+  string cv_id = 1;
+  int32 progress = 2;
+  string status = 3;
+}
+
+message UpdateCVProgressResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message DeleteCandidateRequest {
+  string user_id = 1;
+}
+
+message DeleteCandidateResponse {
+  bool success = 1;
+  string message = 2;
+}
+

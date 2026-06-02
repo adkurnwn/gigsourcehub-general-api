@@ -2,43 +2,40 @@ package s3repo
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/sirupsen/logrus"
 )
 
 func (r *s3Repo) GetPresignedLink(objectKey string, expires *time.Duration) string {
-	resSigned, err := r.presigner.PresignGetObject(context.TODO(), &s3.GetObjectInput{
-		Bucket: aws.String(r.bucketName),
-		Key:    aws.String(objectKey),
-	}, func(opts *s3.PresignOptions) {
-		if expires != nil {
-			opts.Expires = *expires
-		}
-	})
+	expiry := time.Hour * 24 // default
+	if expires != nil {
+		expiry = *expires
+	}
 
+	// reqParams can be nil
+	url, err := r.client.PresignedGetObject(context.TODO(), r.bucketName, objectKey, expiry, nil)
 	if err != nil {
 		logrus.Error("GetPresignedLink error: ", err)
 		return ""
 	}
 
-	return resSigned.URL
+	return url.String()
 }
 
 func (r *s3Repo) GetPublicLink(objectKey string) string {
-	url := &url.URL{}
+	baseURL := &url.URL{}
 	if r.publicURL == nil {
-		endpoint := r.client.Options().BaseEndpoint
-		url, _ = url.Parse(*endpoint)
+		u := r.client.EndpointURL()
+		baseURL = u
 	} else {
-		url = r.publicURL
+		baseURL = r.publicURL
 	}
 
-	// add path with object key
-	url.Path = objectKey
+	newURL := *baseURL
+	newURL.Path = fmt.Sprintf("/%s/%s", r.bucketName, objectKey)
 
-	return url.String()
+	return newURL.String()
 }

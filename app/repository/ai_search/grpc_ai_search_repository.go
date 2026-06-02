@@ -1,0 +1,113 @@
+package ai_search
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/adkurnwn/gigsourcehub-general-api/domain"
+	"github.com/adkurnwn/gigsourcehub-general-api/domain/model"
+	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+)
+
+type aiSearchRepository struct {
+	client pb.SearchServiceClient
+	conn   *grpc.ClientConn
+}
+
+func NewAISearchRepository(target string) (domain.AISearchRepository, error) {
+	// Using grpc.WithInsecure() for compatibility with older grpc versions (v1.36.x)
+	// If newer version is used, replace with credentials/insecure
+	conn, err := grpc.Dial(target, grpc.WithInsecure())
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to ai search service: %w", err)
+	}
+
+	client := pb.NewSearchServiceClient(conn)
+
+	return &aiSearchRepository{
+		client: client,
+		conn:   conn,
+	}, nil
+}
+
+func (r *aiSearchRepository) Close() error {
+	return r.conn.Close()
+}
+
+func (r *aiSearchRepository) Search(ctx context.Context, query string) ([]model.SearchResult, error) {
+	req := &pb.SearchRequest{
+		Query: query,
+	}
+
+	logrus.Infof("[gRPC] Sending Search Request: query=%s", query)
+
+	resp, err := r.client.Search(ctx, req)
+	if err != nil {
+		logrus.Errorf("[gRPC] Search Request Failed: %v", err)
+		return nil, err
+	}
+
+	logrus.Infof("[gRPC] Search Request Success: found %d results", len(resp.Results))
+
+	var results []model.SearchResult
+	for _, item := range resp.Results {
+		// Convert protobuf Struct map back to a JSON string for the domain model
+		contentBytes, err := item.Content.MarshalJSON()
+		contentStr := ""
+		if err == nil {
+			contentStr = string(contentBytes)
+		} else {
+			logrus.Errorf("[gRPC] Failed to marshal content struct to JSON: %v", err)
+		}
+
+		results = append(results, model.SearchResult{
+			ID:      item.Id,
+			Content: contentStr,
+			Score:   item.Score,
+		})
+	}
+
+	return results, nil
+}
+
+func (r *aiSearchRepository) UpdateCandidate(ctx context.Context, req *pb.UpdateCandidateRequest) error {
+	logrus.Infof("[gRPC] Sending UpdateCandidate Request: user_id=%s", req.UserId)
+
+	resp, err := r.client.UpdateCandidate(ctx, req)
+	if err != nil {
+		logrus.Errorf("[gRPC] UpdateCandidate Request Failed: %v", err)
+		return err
+	}
+
+	if !resp.Success {
+		logrus.Errorf("[gRPC] UpdateCandidate Request Failed: %s", resp.Message)
+		return fmt.Errorf("AI API failed to update candidate: %s", resp.Message)
+	}
+
+	logrus.Infof("[gRPC] UpdateCandidate Request Success: %s", resp.Message)
+	return nil
+}
+
+func (r *aiSearchRepository) DeleteCandidate(ctx context.Context, userID string) error {
+	logrus.Infof("[gRPC] Sending DeleteCandidate Request: user_id=%s", userID)
+
+	req := &pb.DeleteCandidateRequest{
+		UserId: userID,
+	}
+
+	resp, err := r.client.DeleteCandidate(ctx, req)
+	if err != nil {
+		logrus.Errorf("[gRPC] DeleteCandidate Request Failed: %v", err)
+		return err
+	}
+
+	if !resp.Success {
+		logrus.Errorf("[gRPC] DeleteCandidate Request Failed: %s", resp.Message)
+		return fmt.Errorf("AI API failed to delete candidate: %s", resp.Message)
+	}
+
+	logrus.Infof("[gRPC] DeleteCandidate Request Success: %s", resp.Message)
+	return nil
+}

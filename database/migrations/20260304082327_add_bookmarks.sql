@@ -1,0 +1,2 @@
+-- Create "bookmarks" table
+CREATE TABLE "public"."bookmarks" ("admin_id" uuid NOT NULL, "candidate_id" uuid NOT NULL, "created_at" timestamptz NOT NULL, "updated_at" timestamptz NOT NULL, PRIMARY KEY ("admin_id", "candidate_id"), CONSTRAINT "bookmarks_admin_fk" FOREIGN KEY ("admin_id") REFERENCES "public"."users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE, CONSTRAINT "bookmarks_candidate_fk" FOREIGN KEY ("candidate_id") REFERENCES "public"."users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE);

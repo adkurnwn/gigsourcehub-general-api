@@ -1,18 +1,23 @@
 package gormrepo
 
 import (
-	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	"context"
 	"database/sql"
+	"time"
+
+	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (r *gormRepo) FetchUser(ctx context.Context, options gorm_model.UserFilter) (cur *sql.Rows, err error) {
 	// generate query
 	q := r.db.Model(&gorm_model.User{})
 	options.Query(q)
+
+	q = q.Preload("SystemRole").Preload("JobTitle.Sector").Preload("AssignedRole.Sector").Preload("JobRoles.Sector").Preload("RecruitmentStatus").Preload("KabupatenKota.Provinsi")
 
 	cur, err = q.WithContext(ctx).Rows()
 	if err != nil {
@@ -27,6 +32,8 @@ func (r *gormRepo) FetchOneUser(ctx context.Context, options gorm_model.UserFilt
 	// generate query
 	q := r.db.Model(&gorm_model.User{})
 	options.Query(q)
+
+	q = q.Preload("SystemRole").Preload("JobTitle.Sector").Preload("AssignedRole.Sector").Preload("JobRoles.Sector").Preload("RecruitmentStatus").Preload("KabupatenKota.Provinsi")
 
 	// set row
 	row = new(gorm_model.User)
@@ -66,3 +73,137 @@ func (r *gormRepo) CreateUser(ctx context.Context, row *gorm_model.User) (err er
 
 	return
 }
+
+func (r *gormRepo) UpdateUser(ctx context.Context, row *gorm_model.User) (err error) {
+	err = r.db.WithContext(ctx).Omit(clause.Associations).Save(row).Error
+	if err != nil {
+		logrus.Error("UpdateUser Exec:", err)
+		return
+	}
+
+	return
+}
+
+func (r *gormRepo) GetProvinsiName(ctx context.Context, id string) (name string, err error) {
+	err = r.db.WithContext(ctx).Table("provinsi").Where("id = ?", id).Select("name").Row().Scan(&name)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+	return
+}
+
+func (r *gormRepo) GetKabupatenName(ctx context.Context, id string) (name string, err error) {
+	err = r.db.WithContext(ctx).Table("kabupaten_kota").Where("id = ?", id).Select("name").Row().Scan(&name)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+	return
+}
+
+func (r *gormRepo) GetRoleNameByUserID(ctx context.Context, userID string) (roleName string, err error) {
+	err = r.db.WithContext(ctx).
+		Table("users u").
+		Joins("JOIN system_roles rs ON u.system_role_id = rs.id").
+		Where("u.id = ?", userID).
+		Select("rs.name").
+		Row().
+		Scan(&roleName)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+	return roleName, err
+}
+
+func (r *gormRepo) GetUserAccountStatus(ctx context.Context, userID string) (status string, err error) {
+	err = r.db.WithContext(ctx).
+		Table("users").
+		Where("id = ? AND deleted_at IS NULL", userID).
+		Select("account_status").
+		Row().
+		Scan(&status)
+	if err == sql.ErrNoRows {
+		// User either does not exist or has been soft-deleted
+		return "Deleted", nil
+	}
+	return status, err
+}
+
+func (r *gormRepo) SoftDeleteUser(ctx context.Context, userID string) error {
+	err := r.db.WithContext(ctx).Where("id = ?", userID).Delete(&gorm_model.User{}).Error
+	if err != nil {
+		logrus.Error("SoftDeleteUser Exec:", err)
+		return err
+	}
+	return nil
+}
+
+func (r *gormRepo) GetUserVerifiedAt(ctx context.Context, userID string) (verifiedAt *time.Time, err error) {
+	err = r.db.WithContext(ctx).
+		Table("users").
+		Where("id = ?", userID).
+		Select("verified_at").
+		Row().
+		Scan(&verifiedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return verifiedAt, err
+}
+
+func (r *gormRepo) CreateUserBySuperadmin(ctx context.Context, row *gorm_model.User) (err error) {
+	err = r.db.WithContext(ctx).Create(row).Error
+	if err != nil {
+		logrus.Error("CreateUserBySuperadmin Exec:", err)
+		return
+	}
+
+	return
+}
+
+func (r *gormRepo) GetCandidateLevelsByUserIDs(ctx context.Context, userIDs []string) (map[string]string, error) {
+	if len(userIDs) == 0 {
+		return map[string]string{}, nil
+	}
+
+	type row struct {
+		ID             string  `gorm:"column:id"`
+		CandidateLevel *string `gorm:"column:candidate_level"`
+	}
+
+	var rows []row
+	err := r.db.WithContext(ctx).
+		Table("users").
+		Select("id, candidate_level").
+		Where("id IN (?)", userIDs).
+		Scan(&rows).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]string)
+	for _, r := range rows {
+		level := ""
+		if r.CandidateLevel != nil {
+			level = *r.CandidateLevel
+		}
+		result[r.ID] = level
+	}
+
+	return result, nil
+}
+
+func (r *gormRepo) GetUserMustResetPassword(ctx context.Context, userID string) (bool, error) {
+	var mustReset bool
+	err := r.db.WithContext(ctx).
+		Table("users").
+		Where("id = ?", userID).
+		Select("must_reset_password").
+		Row().
+		Scan(&mustReset)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+	return mustReset, err
+}
+

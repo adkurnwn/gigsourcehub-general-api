@@ -15,15 +15,126 @@ func (h *routeHandler) handleAuthRoute(prefixPath string) {
 
 	api.POST("/login", h.Login)
 	api.POST("/register", h.Register)
+	api.POST("/refresh", h.RefreshToken)
+
+	api.GET("/verify", h.VerifyAccount)
+	api.POST("/resend-verification", h.ResendVerification)
+	api.POST("/forgot-password", h.ForgotPassword)
+	api.POST("/reset-password", h.ResetPassword)
 
 	api.GET("/me", h.Middleware.Auth(), h.GetMe)
+	api.POST("/logout", h.Middleware.Auth(), h.Logout)
 }
 
-// Login Member
+// Verify Account
 //
-//	@Summary		Login as member
+//	@Summary		Verify account
+//	@Description	Verify account use token from email
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			token	query		string	true	"Verification Token"
+//	@Success		200		{object}	response.Base
+//	@Failure		400		{object}	response.Base
+//	@Failure		500		{object}	response.Base
+//	@Router			/auth/verify [get]
+func (r *routeHandler) VerifyAccount(c *gin.Context) {
+	ctx := c.Request.Context()
+	token := c.Query("token")
+
+	if token == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "token is required"))
+		return
+	}
+
+	response := r.Usecase.VerifyAccount(ctx, token)
+	c.JSON(response.Status, response)
+}
+
+// Resend Verification
+//
+//	@Summary		Resend verification email
+//	@Description	Resend account verification token to user's email
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		request_model.ResendVerificationRequest	true	"Resend Verification Request"
+//	@Success		200		{object}	response.Base
+//	@Failure		400		{object}	response.Base
+//	@Failure		429		{object}	response.Base
+//	@Failure		500		{object}	response.Base
+//	@Router			/auth/resend-verification [post]
+func (r *routeHandler) ResendVerification(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	payload := request_model.ResendVerificationRequest{}
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "invalid email format or empty request"))
+		return
+	}
+
+	response := r.Usecase.ResendVerification(ctx, payload)
+	c.JSON(response.Status, response)
+}
+
+// Forgot Password
+//
+//	@Summary		Forgot password
+//	@Description	Request password reset link
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		request_model.ForgotPasswordRequest	true	"Forgot Password Request"
+//	@Success		200		{object}	response.Base
+//	@Failure		400		{object}	response.Base
+//	@Failure		500		{object}	response.Base
+//	@Router			/auth/forgot-password [post]
+func (r *routeHandler) ForgotPassword(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	payload := request_model.ForgotPasswordRequest{}
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "invalid json data"))
+		return
+	}
+
+	response := r.Usecase.ForgotPassword(ctx, payload)
+	c.JSON(response.Status, response)
+}
+
+// Reset Password
+//
+//	@Summary		Reset password
+//	@Description	Reset password use token from email
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		request_model.ResetPasswordRequest	true	"Reset Password Request"
+//	@Success		200		{object}	response.Base
+//	@Failure		400		{object}	response.Base
+//	@Failure		500		{object}	response.Base
+//	@Router			/auth/reset-password [post]
+func (r *routeHandler) ResetPassword(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	payload := request_model.ResetPasswordRequest{}
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "invalid json data"))
+		return
+	}
+
+	response := r.Usecase.ResetPassword(ctx, payload)
+	c.JSON(response.Status, response)
+}
+
+// Login User
+//
+//	@Summary		Login as user
 //	@Description	Login use email and password
-//	@Tags			auth
+//	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		request_model.LoginRequest	true	"Login Request"
@@ -46,11 +157,11 @@ func (r *routeHandler) Login(c *gin.Context) {
 	c.JSON(response.Status, response)
 }
 
-// Register Member
+// Register User
 //
-//	@Summary		Register member
-//	@Description	Create a new member
-//	@Tags			auth
+//	@Summary		Register user
+//	@Description	Create a new user
+//	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		request_model.RegisterRequest	true	"Register Request"
@@ -73,14 +184,14 @@ func (r *routeHandler) Register(c *gin.Context) {
 	c.JSON(response.Status, response)
 }
 
-// Detail Member
+// Detail User
 //
-//	@Summary		Detail member
-//	@Description	Get detail current member
-//	@Tags			auth
+//	@Summary		Detail user
+//	@Description	Get detail current user
+//	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	gorm_model.UserResp
+//	@Success		200	{object}	gorm_model.AuthMeResp
 //	@Failure		400	{object}	response.Base
 //	@Failure		404	{object}	response.Base
 //	@Failure		500	{object}	response.Base
@@ -92,4 +203,56 @@ func (r *routeHandler) GetMe(c *gin.Context) {
 
 	response := r.Usecase.GetMe(ctx, c.MustGet("token_data").(domain.JWTClaimUser))
 	c.JSON(response.Status, response)
+}
+
+// Logout User
+//
+//	@Summary		Logout user
+//	@Description	Logout current user session
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		request_model.LogoutRequest	false	"Logout Request"
+//	@Success		200	{object}	response.Base
+//	@Failure		400	{object}	response.Base
+//	@Failure		401	{object}	response.Base
+//	@Failure		500	{object}	response.Base
+//	@Router			/auth/logout [post]
+//
+//	@Security		BearerAuth
+func (r *routeHandler) Logout(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	var payload request_model.LogoutRequest
+	_ = c.ShouldBindJSON(&payload)
+
+	response := r.Usecase.Logout(ctx, c.MustGet("token_data").(domain.JWTClaimUser), payload.RefreshToken)
+	c.JSON(response.Status, response)
+}
+
+// Refresh Token
+//
+//	@Summary		Refresh token
+//	@Description	Refresh access token using refresh token
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		request_model.RefreshTokenRequest	true	"Refresh Token Request"
+//	@Success		200		{object}	response.Base
+//	@Failure		400		{object}	response.Base
+//	@Failure		401		{object}	response.Base
+//	@Failure		500		{object}	response.Base
+//	@Router			/auth/refresh [post]
+func (r *routeHandler) RefreshToken(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	var payload request_model.RefreshTokenRequest
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "invalid json data"))
+		return
+	}
+
+	res := r.Usecase.RefreshToken(ctx, payload)
+	c.JSON(res.Status, res)
 }

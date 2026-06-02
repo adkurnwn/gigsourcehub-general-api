@@ -1,19 +1,77 @@
 package main
 
 import (
-	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
-	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
-	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
-	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
-	"github.com/adkurnwn/gigsourcehub-general-api/docs"
-
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/adkurnwn/gigsourcehub-general-api/app/consumer"
+	delivery_grpc "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/grpc"
+	http_activity_log "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/activity_log"
+	http_dashboard "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/dashboard"
+	http_admin_note "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/admin_note"
+	http_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/ai_chat"
+	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
+	http_career_department "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/career_department"
+	http_chat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/chat"
+	http_company_profile "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/company_profile"
+	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
+	http_faq "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/faq"
+	http_interview "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/interview"
+	http_interview_stage "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/interview_stage"
+	http_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_role"
+	http_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_title"
+	http_job_vacancy "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/job_vacancy"
+	http_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/kabupaten_kota"
+	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
+	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
+	http_onboarding "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/onboarding"
+	http_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/provinsi"
+	http_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/recruitment_status"
+	httpdelivery_request "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/request"
+	http_review "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/review"
+	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
+	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
+	http_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/system_setting"
+	aisearchrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/ai_search"
+	gormrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/gorm"
+	mailgunrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/mailgun"
+	rabbitmqrepo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/rabbitmq"
+	s3repo "github.com/adkurnwn/gigsourcehub-general-api/app/repository/s3"
+	usecase_activity_log "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/activity_log"
+	usecase_admin_note "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/admin_note"
+	usecase_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/ai_chat"
+	usecase_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/bookmark"
+	usecase_career_department "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/career_department"
+	usecase_chat "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/chat"
+	usecase_company_profile "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/company_profile"
+	usecase_cv "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/cv"
+	usecase_dashboard "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/dashboard"
+	usecase_faq "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/faq"
+	usecase_interview "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/interview"
+	usecase_interview_stage "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/interview_stage"
+	usecase_job_role "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_role"
+	usecase_job_title "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_title"
+	usecase_job_vacancy "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_vacancy"
+	usecase_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/kabupaten_kota"
+	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
+	usecase_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/provinsi"
+	usecase_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/recruitment_status"
+	usecase_request "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/request"
+	usecase_review "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/review"
+	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
+	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
+	usecase_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/system_setting"
+	"github.com/adkurnwn/gigsourcehub-general-api/docs"
+	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
+
+	"google.golang.org/grpc"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -49,8 +107,27 @@ func main() {
 	docs.SwaggerInfo.Title = "Swagger Golang API"
 	docs.SwaggerInfo.Description = "Documentations"
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = fmt.Sprintf("%s:%s", os.Getenv("HOST"), os.Getenv("PORT"))
-	docs.SwaggerInfo.BasePath = "/"
+
+	// Use APP_URL if set, otherwise fallback to HOST:PORT
+	appURL := os.Getenv("APP_URL")
+	if appURL != "" {
+		// Parse APP_URL to extract scheme and host
+		u, err := url.Parse(appURL)
+		if err == nil {
+			docs.SwaggerInfo.Host = u.Host
+			docs.SwaggerInfo.Schemes = []string{u.Scheme}
+		} else {
+			logrus.Warnf("Failed to parse APP_URL: %v, falling back to HOST:PORT", err)
+			docs.SwaggerInfo.Host = fmt.Sprintf("%s:%s", os.Getenv("HOST"), os.Getenv("PORT"))
+			docs.SwaggerInfo.Schemes = []string{"http", "https"}
+		}
+	} else {
+		// Fallback to HOST:PORT
+		docs.SwaggerInfo.Host = fmt.Sprintf("%s:%s", os.Getenv("HOST"), os.Getenv("PORT"))
+		docs.SwaggerInfo.Schemes = []string{"http", "https"}
+	}
+
+	docs.SwaggerInfo.BasePath = "/api"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	timeoutStr := os.Getenv("TIMEOUT")
@@ -59,6 +136,13 @@ func main() {
 	}
 	timeout, _ := strconv.Atoi(timeoutStr)
 	timeoutContext := time.Duration(timeout) * time.Second
+
+	aiSearchTimeoutStr := os.Getenv("AI_SEARCH_TIMEOUT")
+	if aiSearchTimeoutStr == "" {
+		aiSearchTimeoutStr = "120" // Default for local LLMs
+	}
+	aiSearchTimeoutVal, _ := strconv.Atoi(aiSearchTimeoutStr)
+	aiSearchTimeout := time.Duration(aiSearchTimeoutVal) * time.Second
 
 	// logger
 	writers := make([]io.Writer, 0)
@@ -104,13 +188,148 @@ func main() {
 	// init repo
 	repo := gormrepo.NewGormRepo(psqlPrep, logger.Default)
 
+	// init storage repo
+	storageRepo := s3repo.NewS3Repo()
+
+	// init ai search repo
+	aiRepo, err := aisearchrepo.NewAISearchRepository(os.Getenv("AI_API_URL"))
+	if err != nil {
+		logrus.Errorf("failed to init ai search repo: %v", err)
+	}
+
+	// init mailer repo
+	mailerRepo := mailgunrepo.NewMailgunRepo()
+
 	// init usecase
 	ucMember := usecase_member.NewAppUsecase(usecase_member.RepoInjection{
+		GormDbRepo:   repo,
+		StorageRepo:  storageRepo,
+		AISearchRepo: aiRepo,
+		Mailer:       mailerRepo,
+	}, timeoutContext)
+
+	// init job role usecase
+	ucJobRole := usecase_job_role.NewAppUsecase(usecase_job_role.RepoInjection{
 		GormDbRepo: repo,
 	}, timeoutContext)
 
-	// init middleware — pass nil redis client
-	mdl := middleware.NewMiddleware(nil)
+	// init job title usecase
+	ucJobTitle := usecase_job_title.NewAppUsecase(usecase_job_title.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init sector usecase
+	ucSector := usecase_sector.NewAppUsecase(usecase_sector.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init recruitment status usecase
+	ucRecruitmentStatus := usecase_recruitment_status.NewAppUsecase(usecase_recruitment_status.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init interview stage usecase
+	ucInterviewStage := usecase_interview_stage.NewAppUsecase(usecase_interview_stage.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+	
+	// init interview usecase
+	ucInterview := usecase_interview.NewAppUsecase(usecase_interview.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+
+	// init kabupaten kota usecase
+	ucKabupatenKota := usecase_kabupaten_kota.NewAppUsecase(usecase_kabupaten_kota.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init provinsi usecase
+	ucProvinsi := usecase_provinsi.NewAppUsecase(usecase_provinsi.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init bookmark usecase
+	ucBookmark := usecase_bookmark.NewAppUsecase(usecase_bookmark.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init admin note usecase
+	ucAdminNote := usecase_admin_note.NewAppUsecase(usecase_admin_note.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init review usecase
+	ucReview := usecase_review.NewAppUsecase(usecase_review.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init ai chat usecase
+	ucAIChat := usecase_aichat.NewAIChatUsecase(repo, timeoutContext)
+
+	// init request usecase
+	ucRequest := usecase_request.NewRequestAppUsecase(repo, timeoutContext)
+
+	// init mq repo
+	mqRepo, err := rabbitmqrepo.NewRabbitMQRepo(os.Getenv("RABBITMQ_URL"))
+	if err != nil {
+		logrus.Errorf("failed to init rabbitmq: %v", err)
+		// Don't fatal, just log, so app can start without rabbitmq if needed
+		// or handle gracefully. For now, we proceed but publishing will fail.
+	} else {
+		defer mqRepo.Close()
+	}
+
+	// init cv usecase
+	ucCV := usecase_cv.NewCVUsecase(repo, storageRepo, mqRepo, timeoutContext)
+
+	// init activity log usecase
+	ucActivityLog := usecase_activity_log.NewAppUsecase(usecase_activity_log.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init system setting usecase
+	ucSystemSetting := usecase_system_setting.NewAppUsecase(usecase_system_setting.RepoInjection{
+		GormDbRepo:  repo,
+		StorageRepo: storageRepo,
+	}, timeoutContext)
+
+	// init job vacancy usecase
+	ucJobVacancy := usecase_job_vacancy.NewAppUsecase(usecase_job_vacancy.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init faq usecase
+	ucFAQ := usecase_faq.NewAppUsecase(usecase_faq.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init company profile usecase
+	ucCompanyProfile := usecase_company_profile.NewAppUsecase(usecase_company_profile.RepoInjection{
+		GormDbRepo: repo,
+	}, timeoutContext)
+
+	// init career department usecase
+	ucCareerDepartment := usecase_career_department.NewAppUsecase(usecase_career_department.RepoInjection{
+		GormDbRepo:  repo,
+		StorageRepo: storageRepo,
+	}, timeoutContext)
+
+	// init dashboard usecase
+	ucDashboard := usecase_dashboard.NewDashboardUsecase(repo, timeoutContext)
+
+	// start consumer
+	if mqRepo != nil {
+		cvConsumer := consumer.NewCVParserConsumer(mqRepo, repo)
+		go func() {
+			if err := cvConsumer.Start(context.Background()); err != nil {
+				logrus.Errorf("CVParserConsumer exited with error: %v", err)
+			}
+		}()
+	}
+
+	// init middleware — pass nil redis client and the actual gorm repo
+	mdl := middleware.NewMiddleware(nil, repo)
 
 	// gin mode realease when go env is production
 	if os.Getenv("GO_ENV") == "production" || os.Getenv("GO_ENV") == "prod" {
@@ -129,6 +348,9 @@ func main() {
 	// cors
 	ginEngine.Use(mdl.Cors())
 
+	// Context Enricher (Real IP, User-Agent, etc.)
+	ginEngine.Use(mdl.ContextEnricher())
+
 	// default route
 	ginEngine.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, map[string]any{
@@ -137,10 +359,72 @@ func main() {
 	})
 
 	// swagger route
-	ginEngine.GET("/swg/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	ginEngine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// init route
-	http_member.NewRouteHandler(ginEngine.Group(""), mdl, ucMember)
+	apiGroup := ginEngine.Group("/api")
+	http_member.NewRouteHandler(apiGroup, mdl, ucMember)
+	http_onboarding.NewOnboardingHandler(apiGroup, mdl, ucMember)
+	http_cv.NewCVHandler(apiGroup, mdl, ucCV)
+	http_job_role.NewJobRoleHandler(apiGroup, mdl, ucJobRole)
+	httpdelivery_request.NewRequestHandler(apiGroup, mdl, ucRequest)
+	http_job_title.NewJobTitleHandler(apiGroup, mdl, ucJobTitle)
+	http_sector.NewSectorHandler(apiGroup, mdl, ucSector)
+	http_kabupaten_kota.NewKabupatenKotaHandler(apiGroup, ucKabupatenKota)
+	http_provinsi.NewProvinsiHandler(apiGroup, ucProvinsi)
+	http_recruitment_status.NewRecruitmentStatusHandler(apiGroup, mdl, ucRecruitmentStatus)
+	http_bookmark.NewBookmarkHandler(apiGroup, mdl, ucBookmark)
+	http_admin_note.NewAdminNoteHandler(apiGroup, mdl, ucAdminNote)
+	http_review.NewReviewHandler(apiGroup, mdl, ucReview)
+	http_aichat.NewAIChatHandler(apiGroup, mdl, ucAIChat)
+	http_activity_log.NewActivityLogHandler(apiGroup, mdl, ucActivityLog)
+	http_system_setting.NewSystemSettingHandler(apiGroup, mdl, ucSystemSetting)
+	http_job_vacancy.NewJobVacancyHandler(apiGroup, mdl, ucJobVacancy)
+	http_faq.NewFAQHandler(apiGroup, mdl, ucFAQ)
+	http_company_profile.NewCompanyProfileHandler(apiGroup, mdl, ucCompanyProfile)
+	http_career_department.NewCareerDepartmentHandler(apiGroup, mdl, ucCareerDepartment)
+	http_interview_stage.NewInterviewStageHandler(apiGroup, mdl, ucInterviewStage)
+	http_interview.NewInterviewHandler(apiGroup, mdl, ucInterview)
+	http_dashboard.NewDashboardHandler(apiGroup, mdl, ucDashboard)
+
+	// init chat
+	chatHub := http_chat.NewHub()
+	go chatHub.Run()
+
+	ucChat := usecase_chat.NewAppUsecase(usecase_chat.RepoInjection{
+		GormDbRepo:  repo,
+		StorageRepo: storageRepo,
+	}, chatHub, timeoutContext)
+	http_chat.NewChatHandler(apiGroup, mdl, ucChat, chatHub)
+
+	// init search (AI)
+	if aiRepo != nil {
+		// Use a dedicated timeout for AI Search as it involves slow LLM evaluations
+		ucSearch := usecase_search.NewSearchUsecase(aiRepo, repo, aiSearchTimeout)
+		http_search.NewSearchHandler(apiGroup, mdl, ucSearch)
+	}
+
+	// init grpc handler
+	candidateGrpcHandler := delivery_grpc.NewCandidateHandler(repo)
+
+	// start grpc server
+	grpcPort := os.Getenv("GRPC_PORT")
+	if grpcPort == "" {
+		grpcPort = "50052"
+	}
+	lis, err := net.Listen("tcp", ":"+grpcPort)
+	if err != nil {
+		logrus.Errorf("failed to listen for grpc: %v", err)
+	} else {
+		s := grpc.NewServer()
+		pb.RegisterCandidateServiceServer(s, candidateGrpcHandler)
+		logrus.Infof("gRPC server running on port %s", grpcPort)
+		go func() {
+			if err := s.Serve(lis); err != nil {
+				logrus.Errorf("failed to serve grpc: %v", err)
+			}
+		}()
+	}
 
 	port := os.Getenv("PORT")
 

@@ -6,39 +6,56 @@ import (
 	"os"
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/sirupsen/logrus"
 )
 
 type s3Repo struct {
 	bucketName string
 	publicURL  *url.URL
-	client     *s3.Client
-	presigner  *s3.PresignClient
+	client     *minio.Client
 }
 
 func NewS3Repo() domain.StorageRepo {
-	cfg, _ := config.LoadDefaultConfig(
-		context.TODO(),
-		config.WithCredentialsProvider(
-			aws.NewCredentialsCache(
-				credentials.NewStaticCredentialsProvider(
-					os.Getenv("S3_ACCESS_KEY"),
-					os.Getenv("S3_SECRET_KEY"),
-					"",
-				),
-			),
-		),
-		config.WithRegion(os.Getenv("S3_REGION")),
-	)
+	endpoint := os.Getenv("S3_ENDPOINT")
+	accessKeyID := os.Getenv("S3_ACCESS_KEY")
+	secretAccessKey := os.Getenv("S3_SECRET_KEY")
+	bucketName := os.Getenv("S3_BUCKET_NAME")
+	useSSL := true
 
-	// Create an Amazon S3 service client
-	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.BaseEndpoint = aws.String(os.Getenv("S3_ENDPOINT"))
+	// Parse endpoint to check for scheme and strip it if necessary for minio.New
+	u, err := url.Parse(endpoint)
+	if err == nil {
+		if u.Scheme == "http" {
+			useSSL = false
+		}
+		// minio.New expects endpoint without scheme
+		endpoint = u.Host
+	}
+
+	// Initialize minio client object.
+	minioClient, err := minio.New(endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
+		Secure: useSSL,
 	})
+	if err != nil {
+		logrus.Fatalln(err)
+	}
+
+	// Check to see if we already own this bucket
+	exists, err := minioClient.BucketExists(context.Background(), bucketName)
+	if err != nil {
+		logrus.Warnf("s3: check bucket exists error: %v", err)
+	} else if !exists {
+		logrus.Infof("s3: bucket %s not found, creating...", bucketName)
+		err = minioClient.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{})
+		if err != nil {
+			logrus.Errorf("s3: failed to create bucket %s: %v", bucketName, err)
+		} else {
+			logrus.Infof("s3: bucket %s created", bucketName)
+		}
+	}
 
 	publicURL, err := url.Parse(os.Getenv("S3_PUBLIC_URL"))
 	if err != nil {
@@ -46,9 +63,8 @@ func NewS3Repo() domain.StorageRepo {
 	}
 
 	return &s3Repo{
-		bucketName: os.Getenv("S3_BUCKET_NAME"),
+		bucketName: bucketName,
 		publicURL:  publicURL,
-		client:     client,
-		presigner:  s3.NewPresignClient(client),
+		client:     minioClient,
 	}
 }
