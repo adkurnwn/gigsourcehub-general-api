@@ -564,8 +564,9 @@ func (u *appUsecase) AssignCandidateToSubrequest(ctx context.Context, adminID st
 		CandidateUserID: candidate.ID,
 		Name:            candidate.Name,
 	}
+	markRequestProcessing := existingReq.Status != "PROCESSING"
 
-	if err := u.gormDbRepo.AssignCandidateToSubrequest(ctx, assignment, assignedStatus.ID); err != nil {
+	if err := u.gormDbRepo.AssignCandidateToSubrequest(ctx, assignment, assignedStatus.ID, requestID, markRequestProcessing); err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "already assigned") {
 			return response.Error(http.StatusConflict, "Candidate is already assigned to this subrequest")
 		}
