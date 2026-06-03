@@ -3,6 +3,7 @@ package usecase_request
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -10,6 +11,7 @@ import (
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/sirupsen/logrus"
 )
 
@@ -85,6 +87,28 @@ func (u *appUsecase) CreateByEmployee(ctx context.Context, employeeID string, re
 		logrus.Errorf("Failed to create request: %v", err)
 		return response.Error(http.StatusInternalServerError, "Failed to create request")
 	}
+
+	// 5. Notify all admin users about the new request
+	_, employee, _ := u.verifyEmployee(ctx, employeeID)
+	employeeName := employeeID
+	if employee != nil {
+		employeeName = employee.Name
+	}
+	go func() {
+		bgCtx := context.Background()
+		var adminUserIDs []string
+		err := u.gormDbRepo.GetDB().WithContext(bgCtx).
+			Table("users").
+			Joins("JOIN system_roles sr ON sr.id = users.system_role_id").
+			Where("sr.name = ? AND users.deleted_at IS NULL", "Admin").
+			Pluck("users.id", &adminUserIDs).Error
+		
+		if err == nil && len(adminUserIDs) > 0 {
+			title := "New Request Submitted"
+			desc := fmt.Sprintf("A new request has been submitted by %s.", employeeName)
+			helpers.SendNotificationToAll(bgCtx, u.gormDbRepo, adminUserIDs, title, desc)
+		}
+	}()
 
 	return response.Success(nil)
 }
@@ -325,6 +349,12 @@ func (u *appUsecase) AssignPIC(ctx context.Context, adminID, requestID string) r
 		return response.Error(http.StatusInternalServerError, "Failed to assign PIC")
 	}
 
+	// Notify the employee that their request was accepted
+	helpers.SendNotificationAsync(ctx, u.gormDbRepo, existingReq.EmployeeUserID,
+		"Request Accepted",
+		fmt.Sprintf("Your request \"%s\" has been accepted by an admin.", existingReq.ProjectName),
+	)
+
 	return response.Success(nil)
 }
 
@@ -355,6 +385,12 @@ func (u *appUsecase) RejectRequest(ctx context.Context, adminID, requestID strin
 		logrus.Errorf("RejectRequest DB Error: %v", err)
 		return response.Error(http.StatusInternalServerError, "Failed to reject request")
 	}
+
+	// Notify the employee that their request was rejected
+	helpers.SendNotificationAsync(ctx, u.gormDbRepo, existingReq.EmployeeUserID,
+		"Request Rejected",
+		fmt.Sprintf("Your request \"%s\" has been rejected. Reason: %s", existingReq.ProjectName, rejectedReason),
+	)
 
 	return response.Success(nil)
 }
@@ -572,6 +608,19 @@ func (u *appUsecase) AssignCandidateToSubrequest(ctx context.Context, adminID st
 		logrus.Errorf("AssignCandidateToSubrequest DB Error: %v", err)
 		return response.Error(http.StatusInternalServerError, "Failed to assign candidate to subrequest")
 	}
+
+	// Notify the candidate about being recruited for a position
+	var jobRoleName string
+	if existingSubReq.JobRoleID != nil {
+		var jr gorm_model.JobRole
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jr, "id = ?", *existingSubReq.JobRoleID).Error; err == nil {
+			jobRoleName = jr.Name
+		}
+	}
+	helpers.SendNotificationAsync(ctx, u.gormDbRepo, candidate.ID,
+		"Recruitment Invitation",
+		fmt.Sprintf("You have been invited to the recruitment process for the position of %s. Please check your dashboard for further information.", jobRoleName),
+	)
 
 	return response.Success(nil)
 }

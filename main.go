@@ -35,6 +35,7 @@ import (
 	http_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/provinsi"
 	http_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/recruitment_status"
 	httpdelivery_request "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/request"
+	http_notification "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/notification"
 	http_review "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/review"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
 	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
@@ -65,6 +66,7 @@ import (
 	usecase_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/recruitment_status"
 	usecase_request "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/request"
 	usecase_review "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/review"
+	usecase_notification "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/notification"
 	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
 	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
 	usecase_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/system_setting"
@@ -318,6 +320,9 @@ func main() {
 	// init dashboard usecase
 	ucDashboard := usecase_dashboard.NewDashboardUsecase(repo, timeoutContext)
 
+	// init notification usecase
+	ucNotification := usecase_notification.NewAppUsecase(repo, timeoutContext)
+
 	// start consumer
 	if mqRepo != nil {
 		cvConsumer := consumer.NewCVParserConsumer(mqRepo, repo)
@@ -327,6 +332,10 @@ func main() {
 			}
 		}()
 	}
+
+	// start notification scheduler
+	notificationScheduler := consumer.NewNotificationScheduler(repo)
+	go notificationScheduler.Start(context.Background())
 
 	// init middleware — pass nil redis client and the actual gorm repo
 	mdl := middleware.NewMiddleware(nil, repo)
@@ -386,6 +395,7 @@ func main() {
 	http_interview_stage.NewInterviewStageHandler(apiGroup, mdl, ucInterviewStage)
 	http_interview.NewInterviewHandler(apiGroup, mdl, ucInterview)
 	http_dashboard.NewDashboardHandler(apiGroup, mdl, ucDashboard)
+	http_notification.NewNotificationHandler(apiGroup, mdl, ucNotification)
 
 	// init chat
 	chatHub := http_chat.NewHub()

@@ -225,6 +225,17 @@ type GormRepo interface {
 	FetchRecentActivitiesForAdmin(ctx context.Context, limit int) ([]gorm_model.LogActivity, error)
 	FetchDashboardAnalytics(ctx context.Context, period string) (gorm_model.DashboardAnalyticsResp, error)
 	FetchSuperadminDashboardStats(ctx context.Context) (gorm_model.SuperadminDashboardResp, error)
+
+	// Notifications
+	CreateNotification(ctx context.Context, model *gorm_model.Notification) error
+	FetchNotificationsByUser(ctx context.Context, userID string, limit, offset int64) ([]gorm_model.Notification, error)
+	CountNotificationsByUser(ctx context.Context, userID string) (int64, error)
+	CountUnreadNotificationsByUser(ctx context.Context, userID string) (int64, error)
+	MarkNotificationAsRead(ctx context.Context, notificationID, userID string) error
+	MarkAllNotificationsAsRead(ctx context.Context, userID string) error
+	GetSuperadminUserIDs(ctx context.Context) ([]string, error)
+	GetUpcomingInterviewsForNotification(ctx context.Context, from, to time.Time) ([]gorm_model.Interview, error)
+	GetExpiringContractsForNotification(ctx context.Context, targetDate time.Time) ([]gorm_model.OnboardHistory, error)
 }
 
 type CacheRepo interface {

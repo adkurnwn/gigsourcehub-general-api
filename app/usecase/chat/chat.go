@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
+
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
@@ -381,6 +383,17 @@ func (u *appUsecase) SendMessage(ctx context.Context, userID string, conversatio
 		// The message sent to the other user should be formatted for their role!
 		broadcastResp := msg.ToMessageResp(targetRole)
 		u.hub.SendToUser(targetUserID, "new_message", broadcastResp)
+	}
+
+	// Notify Admin if Candidate sends a message
+	if userID == conv.CandidateUserID {
+		senderName := "Candidate"
+		if msg.SenderUser != nil {
+			senderName = msg.SenderUser.Name
+		}
+		title := "Pesan Baru"
+		desc := fmt.Sprintf("Anda menerima pesan baru dari %s.", senderName)
+		helpers.SendNotificationAsync(ctx, u.gormDbRepo, conv.AdminUserID, title, desc)
 	}
 
 	return response.Success(msgResp)
