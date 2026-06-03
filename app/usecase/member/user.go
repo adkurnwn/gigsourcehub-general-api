@@ -1166,6 +1166,7 @@ func (u *appUsecase) FinalizeRecruitment(ctx context.Context, adminID string, re
 		ctx,
 		req.CandidateUserID,
 		req.SubrequestID,
+		snapshotData.RequestID,
 		acceptedStatus.ID,
 		&startDate,
 		&endDate,
