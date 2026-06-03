@@ -59,7 +59,7 @@ func (h *routeHandler) handleUserRoute(path string) {
 	userGroup.POST("/finalize-recruitment", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.FinalizeRecruitment)
 
 	// get active subrequest for candidate by admin/superadmin
-	userGroup.GET("/:id/active-subrequest", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin", "Candidate"), h.GetActiveSubrequest)
+	userGroup.GET("/:id/active-subrequest", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin", "Employee", "Candidate"), h.GetActiveSubrequest)
 
 	// get profile picture by id
 	userGroup.GET("/:id/profile-picture", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin"), h.FetchUserThumb)
