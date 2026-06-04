@@ -287,14 +287,6 @@ func (u *cvUsecase) GetParsedCV(ctx context.Context, userID string) response.Bas
 		return response.Error(http.StatusForbidden, "not authorized to view this cv")
 	}
 
-	// Backend-driven timeout: if CV is in UPLOADED or PARSING status and stuck for > 30 seconds, fail it.
-	if (cv.Status == "UPLOADED" || cv.Status == "PARSING") && time.Since(cv.UpdatedAt) > 30*time.Second {
-		cv.Status = "FAILED"
-		if err := u.gormRepo.UpdateCV(ctx, cv); err == nil {
-			DeleteCVProgress(cv.ID)
-		}
-	}
-
 	var parsedData interface{}
 	if cv.ParsedData != nil {
 		var parsedMap map[string]interface{}
