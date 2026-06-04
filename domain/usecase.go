@@ -245,3 +245,10 @@ type DashboardAppUsecase interface {
 	GetAdminDashboardAnalytics(ctx context.Context, period string) response.Base
 	GetSuperadminDashboardSummary(ctx context.Context) response.Base
 }
+
+type NotificationAppUsecase interface {
+	FetchMyNotifications(ctx context.Context, userID string, page, limit int64) response.Base
+	MarkAsRead(ctx context.Context, userID, notificationID string) response.Base
+	MarkAllAsRead(ctx context.Context, userID string) response.Base
+	GetUnreadCount(ctx context.Context, userID string) response.Base
+}

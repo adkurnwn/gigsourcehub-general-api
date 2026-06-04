@@ -3,6 +3,7 @@ package usecase_company_profile
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -87,6 +88,24 @@ func (u *appUsecase) AdminUpdate(ctx context.Context, adminID string, req reques
 		helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Company Profile", "", req, false)
 		return response.Error(http.StatusInternalServerError, "Failed to create company profile update approval request")
 	}
+
+	// Notify Superadmins
+	go func() {
+		bgCtx := context.Background()
+		superadminIDs, err := u.gormDbRepo.GetSuperadminUserIDs(bgCtx)
+		if err == nil {
+			var adminName = adminID
+			adminUser, _ := u.gormDbRepo.FetchOneUser(bgCtx, gorm_model.UserFilter{
+				DefaultFilter: gorm_model.DefaultFilter{ID: adminID},
+			})
+			if adminUser != nil {
+				adminName = adminUser.Name
+			}
+			title := "Perubahan Konten Landing Page"
+			desc := fmt.Sprintf("Admin %s mengajukan perubahan konten landing page (Company Profile).", adminName)
+			helpers.SendNotificationToAll(bgCtx, u.gormDbRepo, superadminIDs, title, desc)
+		}
+	}()
 
 	helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Company Profile", "", req, true)
 	return response.Success(approval.ToApprovalRequestResp())
@@ -235,6 +254,12 @@ func (u *appUsecase) ApproveRequest(ctx context.Context, superadminID string, ap
 		return response.Error(http.StatusInternalServerError, "Failed to update approval status")
 	}
 
+	// Notify Admin
+	helpers.SendNotificationAsync(ctx, u.gormDbRepo, approval.RequestedByAdminID,
+		"Perubahan Konten Landing Page Disetujui",
+		"Perubahan konten landing page (Company Profile) yang Anda ajukan telah disetujui.",
+	)
+
 	helpers.LogActivity(ctx, u.gormDbRepo, "Approve", "Company Profile", "", nil, true)
 	return response.Success(approval.ToApprovalRequestResp())
 }
@@ -269,6 +294,16 @@ func (u *appUsecase) RejectRequest(ctx context.Context, superadminID string, app
 		logrus.Error("CompanyProfile RejectRequest update error:", err)
 		return response.Error(http.StatusInternalServerError, "Failed to update approval status")
 	}
+
+	// Notify Admin
+	reason := "-"
+	if req.RejectedReason != nil {
+		reason = *req.RejectedReason
+	}
+	helpers.SendNotificationAsync(ctx, u.gormDbRepo, approval.RequestedByAdminID,
+		"Perubahan Konten Landing Page Ditolak",
+		fmt.Sprintf("Perubahan konten landing page (Company Profile) yang Anda ajukan ditolak. Alasan: %s", reason),
+	)
 
 	helpers.LogActivity(ctx, u.gormDbRepo, "Reject", "Company Profile", "", req, true)
 	return response.Success(approval.ToApprovalRequestResp())
