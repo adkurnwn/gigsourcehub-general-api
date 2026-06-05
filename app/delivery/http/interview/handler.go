@@ -25,14 +25,18 @@ func NewInterviewHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domai
 		Middleware: mdl,
 	}
 
-	api := r.Group("/interview", mdl.Auth(), mdl.AuthRole("Admin"))
-	api.GET("", handler.FetchAll)
-	api.GET("/scheduled", handler.FetchScheduled)
-	api.GET("/:id", handler.FetchData)
-	api.POST("", handler.Create)
-	api.PUT("/:id", handler.Update)
-	api.PATCH("/stage", handler.PatchStage)
-	api.PATCH("/status", handler.PatchStatus)
+	// Routes that both Admin and Candidate can access
+	sharedApi := r.Group("/interview", mdl.Auth(), mdl.AuthRole("Admin", "Candidate"))
+	sharedApi.GET("/:id", handler.FetchData)
+
+	// Routes that only Admin can access
+	adminApi := r.Group("/interview", mdl.Auth(), mdl.AuthRole("Admin"))
+	adminApi.GET("", handler.FetchAll)
+	adminApi.GET("/scheduled", handler.FetchScheduled)
+	adminApi.POST("", handler.Create)
+	adminApi.PUT("/:id", handler.Update)
+	adminApi.PATCH("/stage", handler.PatchStage)
+	adminApi.PATCH("/status", handler.PatchStatus)
 }
 
 // Get All Interviews

@@ -123,6 +123,18 @@ func (u *appUsecase) FetchData(ctx context.Context, id string) response.Base {
 		return response.Error(http.StatusInternalServerError, "Failed to fetch Interview")
 	}
 
+	actorID := helpers.GetActorID(ctx)
+	if actorID != "" {
+		roleName, err := u.gormDbRepo.GetRoleNameByUserID(ctx, actorID)
+		if err != nil {
+			logrus.Error("Interview FetchData role verification error:", err)
+			return response.Error(http.StatusInternalServerError, "Failed to verify permissions")
+		}
+		if roleName == "Candidate" && interview.CandidateUserID != actorID {
+			return response.Error(http.StatusForbidden, "Forbidden: You are not authorized to view this interview detail")
+		}
+	}
+
 	return response.Success(interview.ToInterviewResp())
 }
 
