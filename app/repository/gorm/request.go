@@ -13,17 +13,25 @@ import (
 )
 
 func applyRequestFilter(q *gorm.DB, filter gorm_model.RequestFilter) *gorm.DB {
-	if filter.Status != nil {
-		q = q.Where("status = ?", *filter.Status)
+	if filter.Status != nil && *filter.Status != "" {
+		q = q.Where("requests.status = ?", *filter.Status)
 	}
-	if filter.Urgency != nil {
-		q = q.Where("urgency = ?", *filter.Urgency)
+	if filter.Urgency != nil && *filter.Urgency != "" {
+		q = q.Where("requests.urgency = ?", *filter.Urgency)
 	}
-	if filter.Search != nil {
-		q = q.Where("project_name ILIKE ?", "%"+*filter.Search+"%")
+	if filter.Search != nil && *filter.Search != "" {
+		q = q.Where("requests.project_name ILIKE ?", "%"+*filter.Search+"%")
 	}
-	if filter.AdminUserID != nil {
-		q = q.Where("admin_user_id = ?", *filter.AdminUserID)
+	if filter.AdminUserID != nil && *filter.AdminUserID != "" {
+		q = q.Where("requests.admin_user_id = ?", *filter.AdminUserID)
+	}
+	if filter.ProposedBy != nil && *filter.ProposedBy != "" {
+		q = q.Joins("LEFT JOIN users AS employee ON employee.id = requests.employee_user_id").
+			Where("employee.name ILIKE ?", "%"+*filter.ProposedBy+"%")
+	}
+	if filter.AdminName != nil && *filter.AdminName != "" {
+		q = q.Joins("LEFT JOIN users AS admin ON admin.id = requests.admin_user_id").
+			Where("admin.name ILIKE ?", "%"+*filter.AdminName+"%")
 	}
 	return q
 }
@@ -39,11 +47,12 @@ func (r *gormRepo) CreateRequest(ctx context.Context, model *gorm_model.Request)
 func (r *gormRepo) FetchRequestsByEmployee(ctx context.Context, employeeID string, limit, offset int64) (*sql.Rows, error) {
 	q := r.db.WithContext(ctx).Model(&gorm_model.Request{}).
 		Preload("AdminUser").
+		Preload("EmployeeUser").
 		Preload("Subrequests").
 		Preload("Subrequests.JobRole").
 		Preload("Subrequests.JobRole.Sector").
 		Where("employee_user_id = ?", employeeID).
-		Order("created_at DESC").
+		Order("requests.created_at DESC").
 		Limit(int(limit)).Offset(int(offset))
 
 	rows, err := q.Rows()
@@ -68,10 +77,11 @@ func (r *gormRepo) CountRequestsByEmployee(ctx context.Context, employeeID strin
 func (r *gormRepo) FetchRequestsByAdmin(ctx context.Context, filter gorm_model.RequestFilter, limit, offset int64) (*sql.Rows, error) {
 	q := r.db.WithContext(ctx).Model(&gorm_model.Request{}).
 		Preload("AdminUser").
+		Preload("EmployeeUser").
 		Preload("Subrequests").
 		Preload("Subrequests.JobRole").
 		Preload("Subrequests.JobRole.Sector").
-		Order("created_at DESC").
+		Order("requests.created_at DESC").
 		Limit(int(limit)).Offset(int(offset))
 
 	q = applyRequestFilter(q, filter)
@@ -99,10 +109,11 @@ func (r *gormRepo) GetRequestByID(ctx context.Context, id string) (*gorm_model.R
 	var request gorm_model.Request
 	err := r.db.WithContext(ctx).
 		Preload("AdminUser").
+		Preload("EmployeeUser").
 		Preload("Subrequests").
 		Preload("Subrequests.JobRole").
 		Preload("Subrequests.JobRole.Sector").
-		Where("id = ?", id).
+		Where("requests.id = ?", id).
 		First(&request).Error
 	if err != nil {
 		logrus.Errorf("GetRequestByID DB Error: %v\n", err)

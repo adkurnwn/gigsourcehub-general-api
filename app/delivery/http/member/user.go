@@ -9,6 +9,7 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
 	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 func (h *routeHandler) handleUserRoute(path string) {
@@ -18,6 +19,10 @@ func (h *routeHandler) handleUserRoute(path string) {
 	userGroup.GET("/candidates", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin", "Employee"), h.FetchCandidates)
 	userGroup.GET("/candidate-recruitment", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.FetchCandidateRecruitment)
 	userGroup.GET("/candidate-bookmarked", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Employee"), h.FetchCandidateBookmarked)
+
+	userGroup.GET("/candidates/export", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Superadmin", "Employee"), h.ExportCandidates)
+	userGroup.GET("/candidate-recruitment/export", h.Middleware.Auth(), h.Middleware.AuthAdmin(), h.ExportCandidateRecruitment)
+	userGroup.GET("/candidate-bookmarked/export", h.Middleware.Auth(), h.Middleware.AuthRole("Admin", "Employee"), h.ExportCandidateBookmarked)
 
 	// users list: Superadmin
 	userGroup.GET("", h.Middleware.Auth(), h.Middleware.AuthSuperadmin(), h.FetchAllUsers)
@@ -122,8 +127,65 @@ func (h *routeHandler) FetchCandidates(c *gin.Context) {
 		searchPtr = &search
 	}
 
-	res := h.Usecase.FetchUsers(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, searchPtr, &roleName, adminID)
+	filter := gorm_model.CandidateFilter{}
+	if bidang := c.Query("bidang"); bidang != "" {
+		filter.Bidang = strings.Split(bidang, ",")
+	}
+	if jobRoles := c.Query("job_roles"); jobRoles != "" {
+		filter.JobRoles = strings.Split(jobRoles, ",")
+	}
+	if candidateLevel := c.Query("candidate_level"); candidateLevel != "" {
+		filter.CandidateLevel = strings.Split(candidateLevel, ",")
+	}
+
+	res := h.Usecase.FetchUsers(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, searchPtr, &roleName, adminID, filter)
 	c.JSON(res.Status, res)
+}
+
+// ExportCandidates
+// @Summary Export Candidates
+// @Description Export a list of candidate users
+// @Tags Users
+// @Accept json
+// @Produce octet-stream
+// @Param format query string true "Format (pdf, csv, xlsx)"
+// @Param bidang query string false "Filter by Bidang (comma separated)"
+// @Param job_roles query string false "Filter by Job Roles (comma separated)"
+// @Param candidate_level query string false "Filter by Candidate Level (comma separated)"
+// @Success 200 {file} file
+// @Router /users/candidates/export [get]
+// @Security BearerAuth
+func (h *routeHandler) ExportCandidates(c *gin.Context) {
+	format := c.Query("format")
+	if format == "" {
+		format = "csv"
+	}
+
+	filter := gorm_model.CandidateFilter{}
+	if bidang := c.Query("bidang"); bidang != "" {
+		filter.Bidang = strings.Split(bidang, ",")
+	}
+	if jobRoles := c.Query("job_roles"); jobRoles != "" {
+		filter.JobRoles = strings.Split(jobRoles, ",")
+	}
+	if candidateLevel := c.Query("candidate_level"); candidateLevel != "" {
+		filter.CandidateLevel = strings.Split(candidateLevel, ",")
+	}
+
+	adminID := ""
+	if claims, ok := c.Get("token_data"); ok {
+		tokenData := claims.(domain.JWTClaimUser)
+		adminID = tokenData.UserID
+	}
+
+	data, contentType, ext, err := h.Usecase.ExportCandidates(c.Request.Context(), filter, format, adminID)
+	if err != nil || data == nil {
+		c.JSON(http.StatusInternalServerError, response.Error(http.StatusInternalServerError, "failed to export"))
+		return
+	}
+
+	c.Header("Content-Disposition", "attachment; filename=candidates_export."+ext)
+	c.Data(http.StatusOK, contentType, data)
 }
 
 // FetchCandidateRecruitment
@@ -142,8 +204,66 @@ func (h *routeHandler) FetchCandidates(c *gin.Context) {
 // @Security BearerAuth
 func (h *routeHandler) FetchCandidateRecruitment(c *gin.Context) {
 	pagination := helpers.GetPagination(c)
-	res := h.Usecase.FetchCandidateRecruitment(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor)
+
+	filter := gorm_model.CandidateRecruitmentFilter{}
+	if jobRoleName := c.Query("job_role_name"); jobRoleName != "" {
+		filter.JobRoleName = strings.Split(jobRoleName, ",")
+	}
+	if projectName := c.Query("project_name"); projectName != "" {
+		filter.ProjectName = strings.Split(projectName, ",")
+	}
+	if candidateLevel := c.Query("candidate_level"); candidateLevel != "" {
+		filter.CandidateLevel = strings.Split(candidateLevel, ",")
+	}
+
+	res := h.Usecase.FetchCandidateRecruitment(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, filter)
 	c.JSON(res.Status, res)
+}
+
+// ExportCandidateRecruitment
+// @Summary Export Candidate Recruitment
+// @Description Export a list of candidate recruitment
+// @Tags Users
+// @Accept json
+// @Produce octet-stream
+// @Param format query string true "Format (pdf, csv, xlsx)"
+// @Param job_role_name query string false "Filter by Job Role Name (comma separated)"
+// @Param project_name query string false "Filter by Project Name (comma separated)"
+// @Param candidate_level query string false "Filter by Candidate Level (comma separated)"
+// @Success 200 {file} file
+// @Router /users/candidate-recruitment/export [get]
+// @Security BearerAuth
+func (h *routeHandler) ExportCandidateRecruitment(c *gin.Context) {
+	format := c.Query("format")
+	if format == "" {
+		format = "csv"
+	}
+
+	filter := gorm_model.CandidateRecruitmentFilter{}
+	if jobRoleName := c.Query("job_role_name"); jobRoleName != "" {
+		filter.JobRoleName = strings.Split(jobRoleName, ",")
+	}
+	if projectName := c.Query("project_name"); projectName != "" {
+		filter.ProjectName = strings.Split(projectName, ",")
+	}
+	if candidateLevel := c.Query("candidate_level"); candidateLevel != "" {
+		filter.CandidateLevel = strings.Split(candidateLevel, ",")
+	}
+
+	adminID := ""
+	if claims, ok := c.Get("token_data"); ok {
+		tokenData := claims.(domain.JWTClaimUser)
+		adminID = tokenData.UserID
+	}
+
+	data, contentType, ext, err := h.Usecase.ExportCandidateRecruitment(c.Request.Context(), filter, format, adminID)
+	if err != nil || data == nil {
+		c.JSON(http.StatusInternalServerError, response.Error(http.StatusInternalServerError, "failed to export"))
+		return
+	}
+
+	c.Header("Content-Disposition", "attachment; filename=candidate_recruitment_export."+ext)
+	c.Data(http.StatusOK, contentType, data)
 }
 
 // FetchCandidateBookmarked
@@ -170,8 +290,68 @@ func (h *routeHandler) FetchCandidateBookmarked(c *gin.Context) {
 	}
 
 	tokenData := claims.(domain.JWTClaimUser)
-	res := h.Usecase.FetchCandidateBookmarked(c.Request.Context(), tokenData.UserID, pagination.Page, pagination.Limit, pagination.Cursor)
+
+	filter := gorm_model.CandidateFilter{}
+	if bidang := c.Query("bidang"); bidang != "" {
+		filter.Bidang = strings.Split(bidang, ",")
+	}
+	if jobRoles := c.Query("job_roles"); jobRoles != "" {
+		filter.JobRoles = strings.Split(jobRoles, ",")
+	}
+	if candidateLevel := c.Query("candidate_level"); candidateLevel != "" {
+		filter.CandidateLevel = strings.Split(candidateLevel, ",")
+	}
+
+	res := h.Usecase.FetchCandidateBookmarked(c.Request.Context(), tokenData.UserID, pagination.Page, pagination.Limit, pagination.Cursor, filter)
 	c.JSON(res.Status, res)
+}
+
+// ExportCandidateBookmarked
+// @Summary Export Candidate Bookmarked
+// @Description Export a list of candidate bookmarked
+// @Tags Users
+// @Accept json
+// @Produce octet-stream
+// @Param format query string true "Format (pdf, csv, xlsx)"
+// @Param bidang query string false "Filter by Bidang (comma separated)"
+// @Param job_roles query string false "Filter by Job Roles (comma separated)"
+// @Param candidate_level query string false "Filter by Candidate Level (comma separated)"
+// @Success 200 {file} file
+// @Router /users/candidate-bookmarked/export [get]
+// @Security BearerAuth
+func (h *routeHandler) ExportCandidateBookmarked(c *gin.Context) {
+	format := c.Query("format")
+	if format == "" {
+		format = "csv"
+	}
+
+	claims, ok := c.Get("token_data")
+	if !ok {
+		res := response.Error(http.StatusUnauthorized, "Unauthorized")
+		c.JSON(res.Status, res)
+		return
+	}
+	tokenData := claims.(domain.JWTClaimUser)
+
+	filter := gorm_model.CandidateFilter{}
+	if bidang := c.Query("bidang"); bidang != "" {
+		filter.Bidang = strings.Split(bidang, ",")
+	}
+	if jobRoles := c.Query("job_roles"); jobRoles != "" {
+		filter.JobRoles = strings.Split(jobRoles, ",")
+	}
+	if candidateLevel := c.Query("candidate_level"); candidateLevel != "" {
+		filter.CandidateLevel = strings.Split(candidateLevel, ",")
+	}
+
+	data, contentType, ext, err := h.Usecase.ExportCandidateBookmarked(c.Request.Context(), tokenData.UserID, filter, format)
+	if err != nil || data == nil {
+		c.JSON(http.StatusInternalServerError, response.Error(http.StatusInternalServerError, "failed to export"))
+		return
+	}
+
+	c.Header("Content-Disposition", "attachment; filename=candidate_bookmarked_export."+ext)
+	c.Data(http.StatusOK, contentType, data)
 }
 
 // FetchAllUsers
@@ -204,7 +384,7 @@ func (h *routeHandler) FetchAllUsers(c *gin.Context) {
 		searchPtr = &search
 	}
 
-	res := h.Usecase.FetchUsers(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, searchPtr, rolePtr, nil)
+	res := h.Usecase.FetchUsers(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, searchPtr, rolePtr, nil, gorm_model.CandidateFilter{})
 	c.JSON(res.Status, res)
 }
 

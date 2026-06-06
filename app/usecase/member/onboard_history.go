@@ -150,7 +150,7 @@ func (u *appUsecase) FetchOnboardingHistory(ctx context.Context, employeeID stri
 	})
 }
 
-func (u *appUsecase) FetchOnboardingActive(ctx context.Context, page, limit int64, cursor string) response.Base {
+func (u *appUsecase) FetchOnboardingActive(ctx context.Context, page, limit int64, cursor string, filter gorm_model.OnboardingFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -160,7 +160,23 @@ func (u *appUsecase) FetchOnboardingActive(ctx context.Context, page, limit int6
 
 	query := u.gormDbRepo.GetDB().WithContext(ctx).
 		Model(&gorm_model.OnboardHistory{}).
-		Where("start_date <= ? AND (end_date IS NULL OR end_date >= ?)", currentDate, currentDate)
+		Where("onboard_histories.start_date <= ? AND (onboard_histories.end_date IS NULL OR onboard_histories.end_date >= ?)", currentDate, currentDate)
+
+	if len(filter.JobRoleName) > 0 {
+		query = query.Where("onboard_histories.snapshot->>'job_role_name' IN ?", filter.JobRoleName)
+	}
+
+	if len(filter.ProjectName) > 0 {
+		query = query.Where("onboard_histories.snapshot->>'project_name' IN ?", filter.ProjectName)
+	}
+
+	if len(filter.EmployeeUser) > 0 {
+		query = query.Joins("LEFT JOIN offerings ON offerings.id = onboard_histories.offering_id").
+			Joins("LEFT JOIN subrequests ON subrequests.id = offerings.subrequest_id").
+			Joins("LEFT JOIN requests ON requests.id = subrequests.request_id").
+			Joins("LEFT JOIN users e_user ON e_user.id = requests.employee_user_id").
+			Where("e_user.name IN ? OR e_user.id IN ?", filter.EmployeeUser, filter.EmployeeUser)
+	}
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
@@ -199,7 +215,7 @@ func (u *appUsecase) FetchOnboardingActive(ctx context.Context, page, limit int6
 	})
 }
 
-func (u *appUsecase) FetchOnboardingArchive(ctx context.Context, page, limit int64, cursor string) response.Base {
+func (u *appUsecase) FetchOnboardingArchive(ctx context.Context, page, limit int64, cursor string, filter gorm_model.OnboardingFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -209,7 +225,23 @@ func (u *appUsecase) FetchOnboardingArchive(ctx context.Context, page, limit int
 
 	query := u.gormDbRepo.GetDB().WithContext(ctx).
 		Model(&gorm_model.OnboardHistory{}).
-		Where("end_date < ?", currentDate)
+		Where("onboard_histories.end_date < ?", currentDate)
+
+	if len(filter.JobRoleName) > 0 {
+		query = query.Where("onboard_histories.snapshot->>'job_role_name' IN ?", filter.JobRoleName)
+	}
+
+	if len(filter.ProjectName) > 0 {
+		query = query.Where("onboard_histories.snapshot->>'project_name' IN ?", filter.ProjectName)
+	}
+
+	if len(filter.EmployeeUser) > 0 {
+		query = query.Joins("LEFT JOIN offerings ON offerings.id = onboard_histories.offering_id").
+			Joins("LEFT JOIN subrequests ON subrequests.id = offerings.subrequest_id").
+			Joins("LEFT JOIN requests ON requests.id = subrequests.request_id").
+			Joins("LEFT JOIN users e_user ON e_user.id = requests.employee_user_id").
+			Where("e_user.name IN ? OR e_user.id IN ?", filter.EmployeeUser, filter.EmployeeUser)
+	}
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
