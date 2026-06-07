@@ -3,6 +3,7 @@ package usecase_faq
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
@@ -323,6 +324,24 @@ func (u *appUsecase) Create(ctx context.Context, adminID string, req request_mod
 		return response.Error(http.StatusInternalServerError, "Failed to create FAQ approval request")
 	}
 
+	// Notify Superadmins
+	go func() {
+		bgCtx := context.Background()
+		superadminIDs, err := u.gormDbRepo.GetSuperadminUserIDs(bgCtx)
+		if err == nil {
+			var adminName = adminID
+			adminUser, _ := u.gormDbRepo.FetchOneUser(bgCtx, gorm_model.UserFilter{
+				DefaultFilter: gorm_model.DefaultFilter{ID: adminID},
+			})
+			if adminUser != nil {
+				adminName = adminUser.Name
+			}
+			title := "Perubahan Konten Landing Page"
+			desc := fmt.Sprintf("Admin %s mengajukan perubahan konten landing page (FAQ).", adminName)
+			helpers.SendNotificationToAll(bgCtx, u.gormDbRepo, superadminIDs, title, desc)
+		}
+	}()
+
 	helpers.LogActivity(ctx, u.gormDbRepo, "Create", "FAQ", req.Question, req, true)
 	return response.Success(approval.ToApprovalRequestResp())
 }
@@ -367,6 +386,24 @@ func (u *appUsecase) Update(ctx context.Context, adminID string, id string, req 
 		helpers.LogActivity(ctx, u.gormDbRepo, "Update", "FAQ", existing.Question, req, false)
 		return response.Error(http.StatusInternalServerError, "Failed to create FAQ update approval request")
 	}
+
+	// Notify Superadmins
+	go func() {
+		bgCtx := context.Background()
+		superadminIDs, err := u.gormDbRepo.GetSuperadminUserIDs(bgCtx)
+		if err == nil {
+			var adminName = adminID
+			adminUser, _ := u.gormDbRepo.FetchOneUser(bgCtx, gorm_model.UserFilter{
+				DefaultFilter: gorm_model.DefaultFilter{ID: adminID},
+			})
+			if adminUser != nil {
+				adminName = adminUser.Name
+			}
+			title := "Perubahan Konten Landing Page"
+			desc := fmt.Sprintf("Admin %s mengajukan perubahan konten landing page (FAQ).", adminName)
+			helpers.SendNotificationToAll(bgCtx, u.gormDbRepo, superadminIDs, title, desc)
+		}
+	}()
 
 	helpers.LogActivity(ctx, u.gormDbRepo, "Update", "FAQ", existing.Question, req, true)
 	return response.Success(approval.ToApprovalRequestResp())
@@ -564,6 +601,12 @@ func (u *appUsecase) ApproveRequest(ctx context.Context, superadminID string, ap
 		return response.Error(http.StatusInternalServerError, "Failed to update approval status")
 	}
 
+	// Notify Admin
+	helpers.SendNotificationAsync(ctx, u.gormDbRepo, approval.RequestedByAdminID,
+		"Perubahan Konten Landing Page Disetujui",
+		"Perubahan konten landing page (FAQ) yang Anda ajukan telah disetujui.",
+	)
+
 	helpers.LogActivity(ctx, u.gormDbRepo, "Approve", "FAQ", approval.RecordID, nil, true)
 	return response.Success(approval.ToApprovalRequestResp())
 }
@@ -598,6 +641,16 @@ func (u *appUsecase) RejectRequest(ctx context.Context, superadminID string, app
 		logrus.Error("FAQ RejectRequest update error:", err)
 		return response.Error(http.StatusInternalServerError, "Failed to update approval status")
 	}
+
+	// Notify Admin
+	reason := "-"
+	if req.RejectedReason != nil {
+		reason = *req.RejectedReason
+	}
+	helpers.SendNotificationAsync(ctx, u.gormDbRepo, approval.RequestedByAdminID,
+		"Perubahan Konten Landing Page Ditolak",
+		fmt.Sprintf("Perubahan konten landing page (FAQ) yang Anda ajukan ditolak. Alasan: %s", reason),
+	)
 
 	helpers.LogActivity(ctx, u.gormDbRepo, "Reject", "FAQ", approval.RecordID, req, true)
 	return response.Success(approval.ToApprovalRequestResp())

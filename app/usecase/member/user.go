@@ -952,6 +952,21 @@ func (u *appUsecase) DeclineRecruitment(ctx context.Context, id string) response
 	}
 
 	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, nil, true)
+	
+	// Notify Admin
+	go func() {
+		bgCtx := context.Background()
+		subReq, err := u.gormDbRepo.GetActiveSubrequestByCandidateID(bgCtx, user.ID)
+		if err == nil && subReq != nil {
+			var req gorm_model.Request
+			if errReq := u.gormDbRepo.GetDB().WithContext(bgCtx).First(&req, "id = ?", subReq.RequestID).Error; errReq == nil && req.AdminUserID != nil {
+				title := "Kandidat Menolak Rekrutmen"
+				desc := fmt.Sprintf("Kandidat %s menolak rekrutmen.", user.Name)
+				helpers.SendNotificationAsync(bgCtx, u.gormDbRepo, *req.AdminUserID, title, desc)
+			}
+		}
+	}()
+	
 	return response.SuccessAction("User", user.Email, "recruitment declined")
 }
 
@@ -1068,6 +1083,12 @@ func (u *appUsecase) CancelRecruitment(ctx context.Context, id string) response.
 		}
 	})
 
+	// Notify Candidate
+	helpers.SendNotificationAsync(ctx, u.gormDbRepo, user.ID,
+		"Recruitment Status Update",
+		"We regret to inform you that you did not pass this recruitment stage.",
+	)
+
 	return response.SuccessAction("User", user.Email, "recruitment canceled")
 }
 
@@ -1166,6 +1187,7 @@ func (u *appUsecase) FinalizeRecruitment(ctx context.Context, adminID string, re
 		ctx,
 		req.CandidateUserID,
 		req.SubrequestID,
+		snapshotData.RequestID,
 		acceptedStatus.ID,
 		&startDate,
 		&endDate,

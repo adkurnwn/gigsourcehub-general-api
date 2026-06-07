@@ -101,14 +101,14 @@ type GormRepo interface {
 	GetSubrequestByID(ctx context.Context, id string) (*gorm_model.Subrequest, error)
 	CreateSubrequestByEmployee(ctx context.Context, model *gorm_model.Subrequest) error
 	UpdateSubrequestByEmployee(ctx context.Context, model *gorm_model.Subrequest) error
-	AssignCandidateToSubrequest(ctx context.Context, model *gorm_model.SubrequestCandidate, recruitmentStatusID string) error
+	AssignCandidateToSubrequest(ctx context.Context, model *gorm_model.SubrequestCandidate, recruitmentStatusID string, requestID string, markRequestProcessing bool) error
 	CountActiveSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) (int64, error)
 	SoftDeleteSubrequestCandidatesByCandidateID(ctx context.Context, candidateID string) error
 	StopOnboardingByCandidateID(ctx context.Context, candidateID string) error
 	CancelRecruitmentByCandidateID(ctx context.Context, candidateID string) error
 	GetActiveSubrequestByCandidateID(ctx context.Context, candidateID string) (*gorm_model.ActiveSubrequestInfo, error)
 	GetFinalizeSnapshotData(ctx context.Context, subrequestID string) (*gorm_model.FinalizeRecruitmentSnapshot, error)
-	FinalizeRecruitment(ctx context.Context, candidateID, subrequestID, acceptedStatusID string, startDate, endDate *time.Time, offeringID *string, snapshotJSON string) error
+	FinalizeRecruitment(ctx context.Context, candidateID, subrequestID, requestID, acceptedStatusID string, startDate, endDate *time.Time, offeringID *string, snapshotJSON string) error
 	CreateOffering(ctx context.Context, model *gorm_model.Offering) error
 	FetchOnboardHistoriesByCandidate(ctx context.Context, candidateID string, limit, offset int64) ([]gorm_model.OnboardHistory, error)
 	CountOnboardHistoriesByCandidate(ctx context.Context, candidateID string) (int64, error)
@@ -225,6 +225,21 @@ type GormRepo interface {
 	FetchRecentActivitiesForAdmin(ctx context.Context, limit int) ([]gorm_model.LogActivity, error)
 	FetchDashboardAnalytics(ctx context.Context, period string) (gorm_model.DashboardAnalyticsResp, error)
 	FetchSuperadminDashboardStats(ctx context.Context) (gorm_model.SuperadminDashboardResp, error)
+
+	// Notifications
+	CreateNotification(ctx context.Context, model *gorm_model.Notification) error
+	FetchNotificationsByUser(ctx context.Context, userID string, limit, offset int64) ([]gorm_model.Notification, error)
+	CountNotificationsByUser(ctx context.Context, userID string) (int64, error)
+	CountUnreadNotificationsByUser(ctx context.Context, userID string) (int64, error)
+	MarkNotificationAsRead(ctx context.Context, notificationID, userID string) error
+	MarkAllNotificationsAsRead(ctx context.Context, userID string) error
+	GetSuperadminUserIDs(ctx context.Context) ([]string, error)
+	GetUpcomingInterviewsForNotification(ctx context.Context, from, to time.Time) ([]gorm_model.Interview, error)
+	GetUpcomingInterviewsFor24hReminder(ctx context.Context, from, to time.Time) ([]gorm_model.Interview, error)
+	GetUpcomingInterviewsFor1hReminder(ctx context.Context, from, to time.Time) ([]gorm_model.Interview, error)
+	MarkInterview24hReminderSent(ctx context.Context, interviewID string) error
+	MarkInterview1hReminderSent(ctx context.Context, interviewID string) error
+	GetExpiringContractsForNotification(ctx context.Context, targetDate time.Time) ([]gorm_model.OnboardHistory, error)
 }
 
 type CacheRepo interface {

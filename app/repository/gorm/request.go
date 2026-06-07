@@ -174,7 +174,7 @@ func (r *gormRepo) CreateSubrequestByEmployee(ctx context.Context, model *gorm_m
 	return err
 }
 
-func (r *gormRepo) AssignCandidateToSubrequest(ctx context.Context, model *gorm_model.SubrequestCandidate, recruitmentStatusID string) error {
+func (r *gormRepo) AssignCandidateToSubrequest(ctx context.Context, model *gorm_model.SubrequestCandidate, recruitmentStatusID string, requestID string, markRequestProcessing bool) error {
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var existingCount int64
 		if err := tx.Model(&gorm_model.SubrequestCandidate{}).
@@ -188,6 +188,14 @@ func (r *gormRepo) AssignCandidateToSubrequest(ctx context.Context, model *gorm_
 
 		if err := tx.Create(model).Error; err != nil {
 			return err
+		}
+
+		if markRequestProcessing {
+			if err := tx.Model(&gorm_model.Request{}).
+				Where("id = ?", requestID).
+				Update("status", "PROCESSING").Error; err != nil {
+				return err
+			}
 		}
 
 		if err := tx.Model(&gorm_model.User{}).

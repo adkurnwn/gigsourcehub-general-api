@@ -1,4 +1,4 @@
-package usecase_request
+package usecase_notification
 
 import (
 	"time"
@@ -8,14 +8,12 @@ import (
 
 type appUsecase struct {
 	gormDbRepo     domain.GormRepo
-	mailerRepo     domain.Mailer
 	contextTimeout time.Duration
 }
 
-func NewRequestAppUsecase(gormDbRepo domain.GormRepo, mailerRepo domain.Mailer, timeout time.Duration) domain.RequestAppUsecase {
+func NewAppUsecase(gormDbRepo domain.GormRepo, timeout time.Duration) domain.NotificationAppUsecase {
 	return &appUsecase{
 		gormDbRepo:     gormDbRepo,
-		mailerRepo:     mailerRepo,
 		contextTimeout: timeout,
 	}
 }

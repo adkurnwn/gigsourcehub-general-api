@@ -27,12 +27,14 @@ type mailgunRepo struct {
 }
 
 type emailTemplateData struct {
-	Subject    string
-	AppURL     string
-	Name       string
-	ActionURL  string
-	ButtonText string
-	LogoURL    string
+	Subject        string
+	AppURL         string
+	Name           string
+	ActionURL      string
+	ButtonText     string
+	LogoURL        string
+	InterviewTitle string
+	ScheduledAt    string
 }
 
 func NewMailgunRepo() domain.Mailer {
@@ -168,6 +170,74 @@ func (r *mailgunRepo) SendStopOnboardingEmail(to, name string) error {
 	plainBody := fmt.Sprintf(
 		"Hi %s,\n\nWe are sorry, but we have to cancel your onboarding contract at this time. Your onboarding record has been stopped and any related HR process will be updated accordingly.\n\nIf you need clarification, please reply to this email.\n\nBest regards,\nGigSourceHub Team",
 		name,
+	)
+
+	mgMessage := r.mg.NewMessage(fmt.Sprintf("%s <%s>", r.fromName, r.from), subject, plainBody, to)
+	mgMessage.SetHtml(htmlBody)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	_, _, err = r.mg.Send(ctx, mgMessage)
+	return err
+}
+
+func (r *mailgunRepo) SendInterviewReminderEmail(to, name, interviewTitle, scheduledAt, meetingLink string) error {
+	subject := "Upcoming Interview Reminder - GigSourceHub"
+	actionURL := meetingLink
+	if actionURL == "" {
+		actionURL = fmt.Sprintf("%s/member/interviews", r.appURL)
+	}
+	buttonText := "Join Meeting"
+	if meetingLink == "" {
+		buttonText = "View Interview Details"
+	}
+
+	data := r.makeEmailTemplateData(subject, name, actionURL, buttonText)
+	data.InterviewTitle = interviewTitle
+	data.ScheduledAt = scheduledAt
+
+	htmlBody, err := r.renderHTMLTemplate("interview_reminder", data)
+	if err != nil {
+		return err
+	}
+
+	plainBody := fmt.Sprintf(
+		"Hi %s,\n\nThis is a friendly reminder that you have an upcoming interview scheduled tomorrow:\n\nInterview: %s\nTime: %s\n\nLink: %s\n\nBest regards,\nGigSourceHub Team",
+		name,
+		interviewTitle,
+		scheduledAt,
+		actionURL,
+	)
+
+	mgMessage := r.mg.NewMessage(fmt.Sprintf("%s <%s>", r.fromName, r.from), subject, plainBody, to)
+	mgMessage.SetHtml(htmlBody)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	_, _, err = r.mg.Send(ctx, mgMessage)
+	return err
+}
+
+func (r *mailgunRepo) SendRecruitmentInvitationEmail(to, name, jobRoleName string) error {
+	subject := "Recruitment Invitation - GigSourceHub"
+	actionURL := fmt.Sprintf("%s/member/dashboard", r.appURL)
+	buttonText := "Go to Dashboard"
+
+	data := r.makeEmailTemplateData(subject, name, actionURL, buttonText)
+	data.InterviewTitle = jobRoleName // Reuse InterviewTitle field for jobRoleName
+
+	htmlBody, err := r.renderHTMLTemplate("recruitment_invitation", data)
+	if err != nil {
+		return err
+	}
+
+	plainBody := fmt.Sprintf(
+		"Hi %s,\n\nYou have been invited to the recruitment process for the position of %s.\n\nPlease check your dashboard for further details: %s\n\nBest regards,\nGigSourceHub Team",
+		name,
+		jobRoleName,
+		actionURL,
 	)
 
 	mgMessage := r.mg.NewMessage(fmt.Sprintf("%s <%s>", r.fromName, r.from), subject, plainBody, to)

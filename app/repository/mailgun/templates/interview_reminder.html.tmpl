@@ -1,0 +1,51 @@
+{{ define "interview_reminder" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ .Subject }}</title>
+  <style>{{ template "email_styles" . }}</style>
+</head>
+<body>
+  <table role="presentation" width="100%" class="outer" style="background-color:#f4f7f9; width:100%;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" class="card" style="max-width:680px; width:100%; background-color:#ffffff; border-radius:24px; box-shadow:0 24px 60px rgba(15,23,42,0.08);">
+          {{ template "email_header" . }}
+          <tr>
+            <td class="content-cell" style="padding: 24px 40px 0; text-align:center;">
+              <p class="hero-heading" style="margin:0;">Hi {{ .Name }}!</p>
+              <p class="body-copy" style="margin:24px auto 0; max-width:520px; font-size:16px; line-height:1.8; color:#505050;">This is a friendly reminder that you have an upcoming interview scheduled tomorrow.</p>
+              
+              <div style="margin:24px auto 0; max-width:480px; background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:20px; text-align:left;">
+                {{ if .InterviewTitle }}
+                <p style="margin:0 0 12px 0; font-size:16px; color:#0f172a; font-weight:700; font-family:'Inter', Arial, sans-serif;">
+                  <span style="color:#64748b; font-weight:500; font-size:14px; display:block; margin-bottom:4px;">Interview</span>
+                  {{ .InterviewTitle }}
+                </p>
+                {{ end }}
+                <p style="margin:0; font-size:16px; color:#0f172a; font-weight:700; font-family:'Inter', Arial, sans-serif;">
+                  <span style="color:#64748b; font-weight:500; font-size:14px; display:block; margin-bottom:4px;">Scheduled Time</span>
+                  {{ .ScheduledAt }}
+                </p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="content-cell" style="padding: 0 40px 32px; text-align:center;">
+              {{ if .ActionURL }}
+              <a href="{{ .ActionURL }}" class="button">{{ .ButtonText }}</a>
+              {{ end }}
+              <p class="body-copy" style="margin:28px auto 0; max-width:520px;">If you have any questions or need to reschedule, please contact our support team.</p>
+              <p class="body-copy" style="margin:20px auto 0; max-width:520px;">Best regards,<br>GigSourceHub Team</p>
+            </td>
+          </tr>
+          {{ template "email_footer" . }}
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+{{ end }}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
@@ -17,7 +18,16 @@ type rabbitMQRepo struct {
 }
 
 func NewRabbitMQRepo(url string) (domain.MessageBroker, error) {
-	conn, err := amqp.Dial(url)
+	conn, err := amqp.DialConfig(url, amqp.Config{
+		Heartbeat: 10 * time.Second,
+		Dial: func(network, addr string) (net.Conn, error) {
+			dialer := &net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}
+			return dialer.Dial(network, addr)
+		},
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to RabbitMQ: %w", err)
 	}

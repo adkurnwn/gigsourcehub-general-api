@@ -952,6 +952,16 @@ table "interviews" {
     default = false
     null    = false
   }
+  column "is_24h_reminder_sent" {
+    type    = boolean
+    default = false
+    null    = false
+  }
+  column "is_1h_reminder_sent" {
+    type    = boolean
+    default = false
+    null    = false
+  }
   column "created_at" {
     type = timestamptz
     null = false
