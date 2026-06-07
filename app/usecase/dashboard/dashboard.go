@@ -125,11 +125,10 @@ func (u *appUsecase) GetAdminDashboardSummary(ctx context.Context, adminID strin
 	}
 	kpis["interview_attendance_rate"] = math.Round(attendanceRate*10) / 10
 
-	// Quality of Hire (average review score mapped to 100%)
+	// AVG Review Score (average review score in scale 5 from review_answers)
 	var avgScore float64
-	db.Table("reviews").Select("COALESCE(AVG(rating), 4.2)").Row().Scan(&avgScore)
-	qualityOfHire := (avgScore / 5.0) * 100
-	kpis["quality_of_hire"] = math.Round(qualityOfHire*10) / 10
+	db.Table("review_answers").Where("deleted_at IS NULL").Select("COALESCE(AVG(score), 4.2)").Row().Scan(&avgScore)
+	kpis["avg_review_score"] = math.Round(avgScore*10) / 10
 
 	summary := gorm_model.AdminDashboardSummaryResp{
 		KPIs:               kpis,

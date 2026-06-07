@@ -27,18 +27,6 @@ type AdminDashboardSummaryResp struct {
 	RecentActivities   []map[string]interface{} `json:"recent_activities"`
 }
 
-type AnalyticsFunnelStage struct {
-	StageName      string  `json:"stage_name"`
-	Count          int     `json:"count"`
-	ConversionRate float64 `json:"conversion_rate"`
-}
-
-type StatusDistributionItem struct {
-	StatusName string `json:"status_name"`
-	HexCode    string `json:"hex_code"`
-	Count      int    `json:"count"`
-}
-
 type TrendPeriodItem struct {
 	Period     string `json:"period"`
 	Applicants int    `json:"applicants"`
@@ -47,9 +35,7 @@ type TrendPeriodItem struct {
 }
 
 type DashboardAnalyticsResp struct {
-	Funnel             []AnalyticsFunnelStage   `json:"funnel"`
-	StatusDistribution []StatusDistributionItem `json:"status_distribution"`
-	Trends             []TrendPeriodItem        `json:"trends"`
+	Trends []TrendPeriodItem `json:"trends"`
 }
 
 type SuperadminDashboardResp struct {

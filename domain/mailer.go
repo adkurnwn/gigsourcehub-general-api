@@ -6,4 +6,5 @@ type Mailer interface {
 	SendCancelRecruitmentEmail(to, name string) error
 	SendStopOnboardingEmail(to, name string) error
 	SendInterviewReminderEmail(to, name, interviewTitle, scheduledAt, meetingLink string) error
+	SendRecruitmentInvitationEmail(to, name, jobRoleName string) error
 }

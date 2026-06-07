@@ -8,6 +8,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type WSBroadcaster interface {
+	SendToUser(userID string, event string, payload interface{})
+}
+
+var wsBroadcaster WSBroadcaster
+
+func SetWSBroadcaster(b WSBroadcaster) {
+	wsBroadcaster = b
+}
+
 // SendNotification creates a single in-app notification for a specific user.
 // It runs synchronously and returns an error if the insert fails.
 func SendNotification(ctx context.Context, repo domain.GormRepo, userID, title, description string) error {
@@ -19,7 +29,11 @@ func SendNotification(ctx context.Context, repo domain.GormRepo, userID, title, 
 		IsRead:           false,
 		IsAdminBroadcast: false,
 	}
-	return repo.CreateNotification(ctx, notif)
+	err := repo.CreateNotification(ctx, notif)
+	if err == nil && wsBroadcaster != nil {
+		wsBroadcaster.SendToUser(userID, "new_notification", notif.ToNotificationResp())
+	}
+	return err
 }
 
 // SendNotificationAsync creates a single notification in a goroutine (fire-and-forget).

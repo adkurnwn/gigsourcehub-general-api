@@ -73,6 +73,7 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
 	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
 
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"google.golang.org/grpc"
 
 	"github.com/gin-gonic/gin"
@@ -270,7 +271,7 @@ func main() {
 	ucAIChat := usecase_aichat.NewAIChatUsecase(repo, timeoutContext)
 
 	// init request usecase
-	ucRequest := usecase_request.NewRequestAppUsecase(repo, timeoutContext)
+	ucRequest := usecase_request.NewRequestAppUsecase(repo, mailerRepo, timeoutContext)
 
 	// init mq repo
 	mqRepo, err := rabbitmqrepo.NewRabbitMQRepo(os.Getenv("RABBITMQ_URL"))
@@ -400,6 +401,7 @@ func main() {
 	// init chat
 	chatHub := http_chat.NewHub()
 	go chatHub.Run()
+	helpers.SetWSBroadcaster(chatHub)
 
 	ucChat := usecase_chat.NewAppUsecase(usecase_chat.RepoInjection{
 		GormDbRepo:  repo,

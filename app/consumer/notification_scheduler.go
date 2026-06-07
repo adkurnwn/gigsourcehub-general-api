@@ -27,7 +27,7 @@ func NewNotificationScheduler(repo domain.GormRepo, mailer domain.Mailer) *Notif
 func (s *NotificationScheduler) Start(ctx context.Context) {
 	logrus.Info("NotificationScheduler: starting background scheduler")
 	// Ticker fires every 15 minutes for interview reminders
-	interviewTicker := time.NewTicker(1 * time.Minute)
+	interviewTicker := time.NewTicker(15 * time.Minute)
 	// Ticker fires every 24 hours for contract expiry check
 	contractTicker := time.NewTicker(24 * time.Hour)
 

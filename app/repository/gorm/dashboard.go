@@ -114,52 +114,6 @@ func (r *gormRepo) FetchRecentActivitiesForAdmin(ctx context.Context, limit int)
 func (r *gormRepo) FetchDashboardAnalytics(ctx context.Context, period string) (gorm_model.DashboardAnalyticsResp, error) {
 	var analytics gorm_model.DashboardAnalyticsResp
 
-	var applicantsCount int64
-	r.db.WithContext(ctx).Model(&gorm_model.SubrequestCandidate{}).Count(&applicantsCount)
-
-	var interviewsScheduled int64
-	r.db.WithContext(ctx).Model(&gorm_model.Interview{}).Count(&interviewsScheduled)
-
-	var interviewsCompleted int64
-	r.db.WithContext(ctx).Model(&gorm_model.Interview{}).Where("status = 'COMPLETED'").Count(&interviewsCompleted)
-
-	var onboardedCount int64
-	r.db.WithContext(ctx).Model(&gorm_model.OnboardHistory{}).Count(&onboardedCount)
-
-	stages := []string{"Applied", "Interview Scheduled", "Interview Completed", "Onboarded"}
-	counts := []int64{applicantsCount, interviewsScheduled, interviewsCompleted, onboardedCount}
-
-	analytics.Funnel = make([]gorm_model.AnalyticsFunnelStage, len(stages))
-	for i, name := range stages {
-		conversion := 100.0
-		if i > 0 && counts[i-1] > 0 {
-			conversion = float64(counts[i]) / float64(counts[i-1]) * 100
-		}
-		analytics.Funnel[i] = gorm_model.AnalyticsFunnelStage{
-			StageName:      name,
-			Count:          int(counts[i]),
-			ConversionRate: conversion,
-		}
-	}
-
-	var statusItems []gorm_model.StatusDistributionItem
-	rows, err := r.db.WithContext(ctx).Table("users u").
-		Select("rs.name as status_name, rs.hex_code, count(u.id) as count").
-		Joins("join recruitment_statuses rs on u.recruitment_status_id = rs.id").
-		Where("u.deleted_at is null").
-		Group("rs.name, rs.hex_code").
-		Rows()
-	if err == nil {
-		defer rows.Close()
-		for rows.Next() {
-			var item gorm_model.StatusDistributionItem
-			if err := rows.Scan(&item.StatusName, &item.HexCode, &item.Count); err == nil {
-				statusItems = append(statusItems, item)
-			}
-		}
-	}
-	analytics.StatusDistribution = statusItems
-
 	var trendItems []gorm_model.TrendPeriodItem
 	for i := 5; i >= 0; i-- {
 		t := time.Now().AddDate(0, -i, 0)

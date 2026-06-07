@@ -623,5 +623,12 @@ func (u *appUsecase) AssignCandidateToSubrequest(ctx context.Context, adminID st
 		fmt.Sprintf("You have been invited to the recruitment process for the position of %s. Please check your dashboard for further information.", jobRoleName),
 	)
 
+	// Send Email asynchronously
+	go func(email, name, roleName string) {
+		if err := u.mailerRepo.SendRecruitmentInvitationEmail(email, name, roleName); err != nil {
+			logrus.Errorf("Failed to send recruitment invitation email to %s: %v", email, err)
+		}
+	}(candidate.Email, candidate.Name, jobRoleName)
+
 	return response.Success(nil)
 }
