@@ -73,6 +73,7 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/docs"
 	pb "github.com/adkurnwn/gigsourcehub-general-api/proto"
 
+	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"google.golang.org/grpc"
 
 	"github.com/gin-gonic/gin"
@@ -400,6 +401,7 @@ func main() {
 	// init chat
 	chatHub := http_chat.NewHub()
 	go chatHub.Run()
+	helpers.SetWSBroadcaster(chatHub)
 
 	ucChat := usecase_chat.NewAppUsecase(usecase_chat.RepoInjection{
 		GormDbRepo:  repo,
