@@ -270,7 +270,7 @@ func main() {
 	ucAIChat := usecase_aichat.NewAIChatUsecase(repo, timeoutContext)
 
 	// init request usecase
-	ucRequest := usecase_request.NewRequestAppUsecase(repo, timeoutContext)
+	ucRequest := usecase_request.NewRequestAppUsecase(repo, mailerRepo, timeoutContext)
 
 	// init mq repo
 	mqRepo, err := rabbitmqrepo.NewRabbitMQRepo(os.Getenv("RABBITMQ_URL"))

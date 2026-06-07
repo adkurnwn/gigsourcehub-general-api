@@ -219,3 +219,33 @@ func (r *mailgunRepo) SendInterviewReminderEmail(to, name, interviewTitle, sched
 	_, _, err = r.mg.Send(ctx, mgMessage)
 	return err
 }
+
+func (r *mailgunRepo) SendRecruitmentInvitationEmail(to, name, jobRoleName string) error {
+	subject := "Recruitment Invitation - GigSourceHub"
+	actionURL := fmt.Sprintf("%s/member/dashboard", r.appURL)
+	buttonText := "Go to Dashboard"
+
+	data := r.makeEmailTemplateData(subject, name, actionURL, buttonText)
+	data.InterviewTitle = jobRoleName // Reuse InterviewTitle field for jobRoleName
+
+	htmlBody, err := r.renderHTMLTemplate("recruitment_invitation", data)
+	if err != nil {
+		return err
+	}
+
+	plainBody := fmt.Sprintf(
+		"Hi %s,\n\nYou have been invited to the recruitment process for the position of %s.\n\nPlease check your dashboard for further details: %s\n\nBest regards,\nGigSourceHub Team",
+		name,
+		jobRoleName,
+		actionURL,
+	)
+
+	mgMessage := r.mg.NewMessage(fmt.Sprintf("%s <%s>", r.fromName, r.from), subject, plainBody, to)
+	mgMessage.SetHtml(htmlBody)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	_, _, err = r.mg.Send(ctx, mgMessage)
+	return err
+}
