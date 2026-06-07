@@ -50,15 +50,14 @@ func (s *NotificationScheduler) Start(ctx context.Context) {
 }
 
 // checkInterviewReminders sends:
-//   - 1-day reminder to candidates (interviews scheduled in the next 23–25 hours)
-//   - 1-hour reminder to admins (interviews scheduled in the next 45–75 minutes)
+//   - 1-day reminder to candidates (interviews scheduled in the next 24 hours)
+//   - 1-hour reminder to admins (interviews scheduled in the next 1 hour)
 func (s *NotificationScheduler) checkInterviewReminders(ctx context.Context) {
 	now := time.Now()
 
 	// --- Candidate: 1 day (24h) before ---
-	candidateFrom := now.Add(23 * time.Hour)
-	candidateTo := now.Add(25 * time.Hour)
-	candidateInterviews, err := s.repo.GetUpcomingInterviewsForNotification(ctx, candidateFrom, candidateTo)
+	candidateTo := now.Add(24 * time.Hour)
+	candidateInterviews, err := s.repo.GetUpcomingInterviewsFor24hReminder(ctx, now, candidateTo)
 	if err != nil {
 		logrus.Errorf("NotificationScheduler: error fetching candidate interview reminders: %v", err)
 	} else {
@@ -76,13 +75,17 @@ func (s *NotificationScheduler) checkInterviewReminders(ctx context.Context) {
 				desc = fmt.Sprintf("You have an interview scheduled tomorrow: %s (Stage: %s)", iv.Title, stageName)
 			}
 			helpers.SendNotificationAsync(ctx, s.repo, iv.CandidateUserID, title, desc)
+
+			// Mark as sent
+			if err := s.repo.MarkInterview24hReminderSent(ctx, iv.ID); err != nil {
+				logrus.Errorf("NotificationScheduler: failed to mark candidate 24h reminder sent for interview %s: %v", iv.ID, err)
+			}
 		}
 	}
 
 	// --- Admin: 1 hour before ---
-	adminFrom := now.Add(45 * time.Minute)
-	adminTo := now.Add(75 * time.Minute)
-	adminInterviews, err := s.repo.GetUpcomingInterviewsForNotification(ctx, adminFrom, adminTo)
+	adminTo := now.Add(1 * time.Hour)
+	adminInterviews, err := s.repo.GetUpcomingInterviewsFor1hReminder(ctx, now, adminTo)
 	if err != nil {
 		logrus.Errorf("NotificationScheduler: error fetching admin interview reminders: %v", err)
 	} else {
@@ -100,6 +103,11 @@ func (s *NotificationScheduler) checkInterviewReminders(ctx context.Context) {
 				desc = fmt.Sprintf("Interview in 1 hour: %s (Stage: %s)", iv.Title, stageName)
 			}
 			helpers.SendNotificationAsync(ctx, s.repo, *iv.AdminUserID, title, desc)
+
+			// Mark as sent
+			if err := s.repo.MarkInterview1hReminderSent(ctx, iv.ID); err != nil {
+				logrus.Errorf("NotificationScheduler: failed to mark admin 1h reminder sent for interview %s: %v", iv.ID, err)
+			}
 		}
 	}
 }
