@@ -14,11 +14,12 @@ import (
 // NotificationScheduler is a background worker that fires time-based notifications.
 // It uses a ticker pattern consistent with the existing codebase (no external cron library).
 type NotificationScheduler struct {
-	repo domain.GormRepo
+	repo   domain.GormRepo
+	mailer domain.Mailer
 }
 
-func NewNotificationScheduler(repo domain.GormRepo) *NotificationScheduler {
-	return &NotificationScheduler{repo: repo}
+func NewNotificationScheduler(repo domain.GormRepo, mailer domain.Mailer) *NotificationScheduler {
+	return &NotificationScheduler{repo: repo, mailer: mailer}
 }
 
 // Start launches the scheduler. It blocks until ctx is cancelled.
@@ -78,6 +79,29 @@ func (s *NotificationScheduler) checkInterviewReminders(ctx context.Context) {
 				desc = fmt.Sprintf("You have an interview scheduled tomorrow: %s (Stage: %s)", iv.Title, stageName)
 			}
 			helpers.SendNotificationAsync(ctx, s.repo, iv.CandidateUserID, title, desc)
+
+			// Send email reminder
+			if iv.CandidateUser != nil && iv.CandidateUser.Email != "" {
+				candidateName := iv.CandidateUser.Name
+				candidateEmail := iv.CandidateUser.Email
+				interviewTitle := iv.Title
+				if interviewTitle == "" {
+					interviewTitle = fmt.Sprintf("Stage: %s", stageName)
+				}
+				scheduledTimeStr := iv.ScheduledAt.Format("Monday, 02 Jan 2006 at 15:04 MST")
+				meetingLink := ""
+				if iv.MeetingLink != nil {
+					meetingLink = *iv.MeetingLink
+				}
+
+				go func(to, name, title, scheduledAt, link string) {
+					if err := s.mailer.SendInterviewReminderEmail(to, name, title, scheduledAt, link); err != nil {
+						logrus.Errorf("NotificationScheduler: failed to send email reminder to %s: %v", to, err)
+					} else {
+						logrus.Infof("NotificationScheduler: email reminder sent successfully to %s", to)
+					}
+				}(candidateEmail, candidateName, interviewTitle, scheduledTimeStr, meetingLink)
+			}
 
 			// Mark as sent
 			if err := s.repo.MarkInterview24hReminderSent(ctx, iv.ID); err != nil {

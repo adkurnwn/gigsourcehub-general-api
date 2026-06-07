@@ -96,6 +96,7 @@ func (r *gormRepo) GetUpcomingInterviewsFor24hReminder(ctx context.Context, from
 	var interviews []gorm_model.Interview
 	err := r.db.WithContext(ctx).
 		Preload("Stage").
+		Preload("CandidateUser").
 		Where("status = ? AND scheduled_at > ? AND scheduled_at <= ? AND is_24h_reminder_sent = false AND deleted_at IS NULL", "SCHEDULED", from, to).
 		Find(&interviews).Error
 	return interviews, err
