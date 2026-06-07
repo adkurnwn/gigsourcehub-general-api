@@ -24,8 +24,9 @@ func NewNotificationScheduler(repo domain.GormRepo) *NotificationScheduler {
 // Start launches the scheduler. It blocks until ctx is cancelled.
 // Run in a goroutine: go scheduler.Start(ctx)
 func (s *NotificationScheduler) Start(ctx context.Context) {
+	logrus.Info("NotificationScheduler: starting background scheduler")
 	// Ticker fires every 15 minutes for interview reminders
-	interviewTicker := time.NewTicker(15 * time.Minute)
+	interviewTicker := time.NewTicker(1 * time.Minute)
 	// Ticker fires every 24 hours for contract expiry check
 	contractTicker := time.NewTicker(24 * time.Hour)
 
@@ -53,6 +54,7 @@ func (s *NotificationScheduler) Start(ctx context.Context) {
 //   - 1-day reminder to candidates (interviews scheduled in the next 24 hours)
 //   - 1-hour reminder to admins (interviews scheduled in the next 1 hour)
 func (s *NotificationScheduler) checkInterviewReminders(ctx context.Context) {
+	logrus.Info("NotificationScheduler: checking interview reminders...")
 	now := time.Now()
 
 	// --- Candidate: 1 day (24h) before ---
@@ -61,6 +63,7 @@ func (s *NotificationScheduler) checkInterviewReminders(ctx context.Context) {
 	if err != nil {
 		logrus.Errorf("NotificationScheduler: error fetching candidate interview reminders: %v", err)
 	} else {
+		logrus.Infof("NotificationScheduler: candidate checks finished, found %d upcoming interviews", len(candidateInterviews))
 		for _, iv := range candidateInterviews {
 			if iv.CandidateUserID == "" {
 				continue
@@ -89,6 +92,7 @@ func (s *NotificationScheduler) checkInterviewReminders(ctx context.Context) {
 	if err != nil {
 		logrus.Errorf("NotificationScheduler: error fetching admin interview reminders: %v", err)
 	} else {
+		logrus.Infof("NotificationScheduler: admin checks finished, found %d upcoming interviews", len(adminInterviews))
 		for _, iv := range adminInterviews {
 			if iv.AdminUserID == nil {
 				continue
@@ -114,12 +118,14 @@ func (s *NotificationScheduler) checkInterviewReminders(ctx context.Context) {
 
 // checkExpiringContracts sends a review reminder to the employee when a candidate contract expires today.
 func (s *NotificationScheduler) checkExpiringContracts(ctx context.Context) {
+	logrus.Info("NotificationScheduler: checking expiring contracts...")
 	today := time.Now()
 	histories, err := s.repo.GetExpiringContractsForNotification(ctx, today)
 	if err != nil {
 		logrus.Errorf("NotificationScheduler: error fetching expiring contracts: %v", err)
 		return
 	}
+	logrus.Infof("NotificationScheduler: expiring contract checks finished, found %d expiring contracts", len(histories))
 
 	for _, oh := range histories {
 		if oh.CandidateUser == nil || oh.Snapshot == nil {
