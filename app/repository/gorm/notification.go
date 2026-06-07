@@ -90,3 +90,39 @@ func (r *gormRepo) GetExpiringContractsForNotification(ctx context.Context, targ
 		Find(&histories).Error
 	return histories, err
 }
+
+// GetUpcomingInterviewsFor24hReminder fetches SCHEDULED interviews whose scheduled_at falls between from and to, and is_24h_reminder_sent is false.
+func (r *gormRepo) GetUpcomingInterviewsFor24hReminder(ctx context.Context, from, to time.Time) ([]gorm_model.Interview, error) {
+	var interviews []gorm_model.Interview
+	err := r.db.WithContext(ctx).
+		Preload("Stage").
+		Where("status = ? AND scheduled_at > ? AND scheduled_at <= ? AND is_24h_reminder_sent = false AND deleted_at IS NULL", "SCHEDULED", from, to).
+		Find(&interviews).Error
+	return interviews, err
+}
+
+// GetUpcomingInterviewsFor1hReminder fetches SCHEDULED interviews whose scheduled_at falls between from and to, and is_1h_reminder_sent is false.
+func (r *gormRepo) GetUpcomingInterviewsFor1hReminder(ctx context.Context, from, to time.Time) ([]gorm_model.Interview, error) {
+	var interviews []gorm_model.Interview
+	err := r.db.WithContext(ctx).
+		Preload("Stage").
+		Where("status = ? AND scheduled_at > ? AND scheduled_at <= ? AND is_1h_reminder_sent = false AND deleted_at IS NULL", "SCHEDULED", from, to).
+		Find(&interviews).Error
+	return interviews, err
+}
+
+// MarkInterview24hReminderSent sets is_24h_reminder_sent to true for the specified interview.
+func (r *gormRepo) MarkInterview24hReminderSent(ctx context.Context, interviewID string) error {
+	return r.db.WithContext(ctx).
+		Model(&gorm_model.Interview{}).
+		Where("id = ?", interviewID).
+		Update("is_24h_reminder_sent", true).Error
+}
+
+// MarkInterview1hReminderSent sets is_1h_reminder_sent to true for the specified interview.
+func (r *gormRepo) MarkInterview1hReminderSent(ctx context.Context, interviewID string) error {
+	return r.db.WithContext(ctx).
+		Model(&gorm_model.Interview{}).
+		Where("id = ?", interviewID).
+		Update("is_1h_reminder_sent", true).Error
+}

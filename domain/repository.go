@@ -235,6 +235,10 @@ type GormRepo interface {
 	MarkAllNotificationsAsRead(ctx context.Context, userID string) error
 	GetSuperadminUserIDs(ctx context.Context) ([]string, error)
 	GetUpcomingInterviewsForNotification(ctx context.Context, from, to time.Time) ([]gorm_model.Interview, error)
+	GetUpcomingInterviewsFor24hReminder(ctx context.Context, from, to time.Time) ([]gorm_model.Interview, error)
+	GetUpcomingInterviewsFor1hReminder(ctx context.Context, from, to time.Time) ([]gorm_model.Interview, error)
+	MarkInterview24hReminderSent(ctx context.Context, interviewID string) error
+	MarkInterview1hReminderSent(ctx context.Context, interviewID string) error
 	GetExpiringContractsForNotification(ctx context.Context, targetDate time.Time) ([]gorm_model.OnboardHistory, error)
 }
 
