@@ -334,7 +334,7 @@ func main() {
 	}
 
 	// start notification scheduler
-	notificationScheduler := consumer.NewNotificationScheduler(repo)
+	notificationScheduler := consumer.NewNotificationScheduler(repo, mailerRepo)
 	go notificationScheduler.Start(context.Background())
 
 	// init middleware — pass nil redis client and the actual gorm repo
