@@ -5,6 +5,7 @@ import (
 	"time"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
+	"gorm.io/gorm"
 )
 
 // CreateNotification persists a new notification record.
@@ -91,12 +92,30 @@ func (r *gormRepo) GetExpiringContractsForNotification(ctx context.Context, targ
 	return histories, err
 }
 
-// MarkOnboardHistoryExpiryNotificationSent sets is_expiry_notification_sent to true for the specified onboard history.
-func (r *gormRepo) MarkOnboardHistoryExpiryNotificationSent(ctx context.Context, onboardHistoryID string) error {
-	return r.db.WithContext(ctx).
-		Model(&gorm_model.OnboardHistory{}).
-		Where("id = ?", onboardHistoryID).
-		Update("is_expiry_notification_sent", true).Error
+// EndExpiredContract marks the onboard history contract as expired, soft deletes the active subrequest candidate, and resets recruitment status.
+func (r *gormRepo) EndExpiredContract(ctx context.Context, onboardHistoryID string, candidateID string) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&gorm_model.OnboardHistory{}).
+			Where("id = ?", onboardHistoryID).
+			Update("is_expiry_notification_sent", true).Error; err != nil {
+			return err
+		}
+
+		now := time.Now()
+		if err := tx.Model(&gorm_model.SubrequestCandidate{}).
+			Where("candidate_user_id = ? AND deleted_at IS NULL", candidateID).
+			Update("deleted_at", now).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&gorm_model.User{}).
+			Where("id = ?", candidateID).
+			Update("recruitment_status_id", nil).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 // GetUpcomingInterviewsFor24hReminder fetches SCHEDULED interviews whose scheduled_at falls between from and to, and is_24h_reminder_sent is false.

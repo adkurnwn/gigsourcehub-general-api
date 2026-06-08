@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -153,13 +154,19 @@ func (s *NotificationScheduler) checkExpiringContracts(ctx context.Context) {
 	logrus.Infof("NotificationScheduler: expiring contract checks finished, found %d expiring contracts", len(histories))
 
 	for _, oh := range histories {
-		if oh.CandidateUser == nil || oh.Snapshot == nil {
+		if oh.CandidateUser == nil {
+			logrus.Warnf("NotificationScheduler: skipping onboard history %s because CandidateUser is nil", oh.ID)
+			continue
+		}
+		if oh.Snapshot == nil {
+			logrus.Warnf("NotificationScheduler: skipping onboard history %s because Snapshot is nil", oh.ID)
 			continue
 		}
 
 		candidateName := oh.CandidateUser.Name
 		employeeID := extractEmployeeIDFromSnapshot(*oh.Snapshot)
 		if employeeID == "" {
+			logrus.Warnf("NotificationScheduler: skipping onboard history %s because employee_user_id not found in snapshot: %s", oh.ID, *oh.Snapshot)
 			continue
 		}
 
@@ -171,14 +178,11 @@ func (s *NotificationScheduler) checkExpiringContracts(ctx context.Context) {
 		helpers.SendNotificationAsync(ctx, s.repo, employeeID, title, desc)
 
 		if oh.CandidateUserID != "" {
-			if err := s.repo.StopOnboardingByCandidateID(ctx, oh.CandidateUserID); err != nil {
-				logrus.Errorf("NotificationScheduler: failed to stop onboarding for candidate %s: %v", oh.CandidateUserID, err)
-				continue
+			if err := s.repo.EndExpiredContract(ctx, oh.ID, oh.CandidateUserID); err != nil {
+				logrus.Errorf("NotificationScheduler: failed to end expired contract for history %s: %v", oh.ID, err)
+			} else {
+				logrus.Infof("NotificationScheduler: successfully ended contract for history %s, candidate %s", oh.ID, oh.CandidateUserID)
 			}
-		}
-
-		if err := s.repo.MarkOnboardHistoryExpiryNotificationSent(ctx, oh.ID); err != nil {
-			logrus.Errorf("NotificationScheduler: failed to mark expiry notification sent for history %s: %v", oh.ID, err)
 		}
 	}
 }
@@ -186,10 +190,30 @@ func (s *NotificationScheduler) checkExpiringContracts(ctx context.Context) {
 // extractEmployeeIDFromSnapshot parses the snapshot JSON string to retrieve employee_user_id.
 // The snapshot format: {"employee_user_id":"uuid","employee_name":"...","project_name":"..."}
 func extractEmployeeIDFromSnapshot(snapshot string) string {
+	var data map[string]interface{}
+	if err := json.Unmarshal([]byte(snapshot), &data); err == nil {
+		if val, ok := data["employee_user_id"].(string); ok {
+			return val
+		}
+	}
+
+	// Fallback to string searching if JSON unmarshaling fails
 	const key = `"employee_user_id":"`
 	idx := strings.Index(snapshot, key)
 	if idx < 0 {
-		return ""
+		// Try with space
+		const keyWithSpace = `"employee_user_id": "`
+		idx = strings.Index(snapshot, keyWithSpace)
+		if idx < 0 {
+			return ""
+		}
+		start := idx + len(keyWithSpace)
+		rest := snapshot[start:]
+		end := strings.Index(rest, `"`)
+		if end < 0 {
+			return ""
+		}
+		return rest[:end]
 	}
 	start := idx + len(key)
 	rest := snapshot[start:]
