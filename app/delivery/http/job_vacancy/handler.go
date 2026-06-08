@@ -1,6 +1,8 @@
 package http_job_vacancy
 
 import (
+	"time"
+
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
@@ -30,6 +32,7 @@ func NewJobVacancyHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc doma
 	cms.POST("", handler.Create)
 	cms.PUT("/:id", handler.Update)
 	cms.DELETE("/:id", handler.Delete)
+	cms.PATCH("/:id/archive", handler.Archive)
 
 	// Public routes — no auth required
 	pub := r.Group("/public/job-vacancies")
@@ -117,6 +120,9 @@ func (h *routeHandler) Delete(c *gin.Context) {
 // @Param status query string false "Filter by status (DRAFT|ARCHIVED|PUBLISHED)"
 // @Param schema query string false "Filter by schema (ONSITE|REMOTE|HYBRID)"
 // @Param search query string false "Search by name"
+// @Param published_at_from query string false "Filter published_at from (YYYY-MM-DD)"
+// @Param published_at_to query string false "Filter published_at to (YYYY-MM-DD)"
+// @Param sort query string false "Sort order: asc or desc (default: desc)"
 // @Success 200 {object} response.Base
 // @Failure 403 {object} response.Base
 // @Failure 500 {object} response.Base
@@ -138,6 +144,27 @@ func (h *routeHandler) FetchAll(c *gin.Context) {
 		filter.Search = &v
 	}
 
+	// Filter published_at range (menggunakan created_at sebagai proxy)
+	if v := c.Query("published_at_from"); v != "" {
+		if t, err := time.Parse("2006-01-02", v); err == nil {
+			filter.PublishedAtFrom = &t
+		}
+	}
+	if v := c.Query("published_at_to"); v != "" {
+		if t, err := time.Parse("2006-01-02", v); err == nil {
+			// Set to end of day
+			end := t.Add(24*time.Hour - time.Second)
+			filter.PublishedAtTo = &end
+		}
+	}
+
+	// Sort order
+	sortOrder := "DESC"
+	if v := c.Query("sort"); v == "asc" {
+		sortOrder = "ASC"
+	}
+	filter.Sorts = []map[string]string{{"created_at": sortOrder}}
+
 	res := h.Usecase.FetchAll(c.Request.Context(), pagination.Page, pagination.Limit, filter)
 	c.JSON(res.Status, res)
 }
@@ -158,6 +185,24 @@ func (h *routeHandler) FetchAll(c *gin.Context) {
 func (h *routeHandler) FetchData(c *gin.Context) {
 	id := c.Param("id")
 	res := h.Usecase.FetchData(c.Request.Context(), id)
+	c.JSON(res.Status, res)
+}
+
+// Archive Job Vacancy (CMS)
+// @Security BearerAuth
+// @Summary Archive Job Vacancy
+// @Description Set job vacancy status to ARCHIVED (Admin & Superadmin)
+// @Tags Job Vacancy
+// @Produce json
+// @Param id path string true "Job Vacancy ID"
+// @Success 200 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 404 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /job-vacancies/{id}/archive [patch]
+func (h *routeHandler) Archive(c *gin.Context) {
+	id := c.Param("id")
+	res := h.Usecase.Archive(c.Request.Context(), id)
 	c.JSON(res.Status, res)
 }
 

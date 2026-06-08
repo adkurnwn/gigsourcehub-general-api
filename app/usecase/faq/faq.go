@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
@@ -19,10 +20,11 @@ import (
 	"gorm.io/gorm"
 )
 
+
 // ---------- Admin & Superadmin — CMS ----------
 
 // FetchAll returns all FAQ records from the DB merged with pending/rejected approvals.
-func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, search *string) response.Base {
+func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, filter domain.FAQCMSFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -180,13 +182,48 @@ func (u *appUsecase) FetchAll(ctx context.Context, page, limit int64, search *st
 	var merged []tempFAQ
 	for _, item := range finalMap {
 		matchesSearch := true
-		if search != nil && *search != "" {
-			qLower := strings.ToLower(*search)
+		if filter.Search != nil && *filter.Search != "" {
+			qLower := strings.ToLower(*filter.Search)
 			matchesSearch = strings.Contains(strings.ToLower(item.Question), qLower) ||
 				strings.Contains(strings.ToLower(item.Answer), qLower)
 		}
 
-		if matchesSearch {
+		// Filter by status
+		matchesStatus := true
+		if filter.Status != nil && *filter.Status != "" {
+			matchesStatus = strings.EqualFold(item.Status, *filter.Status)
+		}
+
+		// Filter by author (case-insensitive contains)
+		matchesAuthor := true
+		if filter.Author != nil && *filter.Author != "" {
+			matchesAuthor = strings.Contains(strings.ToLower(item.Author), strings.ToLower(*filter.Author))
+		}
+
+		// Filter by published_at range
+		matchesDateFrom := true
+		matchesDateTo := true
+		if filter.PublishedAtFrom != nil && *filter.PublishedAtFrom != "" {
+			if fromT, err := time.Parse("2006-01-02", *filter.PublishedAtFrom); err == nil {
+				if item.PublishedAt != nil {
+					matchesDateFrom = !item.PublishedAt.Before(fromT)
+				} else {
+					matchesDateFrom = false
+				}
+			}
+		}
+		if filter.PublishedAtTo != nil && *filter.PublishedAtTo != "" {
+			if toT, err := time.Parse("2006-01-02", *filter.PublishedAtTo); err == nil {
+				toT = toT.Add(24*time.Hour - time.Second)
+				if item.PublishedAt != nil {
+					matchesDateTo = !item.PublishedAt.After(toT)
+				} else {
+					matchesDateTo = false
+				}
+			}
+		}
+
+		if matchesSearch && matchesStatus && matchesAuthor && matchesDateFrom && matchesDateTo {
 			merged = append(merged, item)
 		}
 	}

@@ -172,6 +172,7 @@ type JobVacancyAppUsecase interface {
 	Create(ctx context.Context, req request_model.CreateJobVacancyRequest) response.Base
 	Update(ctx context.Context, id string, req request_model.UpdateJobVacancyRequest) response.Base
 	Delete(ctx context.Context, id string) response.Base
+	Archive(ctx context.Context, id string) response.Base
 
 	// Public — tanpa auth, hanya PUBLISHED & belum takedown
 	FetchPublic(ctx context.Context, page, limit int64, filter gorm_model.JobVacancyFilter) response.Base
@@ -189,9 +190,17 @@ type ChatAppUsecase interface {
 	MarkAsRead(ctx context.Context, userID string, conversationID string) response.Base
 }
 
+type FAQCMSFilter struct {
+	Search         *string
+	Status         *string
+	Author         *string
+	PublishedAtFrom *string
+	PublishedAtTo   *string
+}
+
 type FAQAppUsecase interface {
 	// Admin & Superadmin — CMS
-	FetchAll(ctx context.Context, page, limit int64, search *string) response.Base
+	FetchAll(ctx context.Context, page, limit int64, filter FAQCMSFilter) response.Base
 	FetchData(ctx context.Context, id string) response.Base
 
 	// Admin only
@@ -209,6 +218,7 @@ type FAQAppUsecase interface {
 	FetchPublic(ctx context.Context, page, limit int64, search *string) response.Base
 	FetchPublicByID(ctx context.Context, id string) response.Base
 }
+
 
 type CompanyProfileAppUsecase interface {
 	// Admin & Superadmin — CMS
