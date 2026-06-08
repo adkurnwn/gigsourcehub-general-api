@@ -80,15 +80,23 @@ func (r *gormRepo) GetUpcomingInterviewsForNotification(ctx context.Context, fro
 	return interviews, err
 }
 
-// GetExpiringContractsForNotification fetches onboard_histories whose end_date equals targetDate and is_stopped = false.
+// GetExpiringContractsForNotification fetches onboard_histories whose end_date is <= targetDate, is_stopped = false, and is_expiry_notification_sent = false.
 func (r *gormRepo) GetExpiringContractsForNotification(ctx context.Context, targetDate time.Time) ([]gorm_model.OnboardHistory, error) {
 	var histories []gorm_model.OnboardHistory
 	dateStr := targetDate.Format("2006-01-02")
 	err := r.db.WithContext(ctx).
 		Preload("CandidateUser").
-		Where("end_date = ? AND is_stopped = false AND deleted_at IS NULL", dateStr).
+		Where("end_date <= ? AND is_stopped = false AND is_expiry_notification_sent = false AND deleted_at IS NULL", dateStr).
 		Find(&histories).Error
 	return histories, err
+}
+
+// MarkOnboardHistoryExpiryNotificationSent sets is_expiry_notification_sent to true for the specified onboard history.
+func (r *gormRepo) MarkOnboardHistoryExpiryNotificationSent(ctx context.Context, onboardHistoryID string) error {
+	return r.db.WithContext(ctx).
+		Model(&gorm_model.OnboardHistory{}).
+		Where("id = ?", onboardHistoryID).
+		Update("is_expiry_notification_sent", true).Error
 }
 
 // GetUpcomingInterviewsFor24hReminder fetches SCHEDULED interviews whose scheduled_at falls between from and to, and is_24h_reminder_sent is false.
