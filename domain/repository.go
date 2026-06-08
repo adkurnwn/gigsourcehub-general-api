@@ -240,7 +240,7 @@ type GormRepo interface {
 	MarkInterview24hReminderSent(ctx context.Context, interviewID string) error
 	MarkInterview1hReminderSent(ctx context.Context, interviewID string) error
 	GetExpiringContractsForNotification(ctx context.Context, targetDate time.Time) ([]gorm_model.OnboardHistory, error)
-	MarkOnboardHistoryExpiryNotificationSent(ctx context.Context, onboardHistoryID string) error
+	EndExpiredContract(ctx context.Context, onboardHistoryID string, candidateID string) error
 }
 
 type CacheRepo interface {
