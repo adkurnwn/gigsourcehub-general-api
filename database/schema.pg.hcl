@@ -1341,6 +1341,11 @@ table "onboard_histories" {
     default = false
     null    = false
   }
+  column "is_expiry_notification_sent" {
+    type    = boolean
+    default = false
+    null    = false
+  }
   column "start_date" {
     type = date
     null = true

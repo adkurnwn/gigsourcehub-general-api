@@ -28,8 +28,8 @@ func (s *NotificationScheduler) Start(ctx context.Context) {
 	logrus.Info("NotificationScheduler: starting background scheduler")
 	// Ticker fires every 15 minutes for interview reminders
 	interviewTicker := time.NewTicker(15 * time.Minute)
-	// Ticker fires every 24 hours for contract expiry check
-	contractTicker := time.NewTicker(24 * time.Hour)
+	// Ticker fires every 15 minutes for contract expiry check
+	contractTicker := time.NewTicker(15 * time.Minute)
 
 	defer interviewTicker.Stop()
 	defer contractTicker.Stop()
@@ -140,7 +140,8 @@ func (s *NotificationScheduler) checkInterviewReminders(ctx context.Context) {
 	}
 }
 
-// checkExpiringContracts sends a review reminder to the employee when a candidate contract expires today.
+// checkExpiringContracts sends a review reminder to the employee when a candidate contract expires today,
+// ends the contract by stopping onboarding, and marks the history record.
 func (s *NotificationScheduler) checkExpiringContracts(ctx context.Context) {
 	logrus.Info("NotificationScheduler: checking expiring contracts...")
 	today := time.Now()
@@ -168,6 +169,17 @@ func (s *NotificationScheduler) checkExpiringContracts(ctx context.Context) {
 			candidateName,
 		)
 		helpers.SendNotificationAsync(ctx, s.repo, employeeID, title, desc)
+
+		if oh.CandidateUserID != "" {
+			if err := s.repo.StopOnboardingByCandidateID(ctx, oh.CandidateUserID); err != nil {
+				logrus.Errorf("NotificationScheduler: failed to stop onboarding for candidate %s: %v", oh.CandidateUserID, err)
+				continue
+			}
+		}
+
+		if err := s.repo.MarkOnboardHistoryExpiryNotificationSent(ctx, oh.ID); err != nil {
+			logrus.Errorf("NotificationScheduler: failed to mark expiry notification sent for history %s: %v", oh.ID, err)
+		}
 	}
 }
 
