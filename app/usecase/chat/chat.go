@@ -197,8 +197,12 @@ func (u *appUsecase) createConversation(ctx context.Context, adminID string, req
 			}
 			return response.Success(activeConv.ToConversationResp(userRole))
 		}
-		// If it's for a different subrequest, they are not allowed to start a new one
-		return response.Error(http.StatusBadRequest, "Candidate already has a conversation")
+
+		// If it's for a different subrequest, delete the existing conversation first
+		if err := u.gormDbRepo.DeleteConversationsByCandidateID(ctx, req.CandidateUserID); err != nil {
+			logrus.Error("DeleteConversationsByCandidateID error: ", err)
+			return response.Error(http.StatusInternalServerError, "Failed to remove existing conversation")
+		}
 	}
 
 	// 6. Create new conversation
