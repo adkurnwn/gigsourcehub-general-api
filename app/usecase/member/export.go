@@ -159,7 +159,8 @@ func (u *appUsecase) ExportCandidates(ctx context.Context, filter gorm_model.Can
 		adminName = admin.Name
 	}
 
-	res := u.FetchUsers(ctx, 1, 10000, "", nil, nil, nil, filter)
+	roleName := "Candidate"
+	res := u.FetchUsers(ctx, 1, 10000, "", nil, &roleName, nil, filter)
 	if res.Status != 200 {
 		return nil, "", "", nil
 	}

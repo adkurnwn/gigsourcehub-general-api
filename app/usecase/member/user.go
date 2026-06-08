@@ -32,7 +32,14 @@ func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor s
 	db := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.User{})
 
 	if roleName != nil {
-		db = db.Joins("JOIN system_roles rs ON users.system_role_id = rs.id").Where("rs.name = ?", *roleName)
+		if *roleName == "Unverified" {
+			db = db.Where("users.verified_at IS NULL")
+		} else {
+			db = db.Joins("JOIN system_roles rs ON users.system_role_id = rs.id").Where("rs.name = ?", *roleName)
+			if *roleName == "Candidate" {
+				db = db.Where("users.verified_at IS NOT NULL")
+			}
+		}
 	}
 
 	if search != nil && *search != "" {
