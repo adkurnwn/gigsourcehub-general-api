@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
+	"unicode"
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
@@ -17,6 +19,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor string, search *string, roleName *string, adminID *string, filter gorm_model.CandidateFilter) response.Base {
@@ -699,9 +702,83 @@ func (u *appUsecase) UpdateProfile(ctx context.Context, userID string, req reque
 	if req.JobRoleIds != nil {
 		var jobRoles []gorm_model.JobRole
 		if len(req.JobRoleIds) > 0 {
-			if err := u.gormDbRepo.GetDB().WithContext(ctx).Where("id IN ?", req.JobRoleIds).Find(&jobRoles).Error; err != nil {
-				logrus.Errorf("failed to fetch job roles: %v", err)
+			db := u.gormDbRepo.GetDB()
+
+			var allRoles []gorm_model.JobRole
+			db.Preload("Sector").Find(&allRoles)
+
+			var dbRoleUUIDs []string
+			var newRoleStrings []string
+
+			for _, idOrNew := range req.JobRoleIds {
+				if strings.HasPrefix(idOrNew, "NEW_ROLE:") {
+					newRoleStrings = append(newRoleStrings, idOrNew)
+				} else if _, err := uuid.Parse(idOrNew); err == nil {
+					dbRoleUUIDs = append(dbRoleUUIDs, idOrNew)
+				}
 			}
+
+			if len(dbRoleUUIDs) > 0 {
+				var existingRoles []gorm_model.JobRole
+				if err := db.WithContext(ctx).Where("id IN ?", dbRoleUUIDs).Find(&existingRoles).Error; err != nil {
+					logrus.Errorf("failed to fetch job roles: %v", err)
+				} else {
+					jobRoles = append(jobRoles, existingRoles...)
+				}
+			}
+
+			for _, newRoleStr := range newRoleStrings {
+				parts := strings.Split(newRoleStr, ":")
+				var sectorName string
+				var roleName string
+				if len(parts) >= 3 {
+					sectorName = parts[1]
+					roleName = parts[2]
+				} else if len(parts) >= 2 {
+					roleName = parts[1]
+				}
+
+				if roleName == "" {
+					continue
+				}
+
+				if match, found := fuzzyMatchJobRole(allRoles, roleName, 2); found {
+					alreadyAdded := false
+					for _, jr := range jobRoles {
+						if jr.ID == match.ID {
+							alreadyAdded = true
+							break
+						}
+					}
+					if !alreadyAdded {
+						jobRoles = append(jobRoles, *match)
+					}
+					continue
+				}
+
+				titled := toTitleCase(roleName)
+				var sector *gorm_model.Sector
+				var err error
+
+				if sectorName != "" {
+					sector, err = getOrCreateSectorByName(db, sectorName)
+				} else {
+					sector, err = getOrCreateUndefinedSector(db)
+				}
+
+				if err == nil {
+					newRole := gorm_model.JobRole{
+						ID:       uuid.New().String(),
+						Name:     titled,
+						SectorID: sector.ID,
+					}
+					if err := db.Create(&newRole).Error; err == nil {
+						jobRoles = append(jobRoles, newRole)
+						allRoles = append(allRoles, newRole)
+					}
+				}
+			}
+
 			existingRoleMap := make(map[string]bool)
 			for _, r := range user.JobRoles {
 				existingRoleMap[r.ID] = true
@@ -1336,4 +1413,113 @@ func (u *appUsecase) DeleteAccount(ctx context.Context, userID string, req reque
 
 	helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "Account", user.Email, nil, true)
 	return response.SuccessAction("Account", user.Email, "deleted")
+}
+
+// levenshtein computes the edit distance between two strings (case-insensitive).
+func levenshtein(a, b string) int {
+	a = strings.ToLower(a)
+	b = strings.ToLower(b)
+	la, lb := len(a), len(b)
+	if la == 0 {
+		return lb
+	}
+	if lb == 0 {
+		return la
+	}
+	prev := make([]int, lb+1)
+	curr := make([]int, lb+1)
+	for j := 0; j <= lb; j++ {
+		prev[j] = j
+	}
+	for i := 1; i <= la; i++ {
+		curr[0] = i
+		for j := 1; j <= lb; j++ {
+			cost := 1
+			if a[i-1] == b[j-1] {
+				cost = 0
+			}
+			ins := curr[j-1] + 1
+			del := prev[j] + 1
+			sub := prev[j-1] + cost
+			m := ins
+			if del < m {
+				m = del
+			}
+			if sub < m {
+				m = sub
+			}
+			curr[j] = m
+		}
+		prev, curr = curr, prev
+	}
+	return prev[lb]
+}
+
+// toTitleCase converts a string to "Title Case" (first letter of each word uppercase).
+func toTitleCase(s string) string {
+	words := strings.Fields(s)
+	for i, w := range words {
+		if len(w) == 0 {
+			continue
+		}
+		runes := []rune(w)
+		runes[0] = unicode.ToUpper(runes[0])
+		for j := 1; j < len(runes); j++ {
+			runes[j] = unicode.ToLower(runes[j])
+		}
+		words[i] = string(runes)
+	}
+	return strings.Join(words, " ")
+}
+
+// fuzzyMatchJobRole finds the best matching job role using Levenshtein distance.
+func fuzzyMatchJobRole(allRoles []gorm_model.JobRole, input string, maxDistance int) (*gorm_model.JobRole, bool) {
+	inputLower := strings.ToLower(strings.TrimSpace(input))
+	bestDist := maxDistance + 1
+	var bestMatch *gorm_model.JobRole
+	for i := range allRoles {
+		dist := levenshtein(inputLower, strings.ToLower(allRoles[i].Name))
+		if dist < bestDist {
+			bestDist = dist
+			bestMatch = &allRoles[i]
+		}
+	}
+	if bestMatch != nil && bestDist <= maxDistance {
+		return bestMatch, true
+	}
+	return nil, false
+}
+
+// getOrCreateUndefinedSector fetches or creates the "undefined" sector.
+func getOrCreateUndefinedSector(db *gorm.DB) (*gorm_model.Sector, error) {
+	var sector gorm_model.Sector
+	if err := db.Where("LOWER(name) = ?", "undefined").First(&sector).Error; err == nil {
+		return &sector, nil
+	}
+	sector = gorm_model.Sector{
+		ID:       uuid.New().String(),
+		Name:     "Undefined",
+		IsActive: true,
+	}
+	if err := db.Create(&sector).Error; err != nil {
+		return nil, err
+	}
+	return &sector, nil
+}
+
+// getOrCreateSectorByName fetches or creates a sector by its name (case-insensitive).
+func getOrCreateSectorByName(db *gorm.DB, name string) (*gorm_model.Sector, error) {
+	var sector gorm_model.Sector
+	if err := db.Where("LOWER(name) = ?", strings.ToLower(name)).First(&sector).Error; err == nil {
+		return &sector, nil
+	}
+	sector = gorm_model.Sector{
+		ID:       uuid.New().String(),
+		Name:     toTitleCase(name),
+		IsActive: true,
+	}
+	if err := db.Create(&sector).Error; err != nil {
+		return nil, err
+	}
+	return &sector, nil
 }

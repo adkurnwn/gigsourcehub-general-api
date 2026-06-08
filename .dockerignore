@@ -1,3 +1,15 @@
-.env.dev
+.git
+.github
+.env
+.env.*
 server.log
+*.log
 .DS_Store
+.idea
+.vscode
+.mockery.yaml
+mocks/
+tmp/
+coverage.out
+build-app
+build_test
