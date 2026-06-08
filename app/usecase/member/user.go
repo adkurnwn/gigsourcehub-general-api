@@ -19,7 +19,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor string, search *string, roleName *string, adminID *string) response.Base {
+func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor string, search *string, roleName *string, adminID *string, filter gorm_model.CandidateFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -34,6 +34,23 @@ func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor s
 
 	if search != nil && *search != "" {
 		db = db.Where("(users.name ILIKE ? OR users.email ILIKE ?)", "%"+*search+"%", "%"+*search+"%")
+	}
+
+	if len(filter.Bidang) > 0 {
+		db = db.Joins("LEFT JOIN job_titles ON job_titles.id = users.job_title_id").
+			Joins("LEFT JOIN sectors ON sectors.id = job_titles.sector_id").
+			Where("sectors.name IN ?", filter.Bidang)
+	}
+
+	if len(filter.JobRoles) > 0 {
+		db = db.Joins("LEFT JOIN user_has_job_roles ON user_has_job_roles.user_id = users.id").
+			Joins("LEFT JOIN job_roles ON job_roles.id = user_has_job_roles.job_role_id").
+			Where("job_roles.name IN ?", filter.JobRoles)
+	}
+
+	if len(filter.CandidateLevel) > 0 {
+		db = db.Joins("LEFT JOIN job_titles jt_level ON jt_level.id = users.job_title_id").
+			Where("jt_level.name IN ?", filter.CandidateLevel)
 	}
 
 	var total int64
@@ -94,7 +111,7 @@ func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor s
 	})
 }
 
-func (u *appUsecase) FetchCandidateRecruitment(ctx context.Context, page, limit int64, cursor string) response.Base {
+func (u *appUsecase) FetchCandidateRecruitment(ctx context.Context, page, limit int64, cursor string, filter gorm_model.CandidateRecruitmentFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -104,6 +121,23 @@ func (u *appUsecase) FetchCandidateRecruitment(ctx context.Context, page, limit 
 		Model(&gorm_model.User{}).
 		Joins("JOIN system_roles sr ON sr.id = users.system_role_id").
 		Where("sr.name = ? AND users.recruitment_status_id IS NOT NULL", "Candidate")
+
+	if len(filter.JobRoleName) > 0 {
+		query = query.Joins("LEFT JOIN user_has_job_roles ON user_has_job_roles.user_id = users.id").
+			Joins("LEFT JOIN job_roles ON job_roles.id = user_has_job_roles.job_role_id").
+			Where("job_roles.name IN ?", filter.JobRoleName)
+	}
+	
+	if len(filter.CandidateLevel) > 0 {
+		query = query.Joins("LEFT JOIN job_titles ON job_titles.id = users.job_title_id").
+			Where("job_titles.name IN ?", filter.CandidateLevel)
+	}
+
+	if len(filter.ProjectName) > 0 {
+		query = query.Joins("LEFT JOIN subrequests ON subrequests.candidate_id = users.id").
+			Joins("LEFT JOIN requests ON requests.id = subrequests.request_id").
+			Where("requests.project_name IN ?", filter.ProjectName)
+	}
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
@@ -150,7 +184,7 @@ func (u *appUsecase) FetchCandidateRecruitment(ctx context.Context, page, limit 
 	})
 }
 
-func (u *appUsecase) FetchCandidateBookmarked(ctx context.Context, adminID string, page, limit int64, cursor string) response.Base {
+func (u *appUsecase) FetchCandidateBookmarked(ctx context.Context, adminID string, page, limit int64, cursor string, filter gorm_model.CandidateFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -184,10 +218,29 @@ func (u *appUsecase) FetchCandidateBookmarked(ctx context.Context, adminID strin
 
 	usersByID := make(map[string]gorm_model.User)
 	if len(bookmarkedIDs) > 0 {
-		var users []gorm_model.User
-		if err := u.gormDbRepo.GetDB().WithContext(ctx).
+		userQuery := u.gormDbRepo.GetDB().WithContext(ctx).
 			Model(&gorm_model.User{}).
-			Where("id IN ?", bookmarkedIDs).
+			Where("users.id IN ?", bookmarkedIDs)
+
+		if len(filter.Bidang) > 0 {
+			userQuery = userQuery.Joins("LEFT JOIN job_titles ON job_titles.id = users.job_title_id").
+				Joins("LEFT JOIN sectors ON sectors.id = job_titles.sector_id").
+				Where("sectors.name IN ?", filter.Bidang)
+		}
+
+		if len(filter.JobRoles) > 0 {
+			userQuery = userQuery.Joins("LEFT JOIN user_has_job_roles ON user_has_job_roles.user_id = users.id").
+				Joins("LEFT JOIN job_roles ON job_roles.id = user_has_job_roles.job_role_id").
+				Where("job_roles.name IN ?", filter.JobRoles)
+		}
+
+		if len(filter.CandidateLevel) > 0 {
+			userQuery = userQuery.Joins("LEFT JOIN job_titles jt_level ON jt_level.id = users.job_title_id").
+				Where("jt_level.name IN ?", filter.CandidateLevel)
+		}
+
+		var users []gorm_model.User
+		if err := userQuery.
 			Preload("SystemRole").
 			Preload("RecruitmentStatus").
 			Preload("KabupatenKota.Provinsi").

@@ -363,6 +363,11 @@ definitions:
       system_role_id:
         type: string
     type: object
+  request_model.DeleteAccountRequest:
+    properties:
+      password:
+        type: string
+    type: object
   request_model.EditUserBySuperadminRequest:
     properties:
       account_status:
@@ -455,6 +460,13 @@ definitions:
         type: string
     required:
     - rejected_reason
+    type: object
+  request_model.ResendVerificationRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
     type: object
   request_model.ResetPasswordRequest:
     properties:
@@ -922,6 +934,49 @@ paths:
       summary: Assign a candidate to a subrequest
       tags:
       - Admin Request
+  /admin/requests/export:
+    get:
+      consumes:
+      - application/json
+      description: Export admin requests to file
+      parameters:
+      - description: Format (pdf, csv, xlsx)
+        in: query
+        name: format
+        required: true
+        type: string
+      - description: Filter by Status
+        in: query
+        name: status
+        type: string
+      - description: Filter by Urgency
+        in: query
+        name: urgency
+        type: string
+      - description: Filter by Keyword
+        in: query
+        name: search
+        type: string
+      - description: Filter by Proposed By
+        in: query
+        name: proposed_by
+        type: string
+      - description: Filter by Admin Name
+        in: query
+        name: admin_name
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Export Admin Requests
+      tags:
+      - Admin Request
   /admin/requests/my-requests:
     get:
       description: Get paginated list of requests assigned to the authenticated admin
@@ -936,6 +991,22 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by urgency
+        in: query
+        name: urgency
+        type: string
+      - description: Filter by proposed_by
+        in: query
+        name: proposed_by
+        type: string
+      - description: Filter by admin_name
+        in: query
+        name: admin_name
+        type: string
       produces:
       - application/json
       responses:
@@ -975,6 +1046,22 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by urgency
+        in: query
+        name: urgency
+        type: string
+      - description: Filter by proposed_by
+        in: query
+        name: proposed_by
+        type: string
+      - description: Filter by admin_name
+        in: query
+        name: admin_name
+        type: string
       produces:
       - application/json
       responses:
@@ -1351,6 +1438,40 @@ paths:
           schema:
             $ref: '#/definitions/response.Base'
       summary: Register user
+      tags:
+      - Auth
+  /auth/resend-verification:
+    post:
+      consumes:
+      - application/json
+      description: Resend account verification token to user's email
+      parameters:
+      - description: Resend Verification Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.ResendVerificationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      summary: Resend verification email
       tags:
       - Auth
   /auth/reset-password:
@@ -3776,6 +3897,121 @@ paths:
       summary: Create Admin Note
       tags:
       - Notes
+  /notifications:
+    get:
+      description: Get paginated list of in-app notifications for the authenticated
+        user
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Fetch my notifications
+      tags:
+      - Notification
+  /notifications/{id}/read:
+    patch:
+      description: Mark a specific notification as read for the authenticated user
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Mark notification as read
+      tags:
+      - Notification
+  /notifications/read-all:
+    patch:
+      description: Mark all in-app notifications as read for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Mark all notifications as read
+      tags:
+      - Notification
+  /notifications/unread-count:
+    get:
+      description: Returns the number of unread in-app notifications for the authenticated
+        user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Get unread notification count
+      tags:
+      - Notification
   /onboarding/{id}:
     get:
       consumes:
@@ -3846,6 +4082,18 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: Filter by Job Role Name (comma separated)
+        in: query
+        name: job_role_name
+        type: string
+      - description: Filter by Project Name (comma separated)
+        in: query
+        name: project_name
+        type: string
+      - description: Filter by Employee User ID or Name (comma separated)
+        in: query
+        name: employee_user
+        type: string
       produces:
       - application/json
       responses:
@@ -3911,6 +4159,41 @@ paths:
       summary: Get Active Team Onboarding
       tags:
       - Onboarding
+  /onboarding/active/export:
+    get:
+      consumes:
+      - application/json
+      description: Export active onboarding history
+      parameters:
+      - description: Format (pdf, csv, xlsx)
+        in: query
+        name: format
+        required: true
+        type: string
+      - description: Filter by Job Role Name (comma separated)
+        in: query
+        name: job_role_name
+        type: string
+      - description: Filter by Project Name (comma separated)
+        in: query
+        name: project_name
+        type: string
+      - description: Filter by Employee User ID or Name (comma separated)
+        in: query
+        name: employee_user
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Export Active Onboarding
+      tags:
+      - Onboarding
   /onboarding/archive:
     get:
       consumes:
@@ -3928,6 +4211,18 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: Filter by Job Role Name (comma separated)
+        in: query
+        name: job_role_name
+        type: string
+      - description: Filter by Project Name (comma separated)
+        in: query
+        name: project_name
+        type: string
+      - description: Filter by Employee User ID or Name (comma separated)
+        in: query
+        name: employee_user
+        type: string
       produces:
       - application/json
       responses:
@@ -3950,6 +4245,41 @@ paths:
       security:
       - BearerAuth: []
       summary: Get Archived Onboarding
+      tags:
+      - Onboarding
+  /onboarding/archive/export:
+    get:
+      consumes:
+      - application/json
+      description: Export archived onboarding history
+      parameters:
+      - description: Format (pdf, csv, xlsx)
+        in: query
+        name: format
+        required: true
+        type: string
+      - description: Filter by Job Role Name (comma separated)
+        in: query
+        name: job_role_name
+        type: string
+      - description: Filter by Project Name (comma separated)
+        in: query
+        name: project_name
+        type: string
+      - description: Filter by Employee User ID or Name (comma separated)
+        in: query
+        name: employee_user
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Export Archived Onboarding
       tags:
       - Onboarding
   /onboarding/history:
@@ -3994,6 +4324,46 @@ paths:
       tags:
       - Onboarding
   /profile:
+    delete:
+      consumes:
+      - application/json
+      description: Delete the current candidate user's account. Requires password
+        confirmation.
+      parameters:
+      - description: Password confirmation data
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request_model.DeleteAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Delete Account
+      tags:
+      - Profile
     get:
       consumes:
       - application/json
@@ -5208,6 +5578,37 @@ paths:
       summary: Update Sector
       tags:
       - Sector (Bidang)
+  /system-settings/cv-template:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Superadmin uploads a new CV Template in docx format to S3
+      parameters:
+      - description: Docx file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Upload CV Template (Superadmin)
+      tags:
+      - System Setting
   /users:
     get:
       consumes:
@@ -5769,6 +6170,50 @@ paths:
       summary: Patch User Recruitment Status and Candidate Level
       tags:
       - Users
+  /users/{id}/stop-onboarding:
+    patch:
+      consumes:
+      - application/json
+      description: Stop an accepted candidate onboarding, clear recruitment status,
+        soft delete the pivot row, and send an apology email
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Base'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Base'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Base'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Base'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Base'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Base'
+      security:
+      - BearerAuth: []
+      summary: Stop Onboarding
+      tags:
+      - Users
   /users/candidate-bookmarked:
     get:
       consumes:
@@ -5808,6 +6253,41 @@ paths:
       security:
       - BearerAuth: []
       summary: Fetch Candidate Bookmarked
+      tags:
+      - Users
+  /users/candidate-bookmarked/export:
+    get:
+      consumes:
+      - application/json
+      description: Export a list of candidate bookmarked
+      parameters:
+      - description: Format (pdf, csv, xlsx)
+        in: query
+        name: format
+        required: true
+        type: string
+      - description: Filter by Bidang (comma separated)
+        in: query
+        name: bidang
+        type: string
+      - description: Filter by Job Roles (comma separated)
+        in: query
+        name: job_roles
+        type: string
+      - description: Filter by Candidate Level (comma separated)
+        in: query
+        name: candidate_level
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Export Candidate Bookmarked
       tags:
       - Users
   /users/candidate-recruitment:
@@ -5851,6 +6331,41 @@ paths:
       summary: Fetch Candidate Recruitment
       tags:
       - Users
+  /users/candidate-recruitment/export:
+    get:
+      consumes:
+      - application/json
+      description: Export a list of candidate recruitment
+      parameters:
+      - description: Format (pdf, csv, xlsx)
+        in: query
+        name: format
+        required: true
+        type: string
+      - description: Filter by Job Role Name (comma separated)
+        in: query
+        name: job_role_name
+        type: string
+      - description: Filter by Project Name (comma separated)
+        in: query
+        name: project_name
+        type: string
+      - description: Filter by Candidate Level (comma separated)
+        in: query
+        name: candidate_level
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Export Candidate Recruitment
+      tags:
+      - Users
   /users/candidates:
     get:
       consumes:
@@ -5889,6 +6404,41 @@ paths:
       security:
       - BearerAuth: []
       summary: Fetch Candidates
+      tags:
+      - Users
+  /users/candidates/export:
+    get:
+      consumes:
+      - application/json
+      description: Export a list of candidate users
+      parameters:
+      - description: Format (pdf, csv, xlsx)
+        in: query
+        name: format
+        required: true
+        type: string
+      - description: Filter by Bidang (comma separated)
+        in: query
+        name: bidang
+        type: string
+      - description: Filter by Job Roles (comma separated)
+        in: query
+        name: job_roles
+        type: string
+      - description: Filter by Candidate Level (comma separated)
+        in: query
+        name: candidate_level
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Export Candidates
       tags:
       - Users
   /users/finalize-recruitment:

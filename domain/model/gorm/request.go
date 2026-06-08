@@ -42,6 +42,7 @@ type RequestResp struct {
 	AdminUserID       *string          `json:"admin_user_id"`
 	AdminName         *string          `json:"admin_name"`
 	EmployeeUserID    string           `json:"employee_user_id"`
+	EmployeeName      *string          `json:"employee_name,omitempty"`
 	RequiredHeadcount int              `json:"required_headcount"`
 	Status            string           `json:"status"`
 	Urgency           string           `json:"urgency"`
@@ -69,6 +70,11 @@ func (row *Request) ToRequestResp() RequestResp {
 		adminName = &row.AdminUser.Name
 	}
 
+	var employeeName *string
+	if row.EmployeeUser != nil {
+		employeeName = &row.EmployeeUser.Name
+	}
+
 	var subResponses []SubrequestResp
 	if row.Subrequests != nil {
 		for _, sub := range row.Subrequests {
@@ -84,6 +90,7 @@ func (row *Request) ToRequestResp() RequestResp {
 		AdminUserID:       row.AdminUserID,
 		AdminName:         adminName,
 		EmployeeUserID:    row.EmployeeUserID,
+		EmployeeName:      employeeName,
 		RequiredHeadcount: row.RequiredHeadcount,
 		Status:            row.Status,
 		Urgency:           row.Urgency,

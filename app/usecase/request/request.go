@@ -199,13 +199,85 @@ func (u *appUsecase) FetchByAdmin(ctx context.Context, page, limit int64, filter
 	return u.fetchByAdminWithFilter(ctx, page, limit, filter)
 }
 
-func (u *appUsecase) FetchPendingForAdmin(ctx context.Context, page, limit int64) response.Base {
+func (u *appUsecase) FetchPendingForAdmin(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	offset := (page - 1) * limit
 	status := "PENDING"
-	return u.fetchByAdminWithFilter(ctx, page, limit, gorm_model.RequestFilter{Status: &status})
+	filter.Status = &status
+
+	total, err := u.gormDbRepo.CountRequestsByAdmin(ctx, filter)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to count requests")
+	}
+
+	rows, err := u.gormDbRepo.FetchRequestsByAdmin(ctx, filter, limit, offset)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch requests")
+	}
+	defer rows.Close()
+
+	var results []interface{}
+	for rows.Next() {
+		var req gorm_model.Request
+		if err := u.gormDbRepo.StructScan(rows, &req); err != nil {
+			logrus.Errorf("Failed to scan request: %v", err)
+			continue
+		}
+
+		fullReq, err := u.gormDbRepo.GetRequestByID(ctx, req.ID)
+		if err == nil {
+			results = append(results, fullReq.ToRequestResp())
+		}
+	}
+
+	return response.Success(response.List{
+		List:  results,
+		Limit: limit,
+		Page:  page,
+		Total: total,
+	})
 }
 
-func (u *appUsecase) FetchMyRequestsForAdmin(ctx context.Context, adminID string, page, limit int64) response.Base {
-	return u.fetchByAdminWithFilter(ctx, page, limit, gorm_model.RequestFilter{AdminUserID: &adminID})
+func (u *appUsecase) FetchMyRequestsForAdmin(ctx context.Context, adminID string, page, limit int64, filter gorm_model.RequestFilter) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	offset := (page - 1) * limit
+	filter.AdminUserID = &adminID
+
+	total, err := u.gormDbRepo.CountRequestsByAdmin(ctx, filter)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to count requests")
+	}
+
+	rows, err := u.gormDbRepo.FetchRequestsByAdmin(ctx, filter, limit, offset)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch requests")
+	}
+	defer rows.Close()
+
+	var results []interface{}
+	for rows.Next() {
+		var req gorm_model.Request
+		if err := u.gormDbRepo.StructScan(rows, &req); err != nil {
+			logrus.Errorf("Failed to scan request: %v", err)
+			continue
+		}
+
+		fullReq, err := u.gormDbRepo.GetRequestByID(ctx, req.ID)
+		if err == nil {
+			results = append(results, fullReq.ToRequestResp())
+		}
+	}
+
+	return response.Success(response.List{
+		List:  results,
+		Limit: limit,
+		Page:  page,
+		Total: total,
+	})
 }
 
 func (u *appUsecase) fetchByAdminWithFilter(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base {
