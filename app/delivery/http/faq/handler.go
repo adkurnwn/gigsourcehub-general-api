@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+
 type routeHandler struct {
 	Usecase    domain.FAQAppUsecase
 	Route      *gin.RouterGroup
@@ -125,6 +126,10 @@ func (h *routeHandler) Delete(c *gin.Context) {
 // @Param page query int false "Page number"
 // @Param limit query int false "Items per page"
 // @Param search query string false "Search by question"
+// @Param status query string false "Filter by status (DRAFT|PUBLISHED|REJECTED)"
+// @Param author query string false "Filter by author name (partial match)"
+// @Param published_at_from query string false "Filter published_at from (YYYY-MM-DD)"
+// @Param published_at_to query string false "Filter published_at to (YYYY-MM-DD)"
 // @Success 200 {object} response.Base
 // @Failure 403 {object} response.Base
 // @Failure 500 {object} response.Base
@@ -132,14 +137,28 @@ func (h *routeHandler) Delete(c *gin.Context) {
 func (h *routeHandler) FetchAll(c *gin.Context) {
 	pagination := helpers.GetPagination(c)
 
-	var search *string
+	filter := domain.FAQCMSFilter{}
+
 	if v := c.Query("search"); v != "" {
-		search = &v
+		filter.Search = &v
+	}
+	if v := c.Query("status"); v != "" {
+		filter.Status = &v
+	}
+	if v := c.Query("author"); v != "" {
+		filter.Author = &v
+	}
+	if v := c.Query("published_at_from"); v != "" {
+		filter.PublishedAtFrom = &v
+	}
+	if v := c.Query("published_at_to"); v != "" {
+		filter.PublishedAtTo = &v
 	}
 
-	res := h.Usecase.FetchAll(c.Request.Context(), pagination.Page, pagination.Limit, search)
+	res := h.Usecase.FetchAll(c.Request.Context(), pagination.Page, pagination.Limit, filter)
 	c.JSON(res.Status, res)
 }
+
 
 // Get FAQ By ID (CMS)
 // @Security BearerAuth

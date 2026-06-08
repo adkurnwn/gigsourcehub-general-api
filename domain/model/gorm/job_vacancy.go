@@ -42,6 +42,9 @@ type JobVacancyFilter struct {
 	Search        *string
 	// OnlyPublicValid filters to PUBLISHED vacancies whose takedown_date is NULL or >= today
 	OnlyPublicValid bool
+	// PublishedAtFrom & PublishedAtTo for filtering by created_at range (used as published_at for PUBLISHED entries)
+	PublishedAtFrom *time.Time
+	PublishedAtTo   *time.Time
 }
 
 func (f *JobVacancyFilter) Query(q *gorm.DB) {
@@ -61,6 +64,12 @@ func (f *JobVacancyFilter) Query(q *gorm.DB) {
 	}
 	if f.OnlyPublicValid {
 		q.Where("status = 'PUBLISHED' AND (takedown_date IS NULL OR takedown_date >= CURRENT_DATE)")
+	}
+	if f.PublishedAtFrom != nil {
+		q.Where("created_at >= ?", f.PublishedAtFrom)
+	}
+	if f.PublishedAtTo != nil {
+		q.Where("created_at <= ?", f.PublishedAtTo)
 	}
 }
 

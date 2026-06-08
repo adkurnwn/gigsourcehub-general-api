@@ -268,6 +268,34 @@ func (u *appUsecase) Delete(ctx context.Context, id string) response.Base {
 	return response.Success(nil)
 }
 
+// Archive — CMS archive, set status to ARCHIVED for Admin & Superadmin.
+func (u *appUsecase) Archive(ctx context.Context, id string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	// Check existence first
+	existing, err := u.gormDbRepo.GetJobVacancyByID(ctx, id)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return response.Error(http.StatusNotFound, "Job Vacancy not found")
+		}
+		logrus.Error("JobVacancy Archive fetch error:", err)
+		return response.Error(http.StatusInternalServerError, "Failed to fetch Job Vacancy")
+	}
+
+	archived := "ARCHIVED"
+	existing.Status = &archived
+
+	if err := u.gormDbRepo.UpdateJobVacancy(ctx, existing); err != nil {
+		logrus.Error("JobVacancy Archive error:", err)
+		helpers.LogActivity(ctx, u.gormDbRepo, "Archive", "Job Vacancy", existing.Name, nil, false)
+		return response.Error(http.StatusInternalServerError, "Failed to archive Job Vacancy")
+	}
+
+	helpers.LogActivity(ctx, u.gormDbRepo, "Archive", "Job Vacancy", existing.Name, nil, true)
+	return response.Success(nil)
+}
+
 // FetchPublic — Public list, tanpa auth, hanya PUBLISHED & belum takedown.
 func (u *appUsecase) FetchPublic(ctx context.Context, page, limit int64, filter gorm_model.JobVacancyFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
