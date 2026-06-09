@@ -280,6 +280,51 @@ func (u *appUsecase) FetchMyRequestsForAdmin(ctx context.Context, adminID string
 	})
 }
 
+func (u *appUsecase) FetchActiveMyRequestsForAdmin(ctx context.Context, adminID string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	var requests []gorm_model.Request
+	err := u.gormDbRepo.GetDB().WithContext(ctx).
+		Preload("AdminUser").
+		Preload("EmployeeUser").
+		Preload("Subrequests").
+		Preload("Subrequests.JobRole").
+		Preload("Subrequests.JobRole.Sector").
+		Where("admin_user_id = ? AND fulfillment_date IS NULL", adminID).
+		Order("requests.created_at DESC").
+		Find(&requests).Error
+	if err != nil {
+		logrus.Errorf("FetchActiveMyRequestsForAdmin DB Error: %v", err)
+		return response.Error(http.StatusInternalServerError, "Failed to fetch active requests")
+	}
+
+	var results []interface{}
+	for _, req := range requests {
+		// filter subrequests to only include not-filled ones
+		var remaining []gorm_model.Subrequest
+		for _, sr := range req.Subrequests {
+			if !sr.IsFilled {
+				remaining = append(remaining, sr)
+			}
+		}
+		if len(remaining) == 0 {
+			// nothing to show for this request
+			continue
+		}
+		req.Subrequests = remaining
+		results = append(results, req.ToRequestResp())
+	}
+
+	total := int64(len(results))
+	return response.Success(response.List{
+		List:  results,
+		Limit: total,
+		Page:  1,
+		Total: total,
+	})
+}
+
 func (u *appUsecase) fetchByAdminWithFilter(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()

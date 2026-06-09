@@ -43,6 +43,7 @@ func NewRequestHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.
 	adminRoute.GET("/export", handler.ExportRequests)
 	adminRoute.GET("/pending", handler.FetchPendingForAdmin)
 	adminRoute.GET("/my-requests", handler.FetchMyRequestsForAdmin)
+	adminRoute.GET("/active-my-request", handler.FetchActiveMyRequestsForAdmin)
 	adminRoute.PATCH("/:id/validate", handler.AssignPIC)
 	adminRoute.PATCH("/:id/reject", handler.RejectRequest)
 	adminRoute.POST("/:request_id/subrequests/:sub_id/assign", handler.AssignCandidateToSubrequest)
@@ -257,6 +258,29 @@ func (h *routeHandler) FetchMyRequestsForAdmin(ctx *gin.Context) {
 	filter := parseRequestFilter(ctx)
 
 	result := h.Usecase.FetchMyRequestsForAdmin(ctx.Request.Context(), adminID, pagination.Page, pagination.Limit, filter)
+	ctx.JSON(result.Status, result)
+}
+
+// Fetch Active My Requests (Admin)
+// @Summary Fetch active my assigned requests
+// @Description Get active requests assigned to authenticated admin and only unfilled subrequests
+// @Tags Admin Request
+// @Produce json
+// @Success 200 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /admin/requests/active-my-request [get]
+// @Security BearerAuth
+func (h *routeHandler) FetchActiveMyRequestsForAdmin(ctx *gin.Context) {
+	userClaim, exists := ctx.Get("token_data")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, response.Error(http.StatusUnauthorized, "User ID not found in context"))
+		return
+	}
+	adminID := userClaim.(domain.JWTClaimUser).UserID
+
+	result := h.Usecase.FetchActiveMyRequestsForAdmin(ctx.Request.Context(), adminID)
 	ctx.JSON(result.Status, result)
 }
 

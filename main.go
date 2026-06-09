@@ -14,7 +14,6 @@ import (
 	"github.com/adkurnwn/gigsourcehub-general-api/app/consumer"
 	delivery_grpc "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/grpc"
 	http_activity_log "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/activity_log"
-	http_dashboard "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/dashboard"
 	http_admin_note "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/admin_note"
 	http_aichat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/ai_chat"
 	http_bookmark "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/bookmark"
@@ -22,6 +21,7 @@ import (
 	http_chat "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/chat"
 	http_company_profile "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/company_profile"
 	http_cv "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/cv"
+	http_dashboard "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/dashboard"
 	http_faq "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/faq"
 	http_interview "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/interview"
 	http_interview_stage "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/interview_stage"
@@ -31,11 +31,11 @@ import (
 	http_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/kabupaten_kota"
 	http_member "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/member"
 	"github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/middleware"
+	http_notification "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/notification"
 	http_onboarding "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/onboarding"
 	http_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/provinsi"
 	http_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/recruitment_status"
 	httpdelivery_request "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/request"
-	http_notification "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/notification"
 	http_review "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/review"
 	http_search "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/search"
 	http_sector "github.com/adkurnwn/gigsourcehub-general-api/app/delivery/http/sector"
@@ -62,11 +62,11 @@ import (
 	usecase_job_vacancy "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/job_vacancy"
 	usecase_kabupaten_kota "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/kabupaten_kota"
 	usecase_member "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/member"
+	usecase_notification "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/notification"
 	usecase_provinsi "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/provinsi"
 	usecase_recruitment_status "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/recruitment_status"
 	usecase_request "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/request"
 	usecase_review "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/review"
-	usecase_notification "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/notification"
 	usecase_search "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/search"
 	usecase_sector "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/sector"
 	usecase_system_setting "github.com/adkurnwn/gigsourcehub-general-api/app/usecase/system_setting"
@@ -180,10 +180,32 @@ func main() {
 	// set gin writer to logrus
 	gin.DefaultWriter = logrus.StandardLogger().Writer()
 
-	// init potgresql database (use sqlx + pgx stdlib)
-	db, err := sqlx.ConnectContext(context.Background(), "pgx", os.Getenv("POSTGRES_URL"))
+	// init potgresql database (use sqlx + pgx stdlib) with retry and pool settings
+	var db *sqlx.DB
+	var err error
+	connectWithRetry := func(ctx context.Context, dsn string, attempts int) (*sqlx.DB, error) {
+		var lastErr error
+		backoff := time.Second
+		for i := 0; i < attempts; i++ {
+			dbConn, errConn := sqlx.ConnectContext(ctx, "pgx", dsn)
+			if errConn == nil {
+				// configure pool
+				dbConn.SetMaxOpenConns(50)
+				dbConn.SetMaxIdleConns(20)
+				dbConn.SetConnMaxLifetime(30 * time.Minute)
+				return dbConn, nil
+			}
+			lastErr = errConn
+			logrus.Warnf("postgres connect attempt %d failed: %v; retrying in %s", i+1, errConn, backoff)
+			time.Sleep(backoff)
+			backoff = backoff * 2
+		}
+		return nil, lastErr
+	}
+
+	db, err = connectWithRetry(context.Background(), os.Getenv("POSTGRES_URL"), 5)
 	if err != nil {
-		logrus.Fatalf("failed to connect to postgres: %v", err)
+		logrus.Fatalf("failed to connect to postgres after retries: %v", err)
 	}
 	// psqlPrep previously came from yureka_sql; use db directly
 	psqlPrep := db
@@ -362,6 +384,20 @@ func main() {
 	ginEngine.Use(mdl.ContextEnricher())
 
 	// default route
+	// health endpoint
+	ginEngine.GET("/health", func(ctx *gin.Context) {
+		if psqlPrep == nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"status": "error", "db": "not initialized"})
+			return
+		}
+		if err := psqlPrep.PingContext(ctx.Request.Context()); err != nil {
+			logrus.Errorf("healthcheck db ping failed: %v", err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"status": "error", "db": "unhealthy"})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{"status": "ok", "db": "ok"})
+	})
+
 	ginEngine.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, map[string]any{
 			"message": "It works",
