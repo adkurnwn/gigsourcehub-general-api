@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
+	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/sirupsen/logrus"
 )
@@ -31,13 +32,17 @@ func (s *NotificationScheduler) Start(ctx context.Context) {
 	interviewTicker := time.NewTicker(15 * time.Minute)
 	// Ticker fires every 15 minutes for contract expiry check
 	contractTicker := time.NewTicker(15 * time.Minute)
+	// Ticker fires every 15 minutes for candidate availability expiry check
+	availabilityTicker := time.NewTicker(15 * time.Minute)
 
 	defer interviewTicker.Stop()
 	defer contractTicker.Stop()
+	defer availabilityTicker.Stop()
 
 	// Run once immediately on startup so we don't have to wait for the first tick
 	s.checkInterviewReminders(ctx)
 	s.checkExpiringContracts(ctx)
+	s.checkCandidateAvailabilityExpiry(ctx)
 
 	for {
 		select {
@@ -48,6 +53,8 @@ func (s *NotificationScheduler) Start(ctx context.Context) {
 			s.checkInterviewReminders(ctx)
 		case <-contractTicker.C:
 			s.checkExpiringContracts(ctx)
+		case <-availabilityTicker.C:
+			s.checkCandidateAvailabilityExpiry(ctx)
 		}
 	}
 }
@@ -222,4 +229,35 @@ func extractEmployeeIDFromSnapshot(snapshot string) string {
 		return ""
 	}
 	return rest[:end]
+}
+
+// checkCandidateAvailabilityExpiry queries the 'Unavailable' status and updates
+// any candidate whose availability date has expired (unavailable_until <= NOW())
+// back to 'Available' (NULL recruitment_status_id and NULL unavailable_until).
+func (s *NotificationScheduler) checkCandidateAvailabilityExpiry(ctx context.Context) {
+	logrus.Info("NotificationScheduler: checking candidate availability expiry...")
+	db := s.repo.GetDB()
+
+	var unavailableStatus gorm_model.RecruitmentStatus
+	if err := db.WithContext(ctx).
+		Where("name = ? AND deleted_at IS NULL", "Unavailable").
+		First(&unavailableStatus).Error; err != nil {
+		logrus.Errorf("NotificationScheduler: failed to fetch 'Unavailable' status: %v", err)
+		return
+	}
+
+	now := time.Now()
+	res := db.WithContext(ctx).
+		Model(&gorm_model.User{}).
+		Where("recruitment_status_id = ? AND unavailable_until IS NOT NULL AND unavailable_until <= ?", unavailableStatus.ID, now).
+		Updates(map[string]interface{}{
+			"recruitment_status_id": nil,
+			"unavailable_until":     nil,
+		})
+
+	if res.Error != nil {
+		logrus.Errorf("NotificationScheduler: failed to update expired candidate availabilities: %v", res.Error)
+	} else if res.RowsAffected > 0 {
+		logrus.Infof("NotificationScheduler: successfully reset availability for %d candidates", res.RowsAffected)
+	}
 }

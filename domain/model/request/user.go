@@ -29,8 +29,10 @@ type UpdateProfileRequest struct {
 	KabupatenKotaId  *string  `json:"kabupaten_kota_id"`
 	YearsExperience  *int     `json:"years_experience"`
 	TechStack        []string `json:"tech_stack"`
-	Summary          *string  `json:"summary"`
-	JobRoleIds       []string `json:"job_role_ids"`
+	Summary            *string  `json:"summary"`
+	JobRoleIds         []string `json:"job_role_ids"`
+	AvailabilityStatus *string  `json:"availability_status"`
+	UnavailableUntil   *string  `json:"unavailable_until"` // Expecting YYYY-MM-DD
 }
 
 type PatchUserRecruitmentStatusRequest struct {
