@@ -136,6 +136,7 @@ type ReviewAppUsecase interface {
 
 type RequestAppUsecase interface {
 	FetchAll(ctx context.Context, page, limit int64) response.Base
+		FetchActiveMyRequestsForAdmin(ctx context.Context, adminID string) response.Base
 	CreateByEmployee(ctx context.Context, employeeID string, req request_model.CreateRequestRequest) response.Base
 	FetchByEmployee(ctx context.Context, employeeID string, page, limit int64) response.Base
 	FetchByAdmin(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base

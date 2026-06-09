@@ -182,6 +182,8 @@ type GormRepo interface {
 	MarkMessagesAsRead(ctx context.Context, conversationID, readerUserID string) error
 	CountUnreadMessagesByUser(ctx context.Context, userID string) (int64, error)
 	CountUnreadMessagesByConversation(ctx context.Context, conversationID, userID string) (int64, error)
+	// Update interview-related chat message content when interview metadata changes
+	UpdateInterviewChatMessages(ctx context.Context, interview *gorm_model.Interview) error
 
 	// Chat Authorization helpers
 	IsAdminOfSubrequest(ctx context.Context, adminID, subrequestID string) (bool, error)

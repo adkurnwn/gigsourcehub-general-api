@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gorm.io/gorm"
+
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
@@ -280,6 +282,51 @@ func (u *appUsecase) FetchMyRequestsForAdmin(ctx context.Context, adminID string
 	})
 }
 
+func (u *appUsecase) FetchActiveMyRequestsForAdmin(ctx context.Context, adminID string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	var requests []gorm_model.Request
+	err := u.gormDbRepo.GetDB().WithContext(ctx).
+		Preload("AdminUser").
+		Preload("EmployeeUser").
+		Preload("Subrequests").
+		Preload("Subrequests.JobRole").
+		Preload("Subrequests.JobRole.Sector").
+		Where("admin_user_id = ? AND fulfillment_date IS NULL", adminID).
+		Order("requests.created_at DESC").
+		Find(&requests).Error
+	if err != nil {
+		logrus.Errorf("FetchActiveMyRequestsForAdmin DB Error: %v", err)
+		return response.Error(http.StatusInternalServerError, "Failed to fetch active requests")
+	}
+
+	var results []interface{}
+	for _, req := range requests {
+		// filter subrequests to only include not-filled ones
+		var remaining []gorm_model.Subrequest
+		for _, sr := range req.Subrequests {
+			if !sr.IsFilled {
+				remaining = append(remaining, sr)
+			}
+		}
+		if len(remaining) == 0 {
+			// nothing to show for this request
+			continue
+		}
+		req.Subrequests = remaining
+		results = append(results, req.ToRequestResp())
+	}
+
+	total := int64(len(results))
+	return response.Success(response.List{
+		List:  results,
+		Limit: total,
+		Page:  1,
+		Total: total,
+	})
+}
+
 func (u *appUsecase) fetchByAdminWithFilter(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
@@ -364,9 +411,9 @@ func (u *appUsecase) UpdateByEmployee(ctx context.Context, employeeID string, re
 		return response.Error(http.StatusForbidden, "You do not have permission to edit this request")
 	}
 
-	// 3. Validate Status
-	if existingReq.Status != "PENDING" && existingReq.Status != "WAITING" {
-		return response.Error(http.StatusConflict, "Only PENDING requests can be edited")
+	// 3. Validate Status: allow edit only when PENDING or REJECTED
+	if existingReq.Status != "PENDING" && existingReq.Status != "REJECTED" {
+		return response.Error(http.StatusConflict, "Only PENDING or REJECTED requests can be edited")
 	}
 
 	// 4. Map updated main fields
@@ -382,15 +429,165 @@ func (u *appUsecase) UpdateByEmployee(ctx context.Context, employeeID string, re
 		dueDate = existingReq.DueDate
 	}
 
+	// 4. Map updated main fields
 	existingReq.ProjectName = req.ProjectName
 	existingReq.ProjectDuration = req.ProjectDuration
 	existingReq.Urgency = req.Urgency
 	existingReq.DueDate = dueDate
 
-	// Execute update
+	// If current status is REJECTED and we're allowed to edit, reset to PENDING
+	if existingReq.Status == "REJECTED" {
+		existingReq.Status = "PENDING"
+	}
+
+	// Execute update for main request
 	if err := u.gormDbRepo.UpdateRequestByEmployee(ctx, existingReq); err != nil {
 		logrus.Errorf("UpdateByEmployee DB Error: %v", err)
 		return response.Error(http.StatusInternalServerError, "Failed to update request")
+	}
+
+	// 5. If payload includes subrequests, delete matching existing ones first, then append incoming ones.
+	if len(req.Subrequests) > 0 {
+		// First pass: validate job roles and prepare tech-stack JSON strings
+		type preparedSub struct {
+			Level    *string
+			JobRoleID *string
+			TechJSON *string
+			Notes    *string
+			Overview *string
+		}
+		var prepared []preparedSub
+		for _, sub := range req.Subrequests {
+			var techStackJSON *string
+			if len(sub.TechStack) > 0 {
+				b, err := json.Marshal(sub.TechStack)
+				if err == nil {
+					jsonStr := string(b)
+					techStackJSON = &jsonStr
+				}
+			}
+
+			var jr gorm_model.JobRole
+			if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jr, "id = ?", sub.JobRoleID).Error; err != nil {
+				return response.Error(http.StatusBadRequest, "Invalid job role ID")
+			}
+			if !jr.IsActive {
+				return response.Error(http.StatusBadRequest, "Cannot reference an inactive job role")
+			}
+
+			// ensure empty level is represented as nil to avoid invalid enum empty-string
+			var lvlPtr *string
+			if sub.Level != "" {
+				l := sub.Level
+				lvlPtr = &l
+			}
+			prepared = append(prepared, preparedSub{
+				Level:    lvlPtr,
+				JobRoleID: sub.JobRoleID,
+				TechJSON: techStackJSON,
+				Notes:    sub.Notes,
+				Overview: sub.Overview,
+			})
+		}
+
+		// Debug: log prepared items
+		for i, p := range prepared {
+			if p.Level != nil {
+				logrus.Debugf("Prepared sub #%d level=%s jobRole=%v notes=%v overview=%v tech=%v", i, *p.Level, p.JobRoleID, p.Notes, p.Overview, p.TechJSON)
+			} else {
+				logrus.Debugf("Prepared sub #%d level=<nil> jobRole=%v notes=%v overview=%v tech=%v", i, p.JobRoleID, p.Notes, p.Overview, p.TechJSON)
+			}
+		}
+
+		// Run deletion + insertion in a single DB transaction to keep headcount consistent
+		err := u.gormDbRepo.GetDB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			// For each prepared subrequest, delete matching existing ones (soft-delete) and adjust headcount
+			for _, p := range prepared {
+				techVal := ""
+				if p.TechJSON != nil {
+					techVal = *p.TechJSON
+				}
+				notesVal := ""
+				if p.Notes != nil {
+					notesVal = *p.Notes
+				}
+				overviewVal := ""
+				if p.Overview != nil {
+					overviewVal = *p.Overview
+				}
+
+				var delCount int64
+				levelVal := ""
+				if p.Level != nil {
+					levelVal = *p.Level
+				}
+				// cast enum 'level' to text in COALESCE to avoid casting '' to enum
+				q := tx.Model(&gorm_model.Subrequest{}).
+					Where("request_id = ? AND COALESCE(level::text,'') = ? AND COALESCE(notes,'') = ? AND COALESCE(overview,'') = ? AND COALESCE(tech_stack::text,'') = ? AND deleted_at IS NULL", existingReq.ID, levelVal, notesVal, overviewVal, techVal)
+
+				// handle job_role_id possibly nil
+				if p.JobRoleID != nil && *p.JobRoleID != "" {
+					q = q.Where("job_role_id = ?", *p.JobRoleID)
+				} else {
+					q = q.Where("job_role_id IS NULL")
+				}
+
+				// perform hard delete (unscoped) and obtain affected rows
+				delQuery := tx.Unscoped().Model(&gorm_model.Subrequest{})
+				// reuse same where conditions
+				delQuery = delQuery.Where("request_id = ? AND COALESCE(level::text,'') = ? AND COALESCE(notes,'') = ? AND COALESCE(overview,'') = ? AND COALESCE(tech_stack::text,'') = ? AND deleted_at IS NULL", existingReq.ID, levelVal, notesVal, overviewVal, techVal)
+				if p.JobRoleID != nil && *p.JobRoleID != "" {
+					delQuery = delQuery.Where("job_role_id = ?", *p.JobRoleID)
+				} else {
+					delQuery = delQuery.Where("job_role_id IS NULL")
+				}
+				deleteRes := delQuery.Delete(&gorm_model.Subrequest{})
+				if deleteRes.Error != nil {
+					return deleteRes.Error
+				}
+				delCount = deleteRes.RowsAffected
+				if delCount > 0 {
+					if err := tx.Model(&gorm_model.Request{}).
+						Where("id = ?", existingReq.ID).
+						UpdateColumn("required_headcount", gorm.Expr("required_headcount - ?", delCount)).Error; err != nil {
+						return err
+					}
+				}
+			}
+
+			// Insert all incoming subrequests and increment headcount accordingly
+			for _, p := range prepared {
+				if p.Level != nil {
+					logrus.Debugf("Inserting subrequest level=%s jobRole=%v", *p.Level, p.JobRoleID)
+				} else {
+					logrus.Debugf("Inserting subrequest level=<nil> jobRole=%v", p.JobRoleID)
+				}
+				subModel := &gorm_model.Subrequest{
+					RequestID: existingReq.ID,
+					Level:     p.Level,
+					JobRoleID: p.JobRoleID,
+					TechStack: p.TechJSON,
+					Notes:     p.Notes,
+					Overview:  p.Overview,
+					IsFilled:  false,
+				}
+				if err := tx.Create(subModel).Error; err != nil {
+					return err
+				}
+				if err := tx.Model(&gorm_model.Request{}).
+					Where("id = ?", existingReq.ID).
+					UpdateColumn("required_headcount", gorm.Expr("required_headcount + ?", 1)).Error; err != nil {
+					return err
+				}
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			logrus.Errorf("UpdateByEmployee subrequest transaction error: %v", err)
+			return response.Error(http.StatusInternalServerError, fmt.Sprintf("Failed to update subrequests: %v", err))
+		}
 	}
 
 	return response.Success(nil)
