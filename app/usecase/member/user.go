@@ -707,37 +707,62 @@ func (u *appUsecase) UpdateProfile(ctx context.Context, userID string, req reque
 	}
 
 	if req.AvailabilityStatus != nil {
-		isAllowed := true
-		if user.RecruitmentStatusId != nil && user.RecruitmentStatus != nil {
-			if user.RecruitmentStatus.Name != "Available" && user.RecruitmentStatus.Name != "Unavailable" {
-				isAllowed = false
-			}
-		}
-		if !isAllowed {
-			return response.Error(http.StatusBadRequest, "Anda tidak dapat mengubah status ketersediaan saat sedang dalam proses rekrutmen atau onboarding")
+		isAvailabilityChanged := false
+		currentDbStatus := "available"
+		if user.UnavailableUntil != nil {
+			currentDbStatus = "unavailable"
 		}
 
-		if *req.AvailabilityStatus == "available" {
-			user.UnavailableUntil = nil
-			user.RecruitmentStatusId = nil
+		if *req.AvailabilityStatus != currentDbStatus {
+			isAvailabilityChanged = true
 		} else if *req.AvailabilityStatus == "unavailable" && req.UnavailableUntil != nil {
 			if *req.UnavailableUntil == "" {
-				user.UnavailableUntil = nil
-				user.RecruitmentStatusId = nil
+				if user.UnavailableUntil != nil {
+					isAvailabilityChanged = true
+				}
 			} else {
 				t, err := time.Parse("2006-01-02", *req.UnavailableUntil)
 				if err == nil {
-					user.UnavailableUntil = &t
-					var unavailableStatus gorm_model.RecruitmentStatus
-					if err := u.gormDbRepo.GetDB().WithContext(ctx).
-						Where("name = ? AND deleted_at IS NULL", "Unavailable").
-						First(&unavailableStatus).Error; err == nil {
-						user.RecruitmentStatusId = &unavailableStatus.ID
-					} else {
-						return response.Error(http.StatusInternalServerError, "Gagal mendapatkan data status recruitment 'Unavailable'")
+					if user.UnavailableUntil == nil || !user.UnavailableUntil.Equal(t) {
+						isAvailabilityChanged = true
 					}
 				} else {
 					return response.Error(http.StatusBadRequest, "Format tanggal tidak valid. Gunakan format YYYY-MM-DD")
+				}
+			}
+		}
+
+		if isAvailabilityChanged {
+			isAllowed := true
+			if user.RecruitmentStatusId != nil && user.RecruitmentStatus != nil {
+				if user.RecruitmentStatus.Name != "Available" && user.RecruitmentStatus.Name != "Unavailable" {
+					isAllowed = false
+				}
+			}
+			if !isAllowed {
+				return response.Error(http.StatusBadRequest, "Anda tidak dapat mengubah status ketersediaan saat sedang dalam proses rekrutmen atau onboarding")
+			}
+
+			if *req.AvailabilityStatus == "available" {
+				user.UnavailableUntil = nil
+				user.RecruitmentStatusId = nil
+			} else if *req.AvailabilityStatus == "unavailable" && req.UnavailableUntil != nil {
+				if *req.UnavailableUntil == "" {
+					user.UnavailableUntil = nil
+					user.RecruitmentStatusId = nil
+				} else {
+					t, err := time.Parse("2006-01-02", *req.UnavailableUntil)
+					if err == nil {
+						user.UnavailableUntil = &t
+						var unavailableStatus gorm_model.RecruitmentStatus
+						if err := u.gormDbRepo.GetDB().WithContext(ctx).
+							Where("name = ? AND deleted_at IS NULL", "Unavailable").
+							First(&unavailableStatus).Error; err == nil {
+							user.RecruitmentStatusId = &unavailableStatus.ID
+						} else {
+							return response.Error(http.StatusInternalServerError, "Gagal mendapatkan data status recruitment 'Unavailable'")
+						}
+					}
 				}
 			}
 		}
