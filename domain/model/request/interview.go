@@ -13,13 +13,7 @@ type CreateInterviewRequest struct {
 }
 
 type UpdateInterviewRequest struct {
-	StageID         string  `json:"stage_id" binding:"required"`
-	Title           string  `json:"title" binding:"required"`
-	Description     *string `json:"description"`
-	ScheduledAt     *string `json:"scheduled_at" binding:"required"` // RFC3339
-	Method          string  `json:"method" binding:"required"`       // Online | Offline
-	MeetingLocation *string `json:"meeting_location"`
-	MeetingLink     *string `json:"meeting_link"`
+	ScheduledAt *string `json:"scheduled_at" binding:"required"` // RFC3339
 }
 
 type PatchInterviewStageRequest struct {
