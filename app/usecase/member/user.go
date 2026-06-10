@@ -734,8 +734,17 @@ func (u *appUsecase) UpdateProfile(ctx context.Context, userID string, req reque
 
 		if isAvailabilityChanged {
 			isAllowed := true
-			if user.RecruitmentStatusId != nil && user.RecruitmentStatus != nil {
-				if user.RecruitmentStatus.Name != "Available" && user.RecruitmentStatus.Name != "Unavailable" {
+			if user.RecruitmentStatusId != nil {
+				statusName := ""
+				if user.RecruitmentStatus != nil {
+					statusName = user.RecruitmentStatus.Name
+				} else {
+					var status gorm_model.RecruitmentStatus
+					if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&status, "id = ?", *user.RecruitmentStatusId).Error; err == nil {
+						statusName = status.Name
+					}
+				}
+				if statusName != "Available" && statusName != "Unavailable" {
 					isAllowed = false
 				}
 			}
@@ -1199,6 +1208,11 @@ func (u *appUsecase) ConfirmDeclineRecruitment(ctx context.Context, id string) r
 		return response.Error(http.StatusInternalServerError, "Failed to confirm decline")
 	}
 
+	// Delete conversations immediately
+	if err := u.gormDbRepo.DeleteConversationsByCandidateID(ctx, user.ID); err != nil {
+		logrus.Errorf("ConfirmDeclineRecruitment conversation deletion failed for user %s: %v", user.ID, err)
+	}
+
 	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, nil, true)
 	return response.SuccessAction("User", user.Email, "decline confirmed")
 }
@@ -1231,6 +1245,11 @@ func (u *appUsecase) StopOnboarding(ctx context.Context, id string) response.Bas
 	if err := u.gormDbRepo.StopOnboardingByCandidateID(ctx, user.ID); err != nil {
 		logrus.Errorf("StopOnboarding failed for user %s: %v", user.ID, err)
 		return response.Error(http.StatusInternalServerError, "Failed to stop onboarding")
+	}
+
+	// Delete conversations immediately
+	if err := u.gormDbRepo.DeleteConversationsByCandidateID(ctx, user.ID); err != nil {
+		logrus.Errorf("StopOnboarding conversation deletion failed for user %s: %v", user.ID, err)
 	}
 
 	go func(email, name string) {
@@ -1271,16 +1290,12 @@ func (u *appUsecase) CancelRecruitment(ctx context.Context, id string) response.
 		}
 	}(user.Email, user.Name)
 
-	// Schedule chat deletion in 12 hours
-	candidateID := user.ID
-	time.AfterFunc(12*time.Hour, func() {
-		bgCtx := context.Background()
-		if err := u.gormDbRepo.DeleteConversationsByCandidateID(bgCtx, candidateID); err != nil {
-			logrus.Errorf("Failed to delete conversations for candidate %s after 12 hours: %v", candidateID, err)
-		} else {
-			logrus.Infof("Successfully deleted conversations for candidate %s after 12 hours", candidateID)
-		}
-	})
+	// Delete conversation immediately
+	if err := u.gormDbRepo.DeleteConversationsByCandidateID(ctx, user.ID); err != nil {
+		logrus.Errorf("Failed to delete conversations for candidate %s: %v", user.ID, err)
+	} else {
+		logrus.Infof("Successfully deleted conversations for candidate %s", user.ID)
+	}
 
 	// Notify Candidate
 	helpers.SendNotificationAsync(ctx, u.gormDbRepo, user.ID,

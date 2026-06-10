@@ -34,15 +34,19 @@ func (s *NotificationScheduler) Start(ctx context.Context) {
 	contractTicker := time.NewTicker(15 * time.Minute)
 	// Ticker fires every 15 minutes for candidate availability expiry check
 	availabilityTicker := time.NewTicker(15 * time.Minute)
+	// Ticker fires every 15 minutes for onboarding conversation cleanup
+	onboardingExpiryTicker := time.NewTicker(15 * time.Minute)
 
 	defer interviewTicker.Stop()
 	defer contractTicker.Stop()
 	defer availabilityTicker.Stop()
+	defer onboardingExpiryTicker.Stop()
 
 	// Run once immediately on startup so we don't have to wait for the first tick
 	s.checkInterviewReminders(ctx)
 	s.checkExpiringContracts(ctx)
 	s.checkCandidateAvailabilityExpiry(ctx)
+	s.checkExpiredOnboardingConversations(ctx)
 
 	for {
 		select {
@@ -55,6 +59,8 @@ func (s *NotificationScheduler) Start(ctx context.Context) {
 			s.checkExpiringContracts(ctx)
 		case <-availabilityTicker.C:
 			s.checkCandidateAvailabilityExpiry(ctx)
+		case <-onboardingExpiryTicker.C:
+			s.checkExpiredOnboardingConversations(ctx)
 		}
 	}
 }
@@ -259,5 +265,36 @@ func (s *NotificationScheduler) checkCandidateAvailabilityExpiry(ctx context.Con
 		logrus.Errorf("NotificationScheduler: failed to update expired candidate availabilities: %v", res.Error)
 	} else if res.RowsAffected > 0 {
 		logrus.Infof("NotificationScheduler: successfully reset availability for %d candidates", res.RowsAffected)
+	}
+}
+
+// checkExpiredOnboardingConversations queries candidates whose onboarding has ended (end_date <= today)
+// and deletes their active conversations immediately.
+func (s *NotificationScheduler) checkExpiredOnboardingConversations(ctx context.Context) {
+	logrus.Info("NotificationScheduler: checking expired onboarding conversations...")
+	db := s.repo.GetDB()
+
+	todayStr := time.Now().Format("2006-01-02")
+	var expiredConversations []gorm_model.Conversation
+	err := db.WithContext(ctx).
+		Table("conversations").
+		Joins("JOIN onboard_histories ON conversations.candidate_user_id = onboard_histories.candidate_user_id").
+		Where("onboard_histories.end_date <= ? AND conversations.deleted_at IS NULL AND onboard_histories.deleted_at IS NULL", todayStr).
+		Select("conversations.*").
+		Find(&expiredConversations).Error
+
+	if err != nil {
+		logrus.Errorf("NotificationScheduler: failed to fetch expired onboarding conversations: %v", err)
+		return
+	}
+
+	logrus.Infof("NotificationScheduler: expired onboarding checks finished, found %d active conversations to delete", len(expiredConversations))
+
+	for _, conv := range expiredConversations {
+		if err := s.repo.DeleteConversationsByCandidateID(ctx, conv.CandidateUserID); err != nil {
+			logrus.Errorf("NotificationScheduler: failed to delete conversations for candidate %s: %v", conv.CandidateUserID, err)
+		} else {
+			logrus.Infof("NotificationScheduler: successfully deleted conversations for candidate %s", conv.CandidateUserID)
+		}
 	}
 }
