@@ -59,8 +59,7 @@ func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor s
 	}
 
 	if len(filter.CandidateLevel) > 0 {
-		db = db.Joins("LEFT JOIN job_titles jt_level ON jt_level.id = users.job_title_id").
-			Where("jt_level.name IN ?", filter.CandidateLevel)
+		db = db.Where("users.candidate_level IN ?", filter.CandidateLevel)
 	}
 
 	var total int64
@@ -139,14 +138,23 @@ func (u *appUsecase) FetchCandidateRecruitment(ctx context.Context, page, limit 
 	}
 	
 	if len(filter.CandidateLevel) > 0 {
-		query = query.Joins("LEFT JOIN job_titles ON job_titles.id = users.job_title_id").
-			Where("job_titles.name IN ?", filter.CandidateLevel)
+		query = query.Where("users.candidate_level IN ?", filter.CandidateLevel)
 	}
 
 	if len(filter.ProjectName) > 0 {
-		query = query.Joins("LEFT JOIN subrequests ON subrequests.candidate_id = users.id").
+		cond := u.gormDbRepo.GetDB().WithContext(ctx)
+		for _, name := range filter.ProjectName {
+			cond = cond.Or("requests.project_name ILIKE ?", "%"+name+"%")
+		}
+		query = query.Joins("LEFT JOIN subrequest_candidates ON subrequest_candidates.candidate_user_id = users.id").
+			Joins("LEFT JOIN subrequests ON subrequests.id = subrequest_candidates.subrequest_id").
 			Joins("LEFT JOIN requests ON requests.id = subrequests.request_id").
-			Where("requests.project_name IN ?", filter.ProjectName)
+			Where(cond).
+			Where("subrequest_candidates.deleted_at IS NULL")
+	}
+
+	if filter.Search != nil && *filter.Search != "" {
+		query = query.Where("(users.name ILIKE ? OR users.email ILIKE ?)", "%"+*filter.Search+"%", "%"+*filter.Search+"%")
 	}
 
 	var total int64
@@ -206,7 +214,28 @@ func (u *appUsecase) FetchCandidateBookmarked(ctx context.Context, adminID strin
 
 	bookmarkQuery := u.gormDbRepo.GetDB().WithContext(ctx).
 		Model(&gorm_model.Bookmark{}).
-		Where("admin_id = ?", adminID)
+		Joins("JOIN users ON bookmarks.candidate_id = users.id").
+		Where("bookmarks.admin_id = ?", adminID)
+
+	if len(filter.Bidang) > 0 {
+		bookmarkQuery = bookmarkQuery.Joins("LEFT JOIN job_titles ON job_titles.id = users.job_title_id").
+			Joins("LEFT JOIN sectors ON sectors.id = job_titles.sector_id").
+			Where("sectors.name IN ?", filter.Bidang)
+	}
+
+	if len(filter.JobRoles) > 0 {
+		bookmarkQuery = bookmarkQuery.Joins("LEFT JOIN user_has_job_roles ON user_has_job_roles.user_id = users.id").
+			Joins("LEFT JOIN job_roles ON job_roles.id = user_has_job_roles.job_role_id").
+			Where("job_roles.name IN ?", filter.JobRoles)
+	}
+
+	if len(filter.CandidateLevel) > 0 {
+		bookmarkQuery = bookmarkQuery.Where("users.candidate_level IN ?", filter.CandidateLevel)
+	}
+
+	if filter.Search != nil && *filter.Search != "" {
+		bookmarkQuery = bookmarkQuery.Where("(users.name ILIKE ? OR users.email ILIKE ?)", "%"+*filter.Search+"%", "%"+*filter.Search+"%")
+	}
 
 	var total int64
 	if err := bookmarkQuery.Count(&total).Error; err != nil {
@@ -215,7 +244,8 @@ func (u *appUsecase) FetchCandidateBookmarked(ctx context.Context, adminID strin
 
 	var bookmarks []gorm_model.Bookmark
 	if err := bookmarkQuery.
-		Order("created_at DESC").
+		Select("bookmarks.*").
+		Order("bookmarks.created_at DESC").
 		Limit(int(limit)).Offset(int(offset)).
 		Find(&bookmarks).Error; err != nil {
 		return response.Error(http.StatusInternalServerError, "Failed to fetch bookmarked candidates")
@@ -228,29 +258,10 @@ func (u *appUsecase) FetchCandidateBookmarked(ctx context.Context, adminID strin
 
 	usersByID := make(map[string]gorm_model.User)
 	if len(bookmarkedIDs) > 0 {
-		userQuery := u.gormDbRepo.GetDB().WithContext(ctx).
-			Model(&gorm_model.User{}).
-			Where("users.id IN ?", bookmarkedIDs)
-
-		if len(filter.Bidang) > 0 {
-			userQuery = userQuery.Joins("LEFT JOIN job_titles ON job_titles.id = users.job_title_id").
-				Joins("LEFT JOIN sectors ON sectors.id = job_titles.sector_id").
-				Where("sectors.name IN ?", filter.Bidang)
-		}
-
-		if len(filter.JobRoles) > 0 {
-			userQuery = userQuery.Joins("LEFT JOIN user_has_job_roles ON user_has_job_roles.user_id = users.id").
-				Joins("LEFT JOIN job_roles ON job_roles.id = user_has_job_roles.job_role_id").
-				Where("job_roles.name IN ?", filter.JobRoles)
-		}
-
-		if len(filter.CandidateLevel) > 0 {
-			userQuery = userQuery.Joins("LEFT JOIN job_titles jt_level ON jt_level.id = users.job_title_id").
-				Where("jt_level.name IN ?", filter.CandidateLevel)
-		}
-
 		var users []gorm_model.User
-		if err := userQuery.
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).
+			Model(&gorm_model.User{}).
+			Where("users.id IN ?", bookmarkedIDs).
 			Preload("SystemRole").
 			Preload("RecruitmentStatus").
 			Preload("KabupatenKota.Provinsi").

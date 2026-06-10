@@ -215,6 +215,9 @@ func (h *routeHandler) FetchCandidateRecruitment(c *gin.Context) {
 	if candidateLevel := c.Query("candidate_level"); candidateLevel != "" {
 		filter.CandidateLevel = strings.Split(candidateLevel, ",")
 	}
+	if search := c.Query("search"); search != "" {
+		filter.Search = &search
+	}
 
 	res := h.Usecase.FetchCandidateRecruitment(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, filter)
 	c.JSON(res.Status, res)
@@ -248,6 +251,9 @@ func (h *routeHandler) ExportCandidateRecruitment(c *gin.Context) {
 	}
 	if candidateLevel := c.Query("candidate_level"); candidateLevel != "" {
 		filter.CandidateLevel = strings.Split(candidateLevel, ",")
+	}
+	if search := c.Query("search"); search != "" {
+		filter.Search = &search
 	}
 
 	adminID := ""
@@ -301,6 +307,9 @@ func (h *routeHandler) FetchCandidateBookmarked(c *gin.Context) {
 	if candidateLevel := c.Query("candidate_level"); candidateLevel != "" {
 		filter.CandidateLevel = strings.Split(candidateLevel, ",")
 	}
+	if search := c.Query("search"); search != "" {
+		filter.Search = &search
+	}
 
 	res := h.Usecase.FetchCandidateBookmarked(c.Request.Context(), tokenData.UserID, pagination.Page, pagination.Limit, pagination.Cursor, filter)
 	c.JSON(res.Status, res)
@@ -342,6 +351,9 @@ func (h *routeHandler) ExportCandidateBookmarked(c *gin.Context) {
 	}
 	if candidateLevel := c.Query("candidate_level"); candidateLevel != "" {
 		filter.CandidateLevel = strings.Split(candidateLevel, ",")
+	}
+	if search := c.Query("search"); search != "" {
+		filter.Search = &search
 	}
 
 	data, contentType, ext, err := h.Usecase.ExportCandidateBookmarked(c.Request.Context(), tokenData.UserID, filter, format)

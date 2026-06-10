@@ -6,6 +6,7 @@ type OnboardingFilter struct {
 	JobRoleName    []string
 	ProjectName    []string
 	EmployeeUser   []string
+	Search         *string
 }
 
 func (f OnboardingFilter) GetDescription() string {
@@ -36,6 +37,7 @@ type CandidateRecruitmentFilter struct {
 	JobRoleName    []string
 	ProjectName    []string
 	CandidateLevel []string
+	Search         *string
 }
 
 func (f CandidateRecruitmentFilter) GetDescription() string {

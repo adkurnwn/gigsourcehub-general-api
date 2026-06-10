@@ -187,8 +187,15 @@ func (h *routeHandler) FetchActive(c *gin.Context) {
 	if projectName := c.Query("project_name"); projectName != "" {
 		filter.ProjectName = strings.Split(projectName, ",")
 	}
-	if employeeUser := c.Query("employee_user"); employeeUser != "" {
+	employeeUser := c.Query("employee_user")
+	if employeeUser == "" {
+		employeeUser = c.Query("employee_user_name")
+	}
+	if employeeUser != "" {
 		filter.EmployeeUser = strings.Split(employeeUser, ",")
+	}
+	if search := c.Query("search"); search != "" {
+		filter.Search = &search
 	}
 	res := h.Usecase.FetchOnboardingActive(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, filter)
 	c.JSON(res.Status, res)
@@ -220,8 +227,15 @@ func (h *routeHandler) ExportActive(c *gin.Context) {
 	if projectName := c.Query("project_name"); projectName != "" {
 		filter.ProjectName = strings.Split(projectName, ",")
 	}
-	if employeeUser := c.Query("employee_user"); employeeUser != "" {
+	employeeUser := c.Query("employee_user")
+	if employeeUser == "" {
+		employeeUser = c.Query("employee_user_name")
+	}
+	if employeeUser != "" {
 		filter.EmployeeUser = strings.Split(employeeUser, ",")
+	}
+	if search := c.Query("search"); search != "" {
+		filter.Search = &search
 	}
 
 	adminID := ""
@@ -266,8 +280,15 @@ func (h *routeHandler) FetchArchive(c *gin.Context) {
 	if projectName := c.Query("project_name"); projectName != "" {
 		filter.ProjectName = strings.Split(projectName, ",")
 	}
-	if employeeUser := c.Query("employee_user"); employeeUser != "" {
+	employeeUser := c.Query("employee_user")
+	if employeeUser == "" {
+		employeeUser = c.Query("employee_user_name")
+	}
+	if employeeUser != "" {
 		filter.EmployeeUser = strings.Split(employeeUser, ",")
+	}
+	if search := c.Query("search"); search != "" {
+		filter.Search = &search
 	}
 	res := h.Usecase.FetchOnboardingArchive(c.Request.Context(), pagination.Page, pagination.Limit, pagination.Cursor, filter)
 	c.JSON(res.Status, res)
@@ -299,8 +320,15 @@ func (h *routeHandler) ExportArchive(c *gin.Context) {
 	if projectName := c.Query("project_name"); projectName != "" {
 		filter.ProjectName = strings.Split(projectName, ",")
 	}
-	if employeeUser := c.Query("employee_user"); employeeUser != "" {
+	employeeUser := c.Query("employee_user")
+	if employeeUser == "" {
+		employeeUser = c.Query("employee_user_name")
+	}
+	if employeeUser != "" {
 		filter.EmployeeUser = strings.Split(employeeUser, ",")
+	}
+	if search := c.Query("search"); search != "" {
+		filter.Search = &search
 	}
 
 	adminID := ""

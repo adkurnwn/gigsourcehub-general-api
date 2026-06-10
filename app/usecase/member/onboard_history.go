@@ -167,15 +167,28 @@ func (u *appUsecase) FetchOnboardingActive(ctx context.Context, page, limit int6
 	}
 
 	if len(filter.ProjectName) > 0 {
-		query = query.Where("onboard_histories.snapshot->>'project_name' IN ?", filter.ProjectName)
+		cond := u.gormDbRepo.GetDB().WithContext(ctx)
+		for _, name := range filter.ProjectName {
+			cond = cond.Or("onboard_histories.snapshot->>'project_name' ILIKE ?", "%"+name+"%")
+		}
+		query = query.Where(cond)
 	}
 
 	if len(filter.EmployeeUser) > 0 {
+		cond := u.gormDbRepo.GetDB().WithContext(ctx)
+		for _, name := range filter.EmployeeUser {
+			cond = cond.Or("e_user.name ILIKE ?", "%"+name+"%").Or("e_user.id = ?", name)
+		}
 		query = query.Joins("LEFT JOIN offerings ON offerings.id = onboard_histories.offering_id").
 			Joins("LEFT JOIN subrequests ON subrequests.id = offerings.subrequest_id").
 			Joins("LEFT JOIN requests ON requests.id = subrequests.request_id").
 			Joins("LEFT JOIN users e_user ON e_user.id = requests.employee_user_id").
-			Where("e_user.name IN ? OR e_user.id IN ?", filter.EmployeeUser, filter.EmployeeUser)
+			Where(cond)
+	}
+
+	if filter.Search != nil && *filter.Search != "" {
+		query = query.Joins("LEFT JOIN users candidate_user ON candidate_user.id = onboard_histories.candidate_user_id").
+			Where("(candidate_user.name ILIKE ? OR candidate_user.email ILIKE ?) AND candidate_user.deleted_at IS NULL", "%"+*filter.Search+"%", "%"+*filter.Search+"%")
 	}
 
 	var total int64
@@ -232,15 +245,28 @@ func (u *appUsecase) FetchOnboardingArchive(ctx context.Context, page, limit int
 	}
 
 	if len(filter.ProjectName) > 0 {
-		query = query.Where("onboard_histories.snapshot->>'project_name' IN ?", filter.ProjectName)
+		cond := u.gormDbRepo.GetDB().WithContext(ctx)
+		for _, name := range filter.ProjectName {
+			cond = cond.Or("onboard_histories.snapshot->>'project_name' ILIKE ?", "%"+name+"%")
+		}
+		query = query.Where(cond)
 	}
 
 	if len(filter.EmployeeUser) > 0 {
+		cond := u.gormDbRepo.GetDB().WithContext(ctx)
+		for _, name := range filter.EmployeeUser {
+			cond = cond.Or("e_user.name ILIKE ?", "%"+name+"%").Or("e_user.id = ?", name)
+		}
 		query = query.Joins("LEFT JOIN offerings ON offerings.id = onboard_histories.offering_id").
 			Joins("LEFT JOIN subrequests ON subrequests.id = offerings.subrequest_id").
 			Joins("LEFT JOIN requests ON requests.id = subrequests.request_id").
 			Joins("LEFT JOIN users e_user ON e_user.id = requests.employee_user_id").
-			Where("e_user.name IN ? OR e_user.id IN ?", filter.EmployeeUser, filter.EmployeeUser)
+			Where(cond)
+	}
+
+	if filter.Search != nil && *filter.Search != "" {
+		query = query.Joins("LEFT JOIN users candidate_user ON candidate_user.id = onboard_histories.candidate_user_id").
+			Where("(candidate_user.name ILIKE ? OR candidate_user.email ILIKE ?) AND candidate_user.deleted_at IS NULL", "%"+*filter.Search+"%", "%"+*filter.Search+"%")
 	}
 
 	var total int64

@@ -70,6 +70,7 @@ type CandidateFilter struct {
 	Bidang         []string
 	JobRoles       []string
 	CandidateLevel []string
+	Search         *string
 }
 
 func (f CandidateFilter) GetDescription() string {
