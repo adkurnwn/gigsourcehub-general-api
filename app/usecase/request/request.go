@@ -446,15 +446,25 @@ func (u *appUsecase) UpdateByEmployee(ctx context.Context, employeeID string, re
 		return response.Error(http.StatusInternalServerError, "Failed to update request")
 	}
 
-	// 5. If payload includes subrequests, delete matching existing ones first, then append incoming ones.
+	// 5. Update subrequests (diff-based update)
 	if len(req.Subrequests) > 0 {
-		// First pass: validate job roles and prepare tech-stack JSON strings
+		// Map existing subrequests by ID
+		existingSubMap := make(map[string]gorm_model.Subrequest)
+		for _, sub := range existingReq.Subrequests {
+			existingSubMap[sub.ID] = sub
+		}
+
+		// Keep track of incoming subrequest IDs
+		incomingIDs := make(map[string]bool)
+
+		// Validate job roles and prepare subrequests
 		type preparedSub struct {
-			Level    *string
+			ID        *string
+			Level     *string
 			JobRoleID *string
-			TechJSON *string
-			Notes    *string
-			Overview *string
+			TechJSON  *string
+			Notes     *string
+			Overview  *string
 		}
 		var prepared []preparedSub
 		for _, sub := range req.Subrequests {
@@ -481,87 +491,54 @@ func (u *appUsecase) UpdateByEmployee(ctx context.Context, employeeID string, re
 				l := sub.Level
 				lvlPtr = &l
 			}
+
+			if sub.ID != nil && *sub.ID != "" {
+				incomingIDs[*sub.ID] = true
+			}
+
 			prepared = append(prepared, preparedSub{
-				Level:    lvlPtr,
+				ID:        sub.ID,
+				Level:     lvlPtr,
 				JobRoleID: sub.JobRoleID,
-				TechJSON: techStackJSON,
-				Notes:    sub.Notes,
-				Overview: sub.Overview,
+				TechJSON:  techStackJSON,
+				Notes:     sub.Notes,
+				Overview:  sub.Overview,
 			})
 		}
 
-		// Debug: log prepared items
-		for i, p := range prepared {
-			if p.Level != nil {
-				logrus.Debugf("Prepared sub #%d level=%s jobRole=%v notes=%v overview=%v tech=%v", i, *p.Level, p.JobRoleID, p.Notes, p.Overview, p.TechJSON)
-			} else {
-				logrus.Debugf("Prepared sub #%d level=<nil> jobRole=%v notes=%v overview=%v tech=%v", i, p.JobRoleID, p.Notes, p.Overview, p.TechJSON)
-			}
-		}
-
-		// Run deletion + insertion in a single DB transaction to keep headcount consistent
+		// Run update transaction
 		err := u.gormDbRepo.GetDB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			// For each prepared subrequest, delete matching existing ones (soft-delete) and adjust headcount
-			for _, p := range prepared {
-				techVal := ""
-				if p.TechJSON != nil {
-					techVal = *p.TechJSON
-				}
-				notesVal := ""
-				if p.Notes != nil {
-					notesVal = *p.Notes
-				}
-				overviewVal := ""
-				if p.Overview != nil {
-					overviewVal = *p.Overview
-				}
-
-				var delCount int64
-				levelVal := ""
-				if p.Level != nil {
-					levelVal = *p.Level
-				}
-				// cast enum 'level' to text in COALESCE to avoid casting '' to enum
-				q := tx.Model(&gorm_model.Subrequest{}).
-					Where("request_id = ? AND COALESCE(level::text,'') = ? AND COALESCE(notes,'') = ? AND COALESCE(overview,'') = ? AND COALESCE(tech_stack::text,'') = ? AND deleted_at IS NULL", existingReq.ID, levelVal, notesVal, overviewVal, techVal)
-
-				// handle job_role_id possibly nil
-				if p.JobRoleID != nil && *p.JobRoleID != "" {
-					q = q.Where("job_role_id = ?", *p.JobRoleID)
-				} else {
-					q = q.Where("job_role_id IS NULL")
-				}
-
-				// perform hard delete (unscoped) and obtain affected rows
-				delQuery := tx.Unscoped().Model(&gorm_model.Subrequest{})
-				// reuse same where conditions
-				delQuery = delQuery.Where("request_id = ? AND COALESCE(level::text,'') = ? AND COALESCE(notes,'') = ? AND COALESCE(overview,'') = ? AND COALESCE(tech_stack::text,'') = ? AND deleted_at IS NULL", existingReq.ID, levelVal, notesVal, overviewVal, techVal)
-				if p.JobRoleID != nil && *p.JobRoleID != "" {
-					delQuery = delQuery.Where("job_role_id = ?", *p.JobRoleID)
-				} else {
-					delQuery = delQuery.Where("job_role_id IS NULL")
-				}
-				deleteRes := delQuery.Delete(&gorm_model.Subrequest{})
-				if deleteRes.Error != nil {
-					return deleteRes.Error
-				}
-				delCount = deleteRes.RowsAffected
-				if delCount > 0 {
-					if err := tx.Model(&gorm_model.Request{}).
-						Where("id = ?", existingReq.ID).
-						UpdateColumn("required_headcount", gorm.Expr("required_headcount - ?", delCount)).Error; err != nil {
+			// A. Delete subrequests that are in existing subrequests but not in incoming subrequests
+			for _, existingSub := range existingReq.Subrequests {
+				if !incomingIDs[existingSub.ID] {
+					if err := tx.Where("id = ?", existingSub.ID).Delete(&gorm_model.Subrequest{}).Error; err != nil {
 						return err
 					}
 				}
 			}
 
-			// Insert all incoming subrequests and increment headcount accordingly
+			// B. Update existing subrequests or insert new ones
+			var finalCount int
 			for _, p := range prepared {
-				if p.Level != nil {
-					logrus.Debugf("Inserting subrequest level=%s jobRole=%v", *p.Level, p.JobRoleID)
-				} else {
-					logrus.Debugf("Inserting subrequest level=<nil> jobRole=%v", p.JobRoleID)
+				if p.ID != nil && *p.ID != "" {
+					if dbSub, exists := existingSubMap[*p.ID]; exists {
+						// Update fields
+						dbSub.Level = p.Level
+						dbSub.JobRoleID = p.JobRoleID
+						dbSub.TechStack = p.TechJSON
+						dbSub.Notes = p.Notes
+						dbSub.Overview = p.Overview
+						dbSub.Request = nil
+						dbSub.JobRole = nil
+						if err := tx.Save(&dbSub).Error; err != nil {
+							return err
+						}
+						finalCount++
+						continue
+					}
 				}
+
+				// If no ID or ID not found in existing subrequests, insert as a new subrequest
 				subModel := &gorm_model.Subrequest{
 					RequestID: existingReq.ID,
 					Level:     p.Level,
@@ -574,11 +551,14 @@ func (u *appUsecase) UpdateByEmployee(ctx context.Context, employeeID string, re
 				if err := tx.Create(subModel).Error; err != nil {
 					return err
 				}
-				if err := tx.Model(&gorm_model.Request{}).
-					Where("id = ?", existingReq.ID).
-					UpdateColumn("required_headcount", gorm.Expr("required_headcount + ?", 1)).Error; err != nil {
-					return err
-				}
+				finalCount++
+			}
+
+			// C. Update headcount on the parent request to match final subrequest count
+			if err := tx.Model(&gorm_model.Request{}).
+				Where("id = ?", existingReq.ID).
+				Update("required_headcount", finalCount).Error; err != nil {
+				return err
 			}
 
 			return nil

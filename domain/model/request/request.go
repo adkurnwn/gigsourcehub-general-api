@@ -1,6 +1,7 @@
 package request_model
 
 type CreateSubrequestRequest struct {
+	ID        *string  `json:"id,omitempty"`
 	JobRoleID *string  `json:"job_role_id"`
 	Level     string   `json:"level" validate:"required,oneof=Junior Middle Senior"`
 	TechStack []string `json:"tech_stack"`
