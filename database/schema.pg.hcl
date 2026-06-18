@@ -1360,7 +1360,7 @@ table "onboard_histories" {
   }
   column "cancelled_reason" {
     type = text
-    null = false
+    null = true
   }
   column "created_at" {
     type = timestamptz
@@ -1922,7 +1922,7 @@ table "subrequest_candidates" {
   }
   column "declined_reason" {
     type = text
-    null = false
+    null = true
   }
   column "created_at" {
     type = timestamptz
