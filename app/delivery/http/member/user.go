@@ -640,7 +640,14 @@ func (h *routeHandler) DeclineRecruitment(c *gin.Context) {
 		return
 	}
 
-	res := h.Usecase.DeclineRecruitment(c.Request.Context(), id)
+	var req request_model.DeclineRecruitmentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		res := response.Error(http.StatusBadRequest, "Invalid request body")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	res := h.Usecase.DeclineRecruitment(c.Request.Context(), id, req)
 	c.JSON(res.Status, res)
 }
 
@@ -694,7 +701,14 @@ func (h *routeHandler) StopOnboarding(c *gin.Context) {
 		return
 	}
 
-	res := h.Usecase.StopOnboarding(c.Request.Context(), id)
+	var req request_model.StopOnboardingRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		res := response.Error(http.StatusBadRequest, "Invalid request body")
+		c.JSON(res.Status, res)
+		return
+	}
+
+	res := h.Usecase.StopOnboarding(c.Request.Context(), id, req)
 	c.JSON(res.Status, res)
 }
 

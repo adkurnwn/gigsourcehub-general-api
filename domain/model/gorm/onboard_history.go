@@ -19,6 +19,7 @@ type OnboardHistory struct {
 	StartDate       *time.Time     `gorm:"column:start_date;type:date"`
 	EndDate         *time.Time     `gorm:"column:end_date;type:date"`
 	Snapshot        *string        `gorm:"column:snapshot;type:jsonb"`
+	CancelledReason *string        `gorm:"column:cancelled_reason;type:text"`
 	CreatedAt       time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt       time.Time      `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt       gorm.DeletedAt `gorm:"column:deleted_at;index"`
@@ -35,6 +36,7 @@ type OnboardHistoryResp struct {
 	ProjectName     *string    `json:"project_name,omitempty"`
 	JobRoleName     *string    `json:"job_role_name,omitempty"`
 	Snapshot        *string    `json:"snapshot,omitempty"`
+	CancelledReason *string    `json:"cancelled_reason,omitempty"`
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`
 	ReviewID        *string    `json:"review_id"`
@@ -84,6 +86,7 @@ func (m *OnboardHistory) ToOnboardHistoryResp() OnboardHistoryResp {
 		ProjectName:     projectName,
 		JobRoleName:     jobRoleName,
 		Snapshot:        m.Snapshot,
+		CancelledReason: m.CancelledReason,
 		CreatedAt:       m.CreatedAt,
 		UpdatedAt:       m.UpdatedAt,
 		ReviewID:        reviewID,

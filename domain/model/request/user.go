@@ -50,3 +50,11 @@ type FinalizeRecruitmentRequest struct {
 type DeleteAccountRequest struct {
 	Password string `json:"password"`
 }
+
+type StopOnboardingRequest struct {
+	CancelledReason string `json:"cancelled_reason" binding:"required"`
+}
+
+type DeclineRecruitmentRequest struct {
+	DeclinedReason string `json:"declined_reason" binding:"required"`
+}

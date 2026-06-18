@@ -260,17 +260,17 @@ func (_c *MemberAppUsecase_CreateBySuperadmin_Call) RunAndReturn(run func(contex
 	return _c
 }
 
-// DeclineRecruitment provides a mock function with given fields: ctx, id
-func (_m *MemberAppUsecase) DeclineRecruitment(ctx context.Context, id string) response.Base {
-	ret := _m.Called(ctx, id)
+// DeclineRecruitment provides a mock function with given fields: ctx, id, req
+func (_m *MemberAppUsecase) DeclineRecruitment(ctx context.Context, id string, req request_model.DeclineRecruitmentRequest) response.Base {
+	ret := _m.Called(ctx, id, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeclineRecruitment")
 	}
 
 	var r0 response.Base
-	if rf, ok := ret.Get(0).(func(context.Context, string) response.Base); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, request_model.DeclineRecruitmentRequest) response.Base); ok {
+		r0 = rf(ctx, id, req)
 	} else {
 		r0 = ret.Get(0).(response.Base)
 	}
@@ -286,13 +286,14 @@ type MemberAppUsecase_DeclineRecruitment_Call struct {
 // DeclineRecruitment is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id string
-func (_e *MemberAppUsecase_Expecter) DeclineRecruitment(ctx interface{}, id interface{}) *MemberAppUsecase_DeclineRecruitment_Call {
-	return &MemberAppUsecase_DeclineRecruitment_Call{Call: _e.mock.On("DeclineRecruitment", ctx, id)}
+//   - req request_model.DeclineRecruitmentRequest
+func (_e *MemberAppUsecase_Expecter) DeclineRecruitment(ctx interface{}, id interface{}, req interface{}) *MemberAppUsecase_DeclineRecruitment_Call {
+	return &MemberAppUsecase_DeclineRecruitment_Call{Call: _e.mock.On("DeclineRecruitment", ctx, id, req)}
 }
 
-func (_c *MemberAppUsecase_DeclineRecruitment_Call) Run(run func(ctx context.Context, id string)) *MemberAppUsecase_DeclineRecruitment_Call {
+func (_c *MemberAppUsecase_DeclineRecruitment_Call) Run(run func(ctx context.Context, id string, req request_model.DeclineRecruitmentRequest)) *MemberAppUsecase_DeclineRecruitment_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		run(args[0].(context.Context), args[1].(string), args[2].(request_model.DeclineRecruitmentRequest))
 	})
 	return _c
 }
@@ -302,7 +303,7 @@ func (_c *MemberAppUsecase_DeclineRecruitment_Call) Return(_a0 response.Base) *M
 	return _c
 }
 
-func (_c *MemberAppUsecase_DeclineRecruitment_Call) RunAndReturn(run func(context.Context, string) response.Base) *MemberAppUsecase_DeclineRecruitment_Call {
+func (_c *MemberAppUsecase_DeclineRecruitment_Call) RunAndReturn(run func(context.Context, string, request_model.DeclineRecruitmentRequest) response.Base) *MemberAppUsecase_DeclineRecruitment_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1510,17 +1511,17 @@ func (_c *MemberAppUsecase_ResetPassword_Call) RunAndReturn(run func(context.Con
 	return _c
 }
 
-// StopOnboarding provides a mock function with given fields: ctx, id
-func (_m *MemberAppUsecase) StopOnboarding(ctx context.Context, id string) response.Base {
-	ret := _m.Called(ctx, id)
+// StopOnboarding provides a mock function with given fields: ctx, id, req
+func (_m *MemberAppUsecase) StopOnboarding(ctx context.Context, id string, req request_model.StopOnboardingRequest) response.Base {
+	ret := _m.Called(ctx, id, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for StopOnboarding")
 	}
 
 	var r0 response.Base
-	if rf, ok := ret.Get(0).(func(context.Context, string) response.Base); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, request_model.StopOnboardingRequest) response.Base); ok {
+		r0 = rf(ctx, id, req)
 	} else {
 		r0 = ret.Get(0).(response.Base)
 	}
@@ -1536,13 +1537,14 @@ type MemberAppUsecase_StopOnboarding_Call struct {
 // StopOnboarding is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id string
-func (_e *MemberAppUsecase_Expecter) StopOnboarding(ctx interface{}, id interface{}) *MemberAppUsecase_StopOnboarding_Call {
-	return &MemberAppUsecase_StopOnboarding_Call{Call: _e.mock.On("StopOnboarding", ctx, id)}
+//   - req request_model.StopOnboardingRequest
+func (_e *MemberAppUsecase_Expecter) StopOnboarding(ctx interface{}, id interface{}, req interface{}) *MemberAppUsecase_StopOnboarding_Call {
+	return &MemberAppUsecase_StopOnboarding_Call{Call: _e.mock.On("StopOnboarding", ctx, id, req)}
 }
 
-func (_c *MemberAppUsecase_StopOnboarding_Call) Run(run func(ctx context.Context, id string)) *MemberAppUsecase_StopOnboarding_Call {
+func (_c *MemberAppUsecase_StopOnboarding_Call) Run(run func(ctx context.Context, id string, req request_model.StopOnboardingRequest)) *MemberAppUsecase_StopOnboarding_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		run(args[0].(context.Context), args[1].(string), args[2].(request_model.StopOnboardingRequest))
 	})
 	return _c
 }
@@ -1552,7 +1554,7 @@ func (_c *MemberAppUsecase_StopOnboarding_Call) Return(_a0 response.Base) *Membe
 	return _c
 }
 
-func (_c *MemberAppUsecase_StopOnboarding_Call) RunAndReturn(run func(context.Context, string) response.Base) *MemberAppUsecase_StopOnboarding_Call {
+func (_c *MemberAppUsecase_StopOnboarding_Call) RunAndReturn(run func(context.Context, string, request_model.StopOnboardingRequest) response.Base) *MemberAppUsecase_StopOnboarding_Call {
 	_c.Call.Return(run)
 	return _c
 }

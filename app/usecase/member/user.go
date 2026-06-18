@@ -1139,7 +1139,7 @@ func (u *appUsecase) getRecruitmentStatusByName(ctx context.Context, statusName 
 	return &recruitmentStatus, nil
 }
 
-func (u *appUsecase) DeclineRecruitment(ctx context.Context, id string) response.Base {
+func (u *appUsecase) DeclineRecruitment(ctx context.Context, id string, req request_model.DeclineRecruitmentRequest) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -1164,13 +1164,26 @@ func (u *appUsecase) DeclineRecruitment(ctx context.Context, id string) response
 		return response.Error(http.StatusBadRequest, "Cannot reference an inactive recruitment status")
 	}
 
+	// Update active subrequest candidate declined reason
+	var subreqCandidate gorm_model.SubrequestCandidate
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).
+		Where("candidate_user_id = ? AND deleted_at IS NULL", user.ID).
+		Order("created_at DESC").
+		Limit(1).
+		First(&subreqCandidate).Error; err == nil {
+		subreqCandidate.DeclinedReason = &req.DeclinedReason
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).Save(&subreqCandidate).Error; err != nil {
+			logrus.Errorf("failed to save declined_reason in DeclineRecruitment: %v", err)
+		}
+	}
+
 	user.RecruitmentStatusId = &declineStatus.ID
 	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
-		helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, nil, false)
+		helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, req, false)
 		return response.Error(http.StatusInternalServerError, err.Error())
 	}
 
-	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, nil, true)
+	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, req, true)
 	
 	// Notify Admin
 	go func() {
@@ -1228,7 +1241,7 @@ func (u *appUsecase) ConfirmDeclineRecruitment(ctx context.Context, id string) r
 	return response.SuccessAction("User", user.Email, "decline confirmed")
 }
 
-func (u *appUsecase) StopOnboarding(ctx context.Context, id string) response.Base {
+func (u *appUsecase) StopOnboarding(ctx context.Context, id string, req request_model.StopOnboardingRequest) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -1253,6 +1266,19 @@ func (u *appUsecase) StopOnboarding(ctx context.Context, id string) response.Bas
 		return response.Error(http.StatusBadRequest, "User recruitment status must be Accepted")
 	}
 
+	// Update active OnboardHistory cancelled reason
+	var onboardHistory gorm_model.OnboardHistory
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).
+		Where("candidate_user_id = ? AND deleted_at IS NULL AND is_stopped = false", user.ID).
+		Order("created_at DESC").
+		Limit(1).
+		First(&onboardHistory).Error; err == nil {
+		onboardHistory.CancelledReason = &req.CancelledReason
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).Save(&onboardHistory).Error; err != nil {
+			logrus.Errorf("failed to save cancelled_reason in StopOnboarding: %v", err)
+		}
+	}
+
 	if err := u.gormDbRepo.StopOnboardingByCandidateID(ctx, user.ID); err != nil {
 		logrus.Errorf("StopOnboarding failed for user %s: %v", user.ID, err)
 		return response.Error(http.StatusInternalServerError, "Failed to stop onboarding")
@@ -1269,7 +1295,7 @@ func (u *appUsecase) StopOnboarding(ctx context.Context, id string) response.Bas
 		}
 	}(user.Email, user.Name)
 
-	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, nil, true)
+	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, req, true)
 	return response.SuccessAction("User", user.Email, "onboarding stopped")
 }
 
