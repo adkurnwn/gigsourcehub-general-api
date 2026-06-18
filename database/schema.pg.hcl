@@ -1358,6 +1358,10 @@ table "onboard_histories" {
     type = jsonb
     null = true
   }
+  column "cancelled_reason" {
+    type = text
+    null = false
+  }
   column "created_at" {
     type = timestamptz
     null = false
@@ -1914,6 +1918,10 @@ table "subrequest_candidates" {
   }
   column "name" {
     type = varchar(150)
+    null = false
+  }
+  column "declined_reason" {
+    type = text
     null = false
   }
   column "created_at" {
