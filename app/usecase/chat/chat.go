@@ -92,18 +92,11 @@ func (u *appUsecase) UploadOffering(ctx context.Context, adminID string, convers
 	uploadData.Filename = fileHeader.Filename
 	uploadData.FileSize = fileHeader.Size
 
-	offering := &gorm_model.Offering{
-		Filename:     uploadData.Filename,
-		UserID:       conv.CandidateUserID,
-		Path:         uploadData.URL,
-		SubrequestID: conv.SubrequestID,
-	}
-	if err := u.gormDbRepo.CreateOffering(ctx, offering); err != nil {
-		logrus.Error("UploadOffering CreateOffering error: ", err)
-		return response.Error(http.StatusInternalServerError, "failed to save offering")
-	}
+	// Create a copy of uploadData with URL cleared for saving in DB (security issues)
+	dbUploadData := *uploadData
+	dbUploadData.URL = ""
 
-	contentBytes, err := json.Marshal(uploadData)
+	contentBytes, err := json.Marshal(dbUploadData)
 	if err != nil {
 		return response.Error(http.StatusInternalServerError, "failed to serialize offering payload")
 	}
@@ -134,11 +127,11 @@ func (u *appUsecase) UploadOffering(ctx context.Context, adminID string, convers
 			targetRole = "Admin"
 		}
 
-		broadcastResp := msg.ToMessageResp(targetRole)
+		broadcastResp := u.enrichMessageResp(msg.ToMessageResp(targetRole))
 		u.hub.SendToUser(targetUserID, "new_message", broadcastResp)
 	}
 
-	return response.Success(msg.ToMessageResp("Admin"))
+	return response.Success(u.enrichMessageResp(msg.ToMessageResp("Admin")))
 }
 
 func (u *appUsecase) createConversation(ctx context.Context, adminID string, req request_model.CreateConversationRequest, markContacted bool) response.Base {
@@ -232,7 +225,12 @@ func (u *appUsecase) createConversation(ctx context.Context, adminID string, req
 		return response.Error(http.StatusInternalServerError, "Conversation created but failed to load")
 	}
 
-	return response.Success(created.ToConversationResp(userRole))
+	resp := created.ToConversationResp(userRole)
+	if resp.LastMessage != nil {
+		enriched := u.enrichMessageResp(*resp.LastMessage)
+		resp.LastMessage = &enriched
+	}
+	return response.Success(resp)
 }
 
 func (u *appUsecase) markCandidateContacted(ctx context.Context, candidateID string) error {
@@ -291,6 +289,10 @@ func (u *appUsecase) FetchMyConversations(ctx context.Context, userID string, pa
 	var results []interface{}
 	for _, conv := range conversations {
 		resp := conv.ToConversationResp(userRole)
+		if resp.LastMessage != nil {
+			enriched := u.enrichMessageResp(*resp.LastMessage)
+			resp.LastMessage = &enriched
+		}
 		unread, _ := u.gormDbRepo.CountUnreadMessagesByConversation(ctx, conv.ID, userID)
 		resp.UnreadCount = unread
 		results = append(results, resp)
@@ -332,7 +334,12 @@ func (u *appUsecase) GetConversation(ctx context.Context, userID string, convers
 		return response.Error(http.StatusForbidden, "You are not a participant of this conversation")
 	}
 
-	return response.Success(conv.ToConversationResp(userRole))
+	resp := conv.ToConversationResp(userRole)
+	if resp.LastMessage != nil {
+		enriched := u.enrichMessageResp(*resp.LastMessage)
+		resp.LastMessage = &enriched
+	}
+	return response.Success(resp)
 }
 
 func (u *appUsecase) SendMessage(ctx context.Context, userID string, conversationID string, req request_model.SendMessageRequest) response.Base {
@@ -370,7 +377,7 @@ func (u *appUsecase) SendMessage(ctx context.Context, userID string, conversatio
 		msg = *reloaded
 	}
 
-	msgResp := msg.ToMessageResp(userRole)
+	msgResp := u.enrichMessageResp(msg.ToMessageResp(userRole))
 
 	// Broadcast via WebSocket to the other participant
 	if u.hub != nil {
@@ -385,7 +392,7 @@ func (u *appUsecase) SendMessage(ctx context.Context, userID string, conversatio
 		}
 		
 		// The message sent to the other user should be formatted for their role!
-		broadcastResp := msg.ToMessageResp(targetRole)
+		broadcastResp := u.enrichMessageResp(msg.ToMessageResp(targetRole))
 		u.hub.SendToUser(targetUserID, "new_message", broadcastResp)
 	}
 
@@ -435,7 +442,7 @@ func (u *appUsecase) FetchMessages(ctx context.Context, userID string, conversat
 
 	var results []interface{}
 	for _, msg := range messages {
-		results = append(results, msg.ToMessageResp(userRole))
+		results = append(results, u.enrichMessageResp(msg.ToMessageResp(userRole)))
 	}
 
 	var nextCursor *string
@@ -486,4 +493,56 @@ func (u *appUsecase) MarkAsRead(ctx context.Context, userID string, conversation
 	}
 
 	return response.Success(nil)
+}
+
+func (u *appUsecase) enrichOfferingContent(content string) string {
+	trimmed := strings.TrimSpace(content)
+	prefix := ""
+	const offeringPrefix = "__offering_chat__:"
+	if strings.HasPrefix(trimmed, offeringPrefix) {
+		prefix = offeringPrefix
+		trimmed = strings.TrimSpace(trimmed[len(offeringPrefix):])
+	}
+
+	if !strings.HasPrefix(trimmed, "{") {
+		return content
+	}
+
+	var data map[string]interface{}
+	if err := json.Unmarshal([]byte(trimmed), &data); err != nil {
+		return content
+	}
+
+	key, ok := data["key"].(string)
+	if !ok || key == "" {
+		return content
+	}
+
+	// Check if it's an offering file (starts with "offering/")
+	if !strings.HasPrefix(key, "offering/") {
+		return content
+	}
+
+	if u.storageRepo == nil {
+		return content
+	}
+
+	expires := 24 * time.Hour
+	presignedURL := u.storageRepo.GetPresignedLink(key, &expires)
+	data["url"] = presignedURL
+
+	enrichedBytes, err := json.Marshal(data)
+	if err != nil {
+		return content
+	}
+
+	return prefix + string(enrichedBytes)
+}
+
+func (u *appUsecase) enrichMessageResp(resp gorm_model.MessageResp) gorm_model.MessageResp {
+	resp.Content = u.enrichOfferingContent(resp.Content)
+	if resp.ReplyTo != nil {
+		resp.ReplyTo.Content = u.enrichOfferingContent(resp.ReplyTo.Content)
+	}
+	return resp
 }
