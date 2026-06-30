@@ -1,4 +1,4 @@
-h1:Ay6KePBJIh5lmidRg11ygbjtM7pbzierqiGjNqa2+D4=
+h1:af3/mPbOk4crDbErfGAC6F4+RyRu3I/pLjR2uIFzeAE=
 20260301081551_init.sql h1:+1bzghZ6e0PhFe8TIjoQdJ7hEp4CLUlBlyfVDOAe8o4=
 20260301081552_add_seeder_prov_kab_kota_indonesia.sql h1:nVsDxVEaww89UrDtE/uSp6OYHxMg+GIUDewzRV7Jsd8=
 20260301081553_add_seeder_reference_data.sql h1:8n9QgkmOPPSGIA7+2alcfi9pexAhMeQRduqZm46SchQ=
@@ -37,3 +37,4 @@ h1:Ay6KePBJIh5lmidRg11ygbjtM7pbzierqiGjNqa2+D4=
 20260607025407_add_interview_reminder_flags.sql h1:5No/kG4Hc5K26yaWHLwvODYbSOHjL17yZhaWzPce9NA=
 20260608124333_add_is_expiry_notification_sent_to_onboard_histories.sql h1:HPcRs+Y0beFm7BqF8uWVzAeu6gPiF105TLaO0l0QTEg=
 20260615131229_add_reason_field.sql h1:Dm6nDSzqjRUS6X9M0IYdLHF6fzcCGWZdM3X1DNGvJf8=
+20260629184033_drop_offerings_and_message_attachments_table.sql h1:U8Cc+VOieEvh9hk5u6YYcjqQRvO6oM6wqvRZKZgDDXc=
