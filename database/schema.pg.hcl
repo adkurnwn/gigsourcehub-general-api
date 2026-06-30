@@ -1028,11 +1028,6 @@ table "interviews" {
   }
 }
 
-enum "message_attachment_type" {
-  schema = schema.public
-  values = ["INTERVIEW", "OFFERING"]
-}
-
 table "conversations" {
   schema = schema.public
 
@@ -1187,141 +1182,6 @@ table "messages" {
   }
 }
 
-table "offerings" {
-  schema = schema.public
-
-  column "id" {
-    type = uuid
-  }
-  column "filename" {
-    type = varchar(255)
-    null = false
-  }
-  column "user_id_kandidat" {
-    type = uuid
-    null = false
-  }
-  column "path" {
-    type = varchar(255)
-    null = false
-  }
-  column "subrequest_id" {
-    type = uuid
-    null = false
-  }
-  column "created_at" {
-    type = timestamptz
-    null = false
-  }
-  column "updated_at" {
-    type = timestamptz
-    null = false
-  }
-  column "deleted_at" {
-    type = timestamptz
-    null = true
-  }
-
-  primary_key {
-    columns = [column.id]
-  }
-
-  index "idx_offerings_deleted_at" {
-    columns = [column.deleted_at]
-  }
-
-  index "idx_offerings_user_id_kandidat" {
-    columns = [column.user_id_kandidat]
-  }
-
-  index "idx_offerings_subrequest_id" {
-    columns = [column.subrequest_id]
-  }
-
-  foreign_key "offerings_user_kandidat_fk" {
-    columns     = [column.user_id_kandidat]
-    ref_columns = [table.users.column.id]
-    on_update   = NO_ACTION
-    on_delete   = CASCADE
-  }
-
-  foreign_key "offerings_subrequest_fk" {
-    columns     = [column.subrequest_id]
-    ref_columns = [table.subrequests.column.id]
-    on_update   = NO_ACTION
-    on_delete   = CASCADE
-  }
-}
-
-table "message_attachments" {
-  schema = schema.public
-
-  column "id" {
-    type = uuid
-  }
-  column "message_id" {
-    type = uuid
-    null = false
-  }
-  column "attachment_type" {
-    type = enum.message_attachment_type
-    null = false
-  }
-  column "interview_id" {
-    type = uuid
-    null = true
-  }
-  column "offering_id" {
-    type = uuid
-    null = true
-  }
-  column "created_at" {
-    type = timestamptz
-    null = false
-  }
-  column "updated_at" {
-    type = timestamptz
-    null = false
-  }
-  column "deleted_at" {
-    type = timestamptz
-    null = true
-  }
-
-  primary_key {
-    columns = [column.id]
-  }
-
-  index "idx_message_attachments_deleted_at" {
-    columns = [column.deleted_at]
-  }
-
-  index "idx_message_attachments_message_id" {
-    columns = [column.message_id]
-  }
-
-  foreign_key "message_attachments_message_fk" {
-    columns     = [column.message_id]
-    ref_columns = [table.messages.column.id]
-    on_update   = NO_ACTION
-    on_delete   = CASCADE
-  }
-
-  foreign_key "message_attachments_interview_fk" {
-    columns     = [column.interview_id]
-    ref_columns = [table.interviews.column.id]
-    on_update   = NO_ACTION
-    on_delete   = SET_NULL
-  }
-
-  foreign_key "message_attachments_offering_fk" {
-    columns     = [column.offering_id]
-    ref_columns = [table.offerings.column.id]
-    on_update   = NO_ACTION
-    on_delete   = SET_NULL
-  }
-}
-
 table "onboard_histories" {
   schema = schema.public
 
@@ -1331,10 +1191,6 @@ table "onboard_histories" {
   column "candidate_user_id" {
     type = uuid
     null = false
-  }
-  column "offering_id" {
-    type = uuid
-    null = true
   }
   column "is_stopped" {
     type    = boolean
@@ -1387,20 +1243,9 @@ table "onboard_histories" {
     columns = [column.candidate_user_id]
   }
 
-  index "idx_onboard_histories_offering_id" {
-    columns = [column.offering_id]
-  }
-
   foreign_key "onboard_histories_candidate_user_fk" {
     columns     = [column.candidate_user_id]
     ref_columns = [table.users.column.id]
-    on_update   = NO_ACTION
-    on_delete   = CASCADE
-  }
-
-  foreign_key "onboard_histories_offering_fk" {
-    columns     = [column.offering_id]
-    ref_columns = [table.offerings.column.id]
     on_update   = NO_ACTION
     on_delete   = CASCADE
   }
