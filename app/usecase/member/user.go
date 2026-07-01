@@ -1442,7 +1442,6 @@ func (u *appUsecase) FinalizeRecruitment(ctx context.Context, adminID string, re
 		acceptedStatus.ID,
 		&startDate,
 		&endDate,
-		nil,
 		string(encodedSnapshot),
 	); err != nil {
 		helpers.LogActivity(ctx, u.gormDbRepo, "Finalize", "Recruitment", candidate.Email, req, false)

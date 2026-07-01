@@ -12,8 +12,6 @@ type OnboardHistory struct {
 	ID              string         `gorm:"column:id;primarykey;type:uuid;default:uuid_generate_v4()"`
 	CandidateUserID string         `gorm:"column:candidate_user_id;type:uuid;not null"`
 	CandidateUser   *User          `gorm:"foreignKey:CandidateUserID"`
-	OfferingID      *string        `gorm:"column:offering_id;type:uuid"`
-	Offering        *Offering      `gorm:"foreignKey:OfferingID"`
 	IsStopped                bool           `gorm:"column:is_stopped;type:boolean;default:false;not null"`
 	IsExpiryNotificationSent bool           `gorm:"column:is_expiry_notification_sent;type:boolean;default:false;not null"`
 	StartDate       *time.Time     `gorm:"column:start_date;type:date"`
@@ -30,7 +28,6 @@ type OnboardHistoryResp struct {
 	ID              string     `json:"id"`
 	CandidateUserID string     `json:"candidate_user_id"`
 	CandidateUser   *UserResp  `json:"candidate_user,omitempty"`
-	OfferingID      *string    `json:"offering_id,omitempty"`
 	StartDate       *time.Time `json:"start_date,omitempty"`
 	EndDate         *time.Time `json:"end_date,omitempty"`
 	ProjectName     *string    `json:"project_name,omitempty"`
@@ -80,7 +77,6 @@ func (m *OnboardHistory) ToOnboardHistoryResp() OnboardHistoryResp {
 		ID:              m.ID,
 		CandidateUserID: m.CandidateUserID,
 		CandidateUser:   candidateResp,
-		OfferingID:      m.OfferingID,
 		StartDate:       m.StartDate,
 		EndDate:         m.EndDate,
 		ProjectName:     projectName,
