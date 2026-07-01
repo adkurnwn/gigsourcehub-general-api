@@ -177,13 +177,9 @@ func (u *appUsecase) FetchOnboardingActive(ctx context.Context, page, limit int6
 	if len(filter.EmployeeUser) > 0 {
 		cond := u.gormDbRepo.GetDB().WithContext(ctx)
 		for _, name := range filter.EmployeeUser {
-			cond = cond.Or("e_user.name ILIKE ?", "%"+name+"%").Or("e_user.id = ?", name)
+			cond = cond.Or("onboard_histories.snapshot->>'employee_name' ILIKE ?", "%"+name+"%").Or("onboard_histories.snapshot->>'employee_user_id' = ?", name)
 		}
-		query = query.Joins("LEFT JOIN offerings ON offerings.id = onboard_histories.offering_id").
-			Joins("LEFT JOIN subrequests ON subrequests.id = offerings.subrequest_id").
-			Joins("LEFT JOIN requests ON requests.id = subrequests.request_id").
-			Joins("LEFT JOIN users e_user ON e_user.id = requests.employee_user_id").
-			Where(cond)
+		query = query.Where(cond)
 	}
 
 	if filter.Search != nil && *filter.Search != "" {
@@ -255,13 +251,9 @@ func (u *appUsecase) FetchOnboardingArchive(ctx context.Context, page, limit int
 	if len(filter.EmployeeUser) > 0 {
 		cond := u.gormDbRepo.GetDB().WithContext(ctx)
 		for _, name := range filter.EmployeeUser {
-			cond = cond.Or("e_user.name ILIKE ?", "%"+name+"%").Or("e_user.id = ?", name)
+			cond = cond.Or("onboard_histories.snapshot->>'employee_name' ILIKE ?", "%"+name+"%").Or("onboard_histories.snapshot->>'employee_user_id' = ?", name)
 		}
-		query = query.Joins("LEFT JOIN offerings ON offerings.id = onboard_histories.offering_id").
-			Joins("LEFT JOIN subrequests ON subrequests.id = offerings.subrequest_id").
-			Joins("LEFT JOIN requests ON requests.id = subrequests.request_id").
-			Joins("LEFT JOIN users e_user ON e_user.id = requests.employee_user_id").
-			Where(cond)
+		query = query.Where(cond)
 	}
 
 	if filter.Search != nil && *filter.Search != "" {
