@@ -3,6 +3,7 @@ package gorm_model
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -63,6 +64,37 @@ func (f *UserFilter) Query(q *gorm.DB) {
 	if f.Email != nil {
 		q.Where("email = ?", *f.Email)
 	}
+}
+
+type CandidateFilter struct {
+	Bidang         []string
+	JobRoles       []string
+	CandidateLevel []string
+	Search         *string
+}
+
+func (f CandidateFilter) GetDescription() string {
+	var parts []string
+	if len(f.Bidang) > 0 {
+		parts = append(parts, "Bidang: "+strings.Join(f.Bidang, ", "))
+	}
+	if len(f.JobRoles) > 0 {
+		parts = append(parts, "Job Roles: "+strings.Join(f.JobRoles, ", "))
+	}
+	if len(f.CandidateLevel) > 0 {
+		parts = append(parts, "Level: "+strings.Join(f.CandidateLevel, ", "))
+	}
+	if len(parts) == 0 {
+		return "None"
+	}
+	importStrings := ""
+	for i, p := range parts {
+		if i > 0 {
+			importStrings += ", "
+		}
+		importStrings += p
+	}
+	return importStrings
 }
 
 type UserResp struct {

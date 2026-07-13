@@ -5,6 +5,7 @@ import (
 	"time"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
+	"gorm.io/gorm"
 )
 
 // CreateNotification persists a new notification record.
@@ -80,15 +81,41 @@ func (r *gormRepo) GetUpcomingInterviewsForNotification(ctx context.Context, fro
 	return interviews, err
 }
 
-// GetExpiringContractsForNotification fetches onboard_histories whose end_date equals targetDate and is_stopped = false.
+// GetExpiringContractsForNotification fetches onboard_histories whose end_date is <= targetDate, is_stopped = false, and is_expiry_notification_sent = false.
 func (r *gormRepo) GetExpiringContractsForNotification(ctx context.Context, targetDate time.Time) ([]gorm_model.OnboardHistory, error) {
 	var histories []gorm_model.OnboardHistory
 	dateStr := targetDate.Format("2006-01-02")
 	err := r.db.WithContext(ctx).
 		Preload("CandidateUser").
-		Where("end_date = ? AND is_stopped = false AND deleted_at IS NULL", dateStr).
+		Where("end_date <= ? AND is_stopped = false AND is_expiry_notification_sent = false AND deleted_at IS NULL", dateStr).
 		Find(&histories).Error
 	return histories, err
+}
+
+// EndExpiredContract marks the onboard history contract as expired, soft deletes the active subrequest candidate, and resets recruitment status.
+func (r *gormRepo) EndExpiredContract(ctx context.Context, onboardHistoryID string, candidateID string) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&gorm_model.OnboardHistory{}).
+			Where("id = ?", onboardHistoryID).
+			Update("is_expiry_notification_sent", true).Error; err != nil {
+			return err
+		}
+
+		now := time.Now()
+		if err := tx.Model(&gorm_model.SubrequestCandidate{}).
+			Where("candidate_user_id = ? AND deleted_at IS NULL", candidateID).
+			Update("deleted_at", now).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&gorm_model.User{}).
+			Where("id = ?", candidateID).
+			Update("recruitment_status_id", nil).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 // GetUpcomingInterviewsFor24hReminder fetches SCHEDULED interviews whose scheduled_at falls between from and to, and is_24h_reminder_sent is false.

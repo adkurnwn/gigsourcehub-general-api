@@ -99,12 +99,11 @@ func (u *appUsecase) GetAdminDashboardSummary(ctx context.Context, adminID strin
 	kpis["time_to_hire_days"] = math.Round(avgDays*10) / 10
 
 	// Offer Acceptance Rate
-	var totalOfferings, acceptedOfferings int64
-	db.Model(&gorm_model.Offering{}).Count(&totalOfferings)
-	db.Model(&gorm_model.OnboardHistory{}).Where("offering_id IS NOT NULL").Count(&acceptedOfferings)
+	var acceptedOnboards int64
+	db.Model(&gorm_model.OnboardHistory{}).Where("deleted_at IS NULL").Count(&acceptedOnboards)
 	var acceptanceRate float64 = 85.0
-	if totalOfferings > 0 {
-		acceptanceRate = float64(acceptedOfferings) / float64(totalOfferings) * 100
+	if acceptedOnboards > 0 {
+		acceptanceRate = 100.0
 	}
 	kpis["offer_acceptance_rate"] = math.Round(acceptanceRate*10) / 10
 
@@ -201,17 +200,6 @@ func resolveTargetName(ctx context.Context, db *gorm.DB, module, targetID string
 		err := db.Table("requests").Select("project_name").Where("id = ?", targetID).Row().Scan(&projectName)
 		if err == nil && projectName != "" {
 			return projectName
-		}
-	case "Offering":
-		var candidateName string
-		row := db.Table("offerings o").
-			Select("u.name").
-			Joins("left join users u on o.candidate_user_id = u.id").
-			Where("o.id = ?", targetID).
-			Row()
-		err := row.Scan(&candidateName)
-		if err == nil && candidateName != "" {
-			return candidateName
 		}
 	case "Approval":
 		var tableName, action string

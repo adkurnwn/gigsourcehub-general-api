@@ -208,15 +208,9 @@ func (u *appUsecase) Create(ctx context.Context, adminID string, req request_mod
 func (u *appUsecase) Update(ctx context.Context, adminID string, id string, req request_model.UpdateInterviewRequest) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
-
 	scheduledAt, err := parseScheduledAt(req.ScheduledAt)
 	if err != nil {
 		return response.Error(http.StatusBadRequest, err.Error())
-	}
-
-	method, ok := normalizeInterviewMethod(req.Method)
-	if !ok {
-		return response.Error(http.StatusBadRequest, "Invalid method value. Allowed: Online, Offline")
 	}
 
 	existing, err := u.gormDbRepo.GetInterviewByID(ctx, id)
@@ -231,24 +225,8 @@ func (u *appUsecase) Update(ctx context.Context, adminID string, id string, req 
 	if authRes := u.ensureAdminOfSubrequest(ctx, adminID, existing.SubrequestID); authRes.Status != http.StatusOK {
 		return authRes
 	}
-
-	if existing.StageID != req.StageID {
-		var stage gorm_model.InterviewStage
-		if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&stage, "id = ?", req.StageID).Error; err != nil {
-			return response.Error(http.StatusBadRequest, "Invalid interview stage ID")
-		}
-		if !stage.IsActive {
-			return response.Error(http.StatusBadRequest, "Cannot reference an inactive interview stage")
-		}
-	}
-
-	existing.StageID = req.StageID
-	existing.Title = req.Title
-	existing.Description = req.Description
+	// Only update scheduled_at and record admin performing the update
 	existing.ScheduledAt = scheduledAt
-	existing.Method = &method
-	existing.MeetingLocation = req.MeetingLocation
-	existing.MeetingLink = req.MeetingLink
 	existing.AdminUserID = &adminID
 
 	if err := u.gormDbRepo.UpdateInterview(ctx, existing); err != nil {
@@ -258,6 +236,11 @@ func (u *appUsecase) Update(ctx context.Context, adminID string, id string, req 
 	}
 
 	helpers.LogActivity(ctx, u.gormDbRepo, "Update", "Interview", id, req, true)
+
+	// Update any related chat messages that embed interview metadata
+	if err := u.gormDbRepo.UpdateInterviewChatMessages(ctx, existing); err != nil {
+		logrus.Errorf("Failed to update interview-related chat messages: %v", err)
+	}
 
 	updated, err := u.gormDbRepo.GetInterviewByID(ctx, id)
 	if err == nil {

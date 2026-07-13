@@ -2,6 +2,8 @@ package gormrepo
 
 import (
 	"context"
+	"encoding/json"
+	"strings"
 	"time"
 
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
@@ -252,6 +254,76 @@ func (r *gormRepo) IsCandidateOnSubrequest(ctx context.Context, candidateID, sub
 		return false, err
 	}
 	return count > 0, nil
+}
+
+func (r *gormRepo) UpdateInterviewChatMessages(ctx context.Context, interview *gorm_model.Interview) error {
+	// Find messages that have the interview chat prefix and contain this interview ID
+	var rows []struct {
+		ID      string `gorm:"column:id"`
+		Content string `gorm:"column:content"`
+	}
+
+	likePrefix := "__interview_chat__:%"
+	likeID := "%\"interview_id\":\"" + interview.ID + "\"%"
+	if err := r.db.WithContext(ctx).Raw("SELECT id, content FROM messages WHERE content LIKE ? AND content LIKE ? AND deleted_at IS NULL", likePrefix, likeID).Scan(&rows).Error; err != nil {
+		logrus.Errorf("UpdateInterviewChatMessages select error: %v", err)
+		return err
+	}
+
+	for _, row := range rows {
+		content := row.Content
+		if !strings.HasPrefix(content, "__interview_chat__:") {
+			continue
+		}
+		jsonPart := strings.TrimPrefix(content, "__interview_chat__:")
+		var payload map[string]interface{}
+		if err := json.Unmarshal([]byte(jsonPart), &payload); err != nil {
+			// skip malformed payloads
+			logrus.Debugf("Skipping malformed interview chat payload for message=%s: %v", row.ID, err)
+			continue
+		}
+
+		// Update keys from interview
+		payload["interview_id"] = interview.ID
+		if interview.Title != "" {
+			payload["title"] = interview.Title
+		}
+		if interview.ScheduledAt != nil {
+			payload["scheduled_at"] = interview.ScheduledAt.Format(time.RFC3339)
+		} else {
+			payload["scheduled_at"] = ""
+		}
+		if interview.Method != nil {
+			payload["method"] = *interview.Method
+		}
+		if interview.MeetingLink != nil {
+			payload["meeting_link"] = *interview.MeetingLink
+		} else {
+			payload["meeting_link"] = ""
+		}
+		if interview.MeetingLocation != nil {
+			payload["meeting_location"] = *interview.MeetingLocation
+		} else {
+			payload["meeting_location"] = ""
+		}
+		if interview.Stage != nil {
+			payload["stage_name"] = interview.Stage.Name
+		}
+
+		b, err := json.Marshal(payload)
+		if err != nil {
+			logrus.Debugf("Failed to marshal updated interview payload for message=%s: %v", row.ID, err)
+			continue
+		}
+		newContent := "__interview_chat__:" + string(b)
+
+		if err := r.db.WithContext(ctx).Model(&gorm_model.Message{}).Where("id = ?", row.ID).Update("content", newContent).Error; err != nil {
+			logrus.Errorf("Failed to update message content for message=%s: %v", row.ID, err)
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (r *gormRepo) GetCandidateRecruitmentStatusName(ctx context.Context, candidateID string) (string, error) {

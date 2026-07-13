@@ -40,11 +40,50 @@ func NewRequestHandler(r *gin.RouterGroup, mdl middleware.Middleware, uc domain.
 	adminRoute.Use(mdl.AuthAdmin())
 
 	adminRoute.GET("", handler.FetchAllForAdmin)
+	adminRoute.GET("/export", handler.ExportRequests)
 	adminRoute.GET("/pending", handler.FetchPendingForAdmin)
 	adminRoute.GET("/my-requests", handler.FetchMyRequestsForAdmin)
+	adminRoute.GET("/active-my-request", handler.FetchActiveMyRequestsForAdmin)
 	adminRoute.PATCH("/:id/validate", handler.AssignPIC)
 	adminRoute.PATCH("/:id/reject", handler.RejectRequest)
 	adminRoute.POST("/:request_id/subrequests/:sub_id/assign", handler.AssignCandidateToSubrequest)
+}
+
+func parseRequestFilter(ctx *gin.Context) gorm_model.RequestFilter {
+	status := ctx.Query("status")
+	urgency := ctx.Query("urgency")
+	search := ctx.Query("search")
+	proposedBy := ctx.Query("proposed_by")
+	adminName := ctx.Query("admin_name")
+
+	var statusPtr *string
+	if status != "" {
+		statusPtr = &status
+	}
+	var urgencyPtr *string
+	if urgency != "" {
+		urgencyPtr = &urgency
+	}
+	var searchPtr *string
+	if search != "" {
+		searchPtr = &search
+	}
+	var proposedByPtr *string
+	if proposedBy != "" {
+		proposedByPtr = &proposedBy
+	}
+	var adminNamePtr *string
+	if adminName != "" {
+		adminNamePtr = &adminName
+	}
+
+	return gorm_model.RequestFilter{
+		Status:     statusPtr,
+		Urgency:    urgencyPtr,
+		Search:     searchPtr,
+		ProposedBy: proposedByPtr,
+		AdminName:  adminNamePtr,
+	}
 }
 
 // Create Request
@@ -121,32 +160,49 @@ func (h *routeHandler) Fetch(ctx *gin.Context) {
 // @Security BearerAuth
 func (h *routeHandler) FetchAllForAdmin(ctx *gin.Context) {
 	pagination := helpers.GetPagination(ctx)
-
-	status := ctx.Query("status")
-	urgency := ctx.Query("urgency")
-	search := ctx.Query("search")
-
-	var statusPtr *string
-	if status != "" {
-		statusPtr = &status
-	}
-	var urgencyPtr *string
-	if urgency != "" {
-		urgencyPtr = &urgency
-	}
-	var searchPtr *string
-	if search != "" {
-		searchPtr = &search
-	}
-
-	filter := gorm_model.RequestFilter{
-		Status:  statusPtr,
-		Urgency: urgencyPtr,
-		Search:  searchPtr,
-	}
+	filter := parseRequestFilter(ctx)
 
 	result := h.Usecase.FetchByAdmin(ctx.Request.Context(), pagination.Page, pagination.Limit, filter)
 	ctx.JSON(result.Status, result)
+}
+
+// ExportRequests
+// @Summary Export Admin Requests
+// @Description Export admin requests to file
+// @Tags Admin Request
+// @Accept json
+// @Produce octet-stream
+// @Param format query string true "Format (pdf, csv, xlsx)"
+// @Param status query string false "Filter by Status"
+// @Param urgency query string false "Filter by Urgency"
+// @Param search query string false "Filter by Keyword"
+// @Param proposed_by query string false "Filter by Proposed By"
+// @Param admin_name query string false "Filter by Admin Name"
+// @Success 200 {file} file
+// @Router /admin/requests/export [get]
+// @Security BearerAuth
+func (h *routeHandler) ExportRequests(ctx *gin.Context) {
+	format := ctx.Query("format")
+	if format == "" {
+		format = "csv"
+	}
+
+	filter := parseRequestFilter(ctx)
+
+	adminID := ""
+	if claims, ok := ctx.Get("token_data"); ok {
+		tokenData := claims.(domain.JWTClaimUser)
+		adminID = tokenData.UserID
+	}
+
+	data, contentType, ext, err := h.Usecase.ExportRequests(ctx.Request.Context(), filter, format, adminID)
+	if err != nil || data == nil {
+		ctx.JSON(http.StatusInternalServerError, response.Error(http.StatusInternalServerError, "failed to export"))
+		return
+	}
+
+	ctx.Header("Content-Disposition", "attachment; filename=requests_export."+ext)
+	ctx.Data(http.StatusOK, contentType, data)
 }
 
 // Fetch Pending Requests (Admin)
@@ -156,6 +212,10 @@ func (h *routeHandler) FetchAllForAdmin(ctx *gin.Context) {
 // @Produce json
 // @Param page query int false "Page number" default(1)
 // @Param limit query int false "Limit per page" default(10)
+// @Param status query string false "Filter by status"
+// @Param urgency query string false "Filter by urgency"
+// @Param proposed_by query string false "Filter by proposed_by"
+// @Param admin_name query string false "Filter by admin_name"
 // @Success 200 {object} response.Base
 // @Failure 401 {object} response.Base
 // @Failure 403 {object} response.Base
@@ -164,8 +224,9 @@ func (h *routeHandler) FetchAllForAdmin(ctx *gin.Context) {
 // @Security BearerAuth
 func (h *routeHandler) FetchPendingForAdmin(ctx *gin.Context) {
 	pagination := helpers.GetPagination(ctx)
+	filter := parseRequestFilter(ctx)
 
-	result := h.Usecase.FetchPendingForAdmin(ctx.Request.Context(), pagination.Page, pagination.Limit)
+	result := h.Usecase.FetchPendingForAdmin(ctx.Request.Context(), pagination.Page, pagination.Limit, filter)
 	ctx.JSON(result.Status, result)
 }
 
@@ -176,6 +237,10 @@ func (h *routeHandler) FetchPendingForAdmin(ctx *gin.Context) {
 // @Produce json
 // @Param page query int false "Page number" default(1)
 // @Param limit query int false "Limit per page" default(10)
+// @Param status query string false "Filter by status"
+// @Param urgency query string false "Filter by urgency"
+// @Param proposed_by query string false "Filter by proposed_by"
+// @Param admin_name query string false "Filter by admin_name"
 // @Success 200 {object} response.Base
 // @Failure 401 {object} response.Base
 // @Failure 403 {object} response.Base
@@ -190,8 +255,32 @@ func (h *routeHandler) FetchMyRequestsForAdmin(ctx *gin.Context) {
 	}
 	adminID := userClaim.(domain.JWTClaimUser).UserID
 	pagination := helpers.GetPagination(ctx)
+	filter := parseRequestFilter(ctx)
 
-	result := h.Usecase.FetchMyRequestsForAdmin(ctx.Request.Context(), adminID, pagination.Page, pagination.Limit)
+	result := h.Usecase.FetchMyRequestsForAdmin(ctx.Request.Context(), adminID, pagination.Page, pagination.Limit, filter)
+	ctx.JSON(result.Status, result)
+}
+
+// Fetch Active My Requests (Admin)
+// @Summary Fetch active my assigned requests
+// @Description Get active requests assigned to authenticated admin and only unfilled subrequests
+// @Tags Admin Request
+// @Produce json
+// @Success 200 {object} response.Base
+// @Failure 401 {object} response.Base
+// @Failure 403 {object} response.Base
+// @Failure 500 {object} response.Base
+// @Router /admin/requests/active-my-request [get]
+// @Security BearerAuth
+func (h *routeHandler) FetchActiveMyRequestsForAdmin(ctx *gin.Context) {
+	userClaim, exists := ctx.Get("token_data")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, response.Error(http.StatusUnauthorized, "User ID not found in context"))
+		return
+	}
+	adminID := userClaim.(domain.JWTClaimUser).UserID
+
+	result := h.Usecase.FetchActiveMyRequestsForAdmin(ctx.Request.Context(), adminID)
 	ctx.JSON(result.Status, result)
 }
 

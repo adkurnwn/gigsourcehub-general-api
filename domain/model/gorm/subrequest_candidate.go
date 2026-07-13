@@ -14,6 +14,7 @@ type SubrequestCandidate struct {
 	CandidateUserID string         `gorm:"column:candidate_user_id;type:uuid;not null"`
 	CandidateUser   *User          `gorm:"foreignKey:CandidateUserID"`
 	Name            string         `gorm:"column:name;type:varchar(150);not null"`
+	DeclinedReason  *string        `gorm:"column:declined_reason;type:text"`
 	CreatedAt       time.Time      `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt       time.Time      `gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt       gorm.DeletedAt `gorm:"column:deleted_at;index"`
@@ -24,6 +25,7 @@ type ActiveSubrequestInfo struct {
 	RequestID    string    `gorm:"column:request_id" json:"request_id"`
 	ProjectName  string    `gorm:"column:project_name" json:"project_name"`
 	JobRole      string    `gorm:"column:job_role" json:"job_role"`
+	DeclinedReason string    `gorm:"column:declined_reason" json:"declined_reason"`
 	CreatedAt    time.Time `gorm:"column:created_at" json:"created_at"`
 }
 

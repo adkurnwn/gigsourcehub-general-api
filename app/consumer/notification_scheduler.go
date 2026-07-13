@@ -2,11 +2,13 @@ package consumer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
+	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	"github.com/adkurnwn/gigsourcehub-general-api/helpers"
 	"github.com/sirupsen/logrus"
 )
@@ -28,15 +30,23 @@ func (s *NotificationScheduler) Start(ctx context.Context) {
 	logrus.Info("NotificationScheduler: starting background scheduler")
 	// Ticker fires every 15 minutes for interview reminders
 	interviewTicker := time.NewTicker(15 * time.Minute)
-	// Ticker fires every 24 hours for contract expiry check
-	contractTicker := time.NewTicker(24 * time.Hour)
+	// Ticker fires every 15 minutes for contract expiry check
+	contractTicker := time.NewTicker(15 * time.Minute)
+	// Ticker fires every 15 minutes for candidate availability expiry check
+	availabilityTicker := time.NewTicker(15 * time.Minute)
+	// Ticker fires every 15 minutes for onboarding conversation cleanup
+	onboardingExpiryTicker := time.NewTicker(15 * time.Minute)
 
 	defer interviewTicker.Stop()
 	defer contractTicker.Stop()
+	defer availabilityTicker.Stop()
+	defer onboardingExpiryTicker.Stop()
 
 	// Run once immediately on startup so we don't have to wait for the first tick
 	s.checkInterviewReminders(ctx)
 	s.checkExpiringContracts(ctx)
+	s.checkCandidateAvailabilityExpiry(ctx)
+	s.checkExpiredOnboardingConversations(ctx)
 
 	for {
 		select {
@@ -47,6 +57,10 @@ func (s *NotificationScheduler) Start(ctx context.Context) {
 			s.checkInterviewReminders(ctx)
 		case <-contractTicker.C:
 			s.checkExpiringContracts(ctx)
+		case <-availabilityTicker.C:
+			s.checkCandidateAvailabilityExpiry(ctx)
+		case <-onboardingExpiryTicker.C:
+			s.checkExpiredOnboardingConversations(ctx)
 		}
 	}
 }
@@ -140,7 +154,8 @@ func (s *NotificationScheduler) checkInterviewReminders(ctx context.Context) {
 	}
 }
 
-// checkExpiringContracts sends a review reminder to the employee when a candidate contract expires today.
+// checkExpiringContracts sends a review reminder to the employee when a candidate contract expires today,
+// ends the contract by stopping onboarding, and marks the history record.
 func (s *NotificationScheduler) checkExpiringContracts(ctx context.Context) {
 	logrus.Info("NotificationScheduler: checking expiring contracts...")
 	today := time.Now()
@@ -152,13 +167,19 @@ func (s *NotificationScheduler) checkExpiringContracts(ctx context.Context) {
 	logrus.Infof("NotificationScheduler: expiring contract checks finished, found %d expiring contracts", len(histories))
 
 	for _, oh := range histories {
-		if oh.CandidateUser == nil || oh.Snapshot == nil {
+		if oh.CandidateUser == nil {
+			logrus.Warnf("NotificationScheduler: skipping onboard history %s because CandidateUser is nil", oh.ID)
+			continue
+		}
+		if oh.Snapshot == nil {
+			logrus.Warnf("NotificationScheduler: skipping onboard history %s because Snapshot is nil", oh.ID)
 			continue
 		}
 
 		candidateName := oh.CandidateUser.Name
 		employeeID := extractEmployeeIDFromSnapshot(*oh.Snapshot)
 		if employeeID == "" {
+			logrus.Warnf("NotificationScheduler: skipping onboard history %s because employee_user_id not found in snapshot: %s", oh.ID, *oh.Snapshot)
 			continue
 		}
 
@@ -168,16 +189,44 @@ func (s *NotificationScheduler) checkExpiringContracts(ctx context.Context) {
 			candidateName,
 		)
 		helpers.SendNotificationAsync(ctx, s.repo, employeeID, title, desc)
+
+		if oh.CandidateUserID != "" {
+			if err := s.repo.EndExpiredContract(ctx, oh.ID, oh.CandidateUserID); err != nil {
+				logrus.Errorf("NotificationScheduler: failed to end expired contract for history %s: %v", oh.ID, err)
+			} else {
+				logrus.Infof("NotificationScheduler: successfully ended contract for history %s, candidate %s", oh.ID, oh.CandidateUserID)
+			}
+		}
 	}
 }
 
 // extractEmployeeIDFromSnapshot parses the snapshot JSON string to retrieve employee_user_id.
 // The snapshot format: {"employee_user_id":"uuid","employee_name":"...","project_name":"..."}
 func extractEmployeeIDFromSnapshot(snapshot string) string {
+	var data map[string]interface{}
+	if err := json.Unmarshal([]byte(snapshot), &data); err == nil {
+		if val, ok := data["employee_user_id"].(string); ok {
+			return val
+		}
+	}
+
+	// Fallback to string searching if JSON unmarshaling fails
 	const key = `"employee_user_id":"`
 	idx := strings.Index(snapshot, key)
 	if idx < 0 {
-		return ""
+		// Try with space
+		const keyWithSpace = `"employee_user_id": "`
+		idx = strings.Index(snapshot, keyWithSpace)
+		if idx < 0 {
+			return ""
+		}
+		start := idx + len(keyWithSpace)
+		rest := snapshot[start:]
+		end := strings.Index(rest, `"`)
+		if end < 0 {
+			return ""
+		}
+		return rest[:end]
 	}
 	start := idx + len(key)
 	rest := snapshot[start:]
@@ -186,4 +235,66 @@ func extractEmployeeIDFromSnapshot(snapshot string) string {
 		return ""
 	}
 	return rest[:end]
+}
+
+// checkCandidateAvailabilityExpiry queries the 'Unavailable' status and updates
+// any candidate whose availability date has expired (unavailable_until <= NOW())
+// back to 'Available' (NULL recruitment_status_id and NULL unavailable_until).
+func (s *NotificationScheduler) checkCandidateAvailabilityExpiry(ctx context.Context) {
+	logrus.Info("NotificationScheduler: checking candidate availability expiry...")
+	db := s.repo.GetDB()
+
+	var unavailableStatus gorm_model.RecruitmentStatus
+	if err := db.WithContext(ctx).
+		Where("name = ? AND deleted_at IS NULL", "Unavailable").
+		First(&unavailableStatus).Error; err != nil {
+		logrus.Errorf("NotificationScheduler: failed to fetch 'Unavailable' status: %v", err)
+		return
+	}
+
+	now := time.Now()
+	res := db.WithContext(ctx).
+		Model(&gorm_model.User{}).
+		Where("recruitment_status_id = ? AND unavailable_until IS NOT NULL AND unavailable_until <= ?", unavailableStatus.ID, now).
+		Updates(map[string]interface{}{
+			"recruitment_status_id": nil,
+			"unavailable_until":     nil,
+		})
+
+	if res.Error != nil {
+		logrus.Errorf("NotificationScheduler: failed to update expired candidate availabilities: %v", res.Error)
+	} else if res.RowsAffected > 0 {
+		logrus.Infof("NotificationScheduler: successfully reset availability for %d candidates", res.RowsAffected)
+	}
+}
+
+// checkExpiredOnboardingConversations queries candidates whose onboarding has ended (end_date <= today)
+// and deletes their active conversations immediately.
+func (s *NotificationScheduler) checkExpiredOnboardingConversations(ctx context.Context) {
+	logrus.Info("NotificationScheduler: checking expired onboarding conversations...")
+	db := s.repo.GetDB()
+
+	todayStr := time.Now().Format("2006-01-02")
+	var expiredConversations []gorm_model.Conversation
+	err := db.WithContext(ctx).
+		Table("conversations").
+		Joins("JOIN onboard_histories ON conversations.candidate_user_id = onboard_histories.candidate_user_id").
+		Where("onboard_histories.end_date <= ? AND conversations.deleted_at IS NULL AND onboard_histories.deleted_at IS NULL", todayStr).
+		Select("conversations.*").
+		Find(&expiredConversations).Error
+
+	if err != nil {
+		logrus.Errorf("NotificationScheduler: failed to fetch expired onboarding conversations: %v", err)
+		return
+	}
+
+	logrus.Infof("NotificationScheduler: expired onboarding checks finished, found %d active conversations to delete", len(expiredConversations))
+
+	for _, conv := range expiredConversations {
+		if err := s.repo.DeleteConversationsByCandidateID(ctx, conv.CandidateUserID); err != nil {
+			logrus.Errorf("NotificationScheduler: failed to delete conversations for candidate %s: %v", conv.CandidateUserID, err)
+		} else {
+			logrus.Infof("NotificationScheduler: successfully deleted conversations for candidate %s", conv.CandidateUserID)
+		}
+	}
 }

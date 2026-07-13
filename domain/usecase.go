@@ -15,7 +15,7 @@ type MemberAppUsecase interface {
 	Register(ctx context.Context, payload request_model.RegisterRequest) response.Base
 	GetMe(ctx context.Context, claim JWTClaimUser) response.Base
 	GetProfile(ctx context.Context, claim JWTClaimUser) response.Base
-	FetchUsers(ctx context.Context, page, limit int64, cursor string, search *string, roleName *string, adminID *string) response.Base
+	FetchUsers(ctx context.Context, page, limit int64, cursor string, search *string, roleName *string, adminID *string, filter gorm_model.CandidateFilter) response.Base
 	FetchUserDetail(ctx context.Context, id string) response.Base
 	CreateBySuperadmin(ctx context.Context, req request_model.CreateUserBySuperadminRequest) response.Base
 	EditUserBySuperadmin(ctx context.Context, id string, req request_model.EditUserBySuperadminRequest) response.Base
@@ -25,9 +25,9 @@ type MemberAppUsecase interface {
 	UploadProfilePicture(ctx context.Context, userID string, file *multipart.FileHeader) response.Base
 	FetchUserThumb(ctx context.Context, id string) response.Base
 	UpdateProfile(ctx context.Context, userID string, req request_model.UpdateProfileRequest) response.Base
-	DeclineRecruitment(ctx context.Context, id string) response.Base
+	DeclineRecruitment(ctx context.Context, id string, req request_model.DeclineRecruitmentRequest) response.Base
 	ConfirmDeclineRecruitment(ctx context.Context, id string) response.Base
-	StopOnboarding(ctx context.Context, id string) response.Base
+	StopOnboarding(ctx context.Context, id string, req request_model.StopOnboardingRequest) response.Base
 	PatchUserRecruitmentStatus(ctx context.Context, id string, req request_model.PatchUserRecruitmentStatusRequest) response.Base
 	CancelRecruitment(ctx context.Context, id string) response.Base
 	GetActiveSubrequest(ctx context.Context, id string) response.Base
@@ -35,10 +35,16 @@ type MemberAppUsecase interface {
 	FetchOnboardingByCandidate(ctx context.Context, candidateID string, page, limit int64, cursor string) response.Base
 	FetchOnboardingActiveTeam(ctx context.Context, employeeID string, page, limit int64, cursor string) response.Base
 	FetchOnboardingHistory(ctx context.Context, employeeID string, page, limit int64, cursor string) response.Base
-	FetchCandidateRecruitment(ctx context.Context, page, limit int64, cursor string) response.Base
-	FetchCandidateBookmarked(ctx context.Context, adminID string, page, limit int64, cursor string) response.Base
-	FetchOnboardingActive(ctx context.Context, page, limit int64, cursor string) response.Base
-	FetchOnboardingArchive(ctx context.Context, page, limit int64, cursor string) response.Base
+	FetchCandidateRecruitment(ctx context.Context, page, limit int64, cursor string, filter gorm_model.CandidateRecruitmentFilter) response.Base
+	FetchCandidateBookmarked(ctx context.Context, adminID string, page, limit int64, cursor string, filter gorm_model.CandidateFilter) response.Base
+	FetchOnboardingActive(ctx context.Context, page, limit int64, cursor string, filter gorm_model.OnboardingFilter) response.Base
+	FetchOnboardingArchive(ctx context.Context, page, limit int64, cursor string, filter gorm_model.OnboardingFilter) response.Base
+
+	ExportCandidates(ctx context.Context, filter gorm_model.CandidateFilter, format string, adminID string) ([]byte, string, string, error)
+	ExportCandidateBookmarked(ctx context.Context, adminID string, filter gorm_model.CandidateFilter, format string) ([]byte, string, string, error)
+	ExportCandidateRecruitment(ctx context.Context, filter gorm_model.CandidateRecruitmentFilter, format string, adminID string) ([]byte, string, string, error)
+	ExportOnboardingActive(ctx context.Context, filter gorm_model.OnboardingFilter, format string, adminID string) ([]byte, string, string, error)
+	ExportOnboardingArchive(ctx context.Context, filter gorm_model.OnboardingFilter, format string, adminID string) ([]byte, string, string, error)
 
 	VerifyAccount(ctx context.Context, token string) response.Base
 	ResendVerification(ctx context.Context, req request_model.ResendVerificationRequest) response.Base
@@ -130,11 +136,12 @@ type ReviewAppUsecase interface {
 
 type RequestAppUsecase interface {
 	FetchAll(ctx context.Context, page, limit int64) response.Base
+		FetchActiveMyRequestsForAdmin(ctx context.Context, adminID string) response.Base
 	CreateByEmployee(ctx context.Context, employeeID string, req request_model.CreateRequestRequest) response.Base
 	FetchByEmployee(ctx context.Context, employeeID string, page, limit int64) response.Base
 	FetchByAdmin(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base
-	FetchPendingForAdmin(ctx context.Context, page, limit int64) response.Base
-	FetchMyRequestsForAdmin(ctx context.Context, adminID string, page, limit int64) response.Base
+	FetchPendingForAdmin(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base
+	FetchMyRequestsForAdmin(ctx context.Context, adminID string, page, limit int64, filter gorm_model.RequestFilter) response.Base
 	GetByID(ctx context.Context, employeeID, requestID string) response.Base
 	UpdateByEmployee(ctx context.Context, employeeID string, requestID string, req request_model.UpdateRequestRequest) response.Base
 	UpdateSubrequestByEmployee(ctx context.Context, employeeID string, requestID string, subrequestID string, req request_model.UpdateSubrequestRequest) response.Base
@@ -142,6 +149,8 @@ type RequestAppUsecase interface {
 	AssignCandidateToSubrequest(ctx context.Context, adminID string, requestID string, subrequestID string, req request_model.AssignCandidateToSubrequestRequest) response.Base
 	AssignPIC(ctx context.Context, adminID, requestID string) response.Base
 	RejectRequest(ctx context.Context, adminID, requestID string, rejectedReason string) response.Base
+
+	ExportRequests(ctx context.Context, filter gorm_model.RequestFilter, format string, adminID string) ([]byte, string, string, error)
 }
 
 type AIChatAppUsecase interface {
@@ -164,6 +173,7 @@ type JobVacancyAppUsecase interface {
 	Create(ctx context.Context, req request_model.CreateJobVacancyRequest) response.Base
 	Update(ctx context.Context, id string, req request_model.UpdateJobVacancyRequest) response.Base
 	Delete(ctx context.Context, id string) response.Base
+	Archive(ctx context.Context, id string) response.Base
 
 	// Public — tanpa auth, hanya PUBLISHED & belum takedown
 	FetchPublic(ctx context.Context, page, limit int64, filter gorm_model.JobVacancyFilter) response.Base
@@ -181,9 +191,17 @@ type ChatAppUsecase interface {
 	MarkAsRead(ctx context.Context, userID string, conversationID string) response.Base
 }
 
+type FAQCMSFilter struct {
+	Search         *string
+	Status         *string
+	Author         *string
+	PublishedAtFrom *string
+	PublishedAtTo   *string
+}
+
 type FAQAppUsecase interface {
 	// Admin & Superadmin — CMS
-	FetchAll(ctx context.Context, page, limit int64, search *string) response.Base
+	FetchAll(ctx context.Context, page, limit int64, filter FAQCMSFilter) response.Base
 	FetchData(ctx context.Context, id string) response.Base
 
 	// Admin only
@@ -201,6 +219,7 @@ type FAQAppUsecase interface {
 	FetchPublic(ctx context.Context, page, limit int64, search *string) response.Base
 	FetchPublicByID(ctx context.Context, id string) response.Base
 }
+
 
 type CompanyProfileAppUsecase interface {
 	// Admin & Superadmin — CMS

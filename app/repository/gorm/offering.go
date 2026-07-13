@@ -11,14 +11,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func (r *gormRepo) CreateOffering(ctx context.Context, model *gorm_model.Offering) error {
-	if err := r.db.WithContext(ctx).Create(model).Error; err != nil {
-		logrus.Errorf("CreateOffering DB Error: %v", err)
-		return err
-	}
-	return nil
-}
-
 func (r *gormRepo) GetFinalizeSnapshotData(ctx context.Context, subrequestID string) (*gorm_model.FinalizeRecruitmentSnapshot, error) {
 	var snapshot gorm_model.FinalizeRecruitmentSnapshot
 	tx := r.db.WithContext(ctx).
@@ -39,11 +31,10 @@ func (r *gormRepo) GetFinalizeSnapshotData(ctx context.Context, subrequestID str
 	return &snapshot, nil
 }
 
-func (r *gormRepo) FinalizeRecruitment(ctx context.Context, candidateID, subrequestID, requestID, acceptedStatusID string, startDate, endDate *time.Time, offeringID *string, snapshotJSON string) error {
+func (r *gormRepo) FinalizeRecruitment(ctx context.Context, candidateID, subrequestID, requestID, acceptedStatusID string, startDate, endDate *time.Time, snapshotJSON string) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		history := &gorm_model.OnboardHistory{
 			CandidateUserID: candidateID,
-			OfferingID:      offeringID,
 			IsStopped:       false,
 			StartDate:       startDate,
 			EndDate:         endDate,

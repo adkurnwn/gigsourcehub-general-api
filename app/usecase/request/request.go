@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gorm.io/gorm"
+
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
 	request_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/request"
 	"github.com/adkurnwn/gigsourcehub-general-api/domain/model/response"
@@ -199,13 +201,130 @@ func (u *appUsecase) FetchByAdmin(ctx context.Context, page, limit int64, filter
 	return u.fetchByAdminWithFilter(ctx, page, limit, filter)
 }
 
-func (u *appUsecase) FetchPendingForAdmin(ctx context.Context, page, limit int64) response.Base {
+func (u *appUsecase) FetchPendingForAdmin(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	offset := (page - 1) * limit
 	status := "PENDING"
-	return u.fetchByAdminWithFilter(ctx, page, limit, gorm_model.RequestFilter{Status: &status})
+	filter.Status = &status
+
+	total, err := u.gormDbRepo.CountRequestsByAdmin(ctx, filter)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to count requests")
+	}
+
+	rows, err := u.gormDbRepo.FetchRequestsByAdmin(ctx, filter, limit, offset)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch requests")
+	}
+	defer rows.Close()
+
+	var results []interface{}
+	for rows.Next() {
+		var req gorm_model.Request
+		if err := u.gormDbRepo.StructScan(rows, &req); err != nil {
+			logrus.Errorf("Failed to scan request: %v", err)
+			continue
+		}
+
+		fullReq, err := u.gormDbRepo.GetRequestByID(ctx, req.ID)
+		if err == nil {
+			results = append(results, fullReq.ToRequestResp())
+		}
+	}
+
+	return response.Success(response.List{
+		List:  results,
+		Limit: limit,
+		Page:  page,
+		Total: total,
+	})
 }
 
-func (u *appUsecase) FetchMyRequestsForAdmin(ctx context.Context, adminID string, page, limit int64) response.Base {
-	return u.fetchByAdminWithFilter(ctx, page, limit, gorm_model.RequestFilter{AdminUserID: &adminID})
+func (u *appUsecase) FetchMyRequestsForAdmin(ctx context.Context, adminID string, page, limit int64, filter gorm_model.RequestFilter) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	offset := (page - 1) * limit
+	filter.AdminUserID = &adminID
+
+	total, err := u.gormDbRepo.CountRequestsByAdmin(ctx, filter)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to count requests")
+	}
+
+	rows, err := u.gormDbRepo.FetchRequestsByAdmin(ctx, filter, limit, offset)
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to fetch requests")
+	}
+	defer rows.Close()
+
+	var results []interface{}
+	for rows.Next() {
+		var req gorm_model.Request
+		if err := u.gormDbRepo.StructScan(rows, &req); err != nil {
+			logrus.Errorf("Failed to scan request: %v", err)
+			continue
+		}
+
+		fullReq, err := u.gormDbRepo.GetRequestByID(ctx, req.ID)
+		if err == nil {
+			results = append(results, fullReq.ToRequestResp())
+		}
+	}
+
+	return response.Success(response.List{
+		List:  results,
+		Limit: limit,
+		Page:  page,
+		Total: total,
+	})
+}
+
+func (u *appUsecase) FetchActiveMyRequestsForAdmin(ctx context.Context, adminID string) response.Base {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	var requests []gorm_model.Request
+	err := u.gormDbRepo.GetDB().WithContext(ctx).
+		Preload("AdminUser").
+		Preload("EmployeeUser").
+		Preload("Subrequests").
+		Preload("Subrequests.JobRole").
+		Preload("Subrequests.JobRole.Sector").
+		Where("admin_user_id = ? AND fulfillment_date IS NULL", adminID).
+		Order("requests.created_at DESC").
+		Find(&requests).Error
+	if err != nil {
+		logrus.Errorf("FetchActiveMyRequestsForAdmin DB Error: %v", err)
+		return response.Error(http.StatusInternalServerError, "Failed to fetch active requests")
+	}
+
+	var results []interface{}
+	for _, req := range requests {
+		// filter subrequests to only include not-filled ones
+		var remaining []gorm_model.Subrequest
+		for _, sr := range req.Subrequests {
+			if !sr.IsFilled {
+				remaining = append(remaining, sr)
+			}
+		}
+		if len(remaining) == 0 {
+			// nothing to show for this request
+			continue
+		}
+		req.Subrequests = remaining
+		results = append(results, req.ToRequestResp())
+	}
+
+	total := int64(len(results))
+	return response.Success(response.List{
+		List:  results,
+		Limit: total,
+		Page:  1,
+		Total: total,
+	})
 }
 
 func (u *appUsecase) fetchByAdminWithFilter(ctx context.Context, page, limit int64, filter gorm_model.RequestFilter) response.Base {
@@ -292,9 +411,9 @@ func (u *appUsecase) UpdateByEmployee(ctx context.Context, employeeID string, re
 		return response.Error(http.StatusForbidden, "You do not have permission to edit this request")
 	}
 
-	// 3. Validate Status
-	if existingReq.Status != "PENDING" && existingReq.Status != "WAITING" {
-		return response.Error(http.StatusConflict, "Only PENDING requests can be edited")
+	// 3. Validate Status: allow edit only when PENDING or REJECTED
+	if existingReq.Status != "PENDING" && existingReq.Status != "REJECTED" {
+		return response.Error(http.StatusConflict, "Only PENDING or REJECTED requests can be edited")
 	}
 
 	// 4. Map updated main fields
@@ -310,15 +429,145 @@ func (u *appUsecase) UpdateByEmployee(ctx context.Context, employeeID string, re
 		dueDate = existingReq.DueDate
 	}
 
+	// 4. Map updated main fields
 	existingReq.ProjectName = req.ProjectName
 	existingReq.ProjectDuration = req.ProjectDuration
 	existingReq.Urgency = req.Urgency
 	existingReq.DueDate = dueDate
 
-	// Execute update
+	// If current status is REJECTED and we're allowed to edit, reset to PENDING
+	if existingReq.Status == "REJECTED" {
+		existingReq.Status = "PENDING"
+	}
+
+	// Execute update for main request
 	if err := u.gormDbRepo.UpdateRequestByEmployee(ctx, existingReq); err != nil {
 		logrus.Errorf("UpdateByEmployee DB Error: %v", err)
 		return response.Error(http.StatusInternalServerError, "Failed to update request")
+	}
+
+	// 5. Update subrequests (diff-based update)
+	if len(req.Subrequests) > 0 {
+		// Map existing subrequests by ID
+		existingSubMap := make(map[string]gorm_model.Subrequest)
+		for _, sub := range existingReq.Subrequests {
+			existingSubMap[sub.ID] = sub
+		}
+
+		// Keep track of incoming subrequest IDs
+		incomingIDs := make(map[string]bool)
+
+		// Validate job roles and prepare subrequests
+		type preparedSub struct {
+			ID        *string
+			Level     *string
+			JobRoleID *string
+			TechJSON  *string
+			Notes     *string
+			Overview  *string
+		}
+		var prepared []preparedSub
+		for _, sub := range req.Subrequests {
+			var techStackJSON *string
+			if len(sub.TechStack) > 0 {
+				b, err := json.Marshal(sub.TechStack)
+				if err == nil {
+					jsonStr := string(b)
+					techStackJSON = &jsonStr
+				}
+			}
+
+			var jr gorm_model.JobRole
+			if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&jr, "id = ?", sub.JobRoleID).Error; err != nil {
+				return response.Error(http.StatusBadRequest, "Invalid job role ID")
+			}
+			if !jr.IsActive {
+				return response.Error(http.StatusBadRequest, "Cannot reference an inactive job role")
+			}
+
+			// ensure empty level is represented as nil to avoid invalid enum empty-string
+			var lvlPtr *string
+			if sub.Level != "" {
+				l := sub.Level
+				lvlPtr = &l
+			}
+
+			if sub.ID != nil && *sub.ID != "" {
+				incomingIDs[*sub.ID] = true
+			}
+
+			prepared = append(prepared, preparedSub{
+				ID:        sub.ID,
+				Level:     lvlPtr,
+				JobRoleID: sub.JobRoleID,
+				TechJSON:  techStackJSON,
+				Notes:     sub.Notes,
+				Overview:  sub.Overview,
+			})
+		}
+
+		// Run update transaction
+		err := u.gormDbRepo.GetDB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			// A. Delete subrequests that are in existing subrequests but not in incoming subrequests
+			for _, existingSub := range existingReq.Subrequests {
+				if !incomingIDs[existingSub.ID] {
+					if err := tx.Where("id = ?", existingSub.ID).Delete(&gorm_model.Subrequest{}).Error; err != nil {
+						return err
+					}
+				}
+			}
+
+			// B. Update existing subrequests or insert new ones
+			var finalCount int
+			for _, p := range prepared {
+				if p.ID != nil && *p.ID != "" {
+					if dbSub, exists := existingSubMap[*p.ID]; exists {
+						// Update fields
+						dbSub.Level = p.Level
+						dbSub.JobRoleID = p.JobRoleID
+						dbSub.TechStack = p.TechJSON
+						dbSub.Notes = p.Notes
+						dbSub.Overview = p.Overview
+						dbSub.Request = nil
+						dbSub.JobRole = nil
+						if err := tx.Save(&dbSub).Error; err != nil {
+							return err
+						}
+						finalCount++
+						continue
+					}
+				}
+
+				// If no ID or ID not found in existing subrequests, insert as a new subrequest
+				subModel := &gorm_model.Subrequest{
+					RequestID: existingReq.ID,
+					Level:     p.Level,
+					JobRoleID: p.JobRoleID,
+					TechStack: p.TechJSON,
+					Notes:     p.Notes,
+					Overview:  p.Overview,
+					IsFilled:  false,
+				}
+				if err := tx.Create(subModel).Error; err != nil {
+					return err
+				}
+				finalCount++
+			}
+
+			// C. Update headcount on the parent request to match final subrequest count
+			if err := tx.Model(&gorm_model.Request{}).
+				Where("id = ?", existingReq.ID).
+				Update("required_headcount", finalCount).Error; err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			logrus.Errorf("UpdateByEmployee subrequest transaction error: %v", err)
+			return response.Error(http.StatusInternalServerError, fmt.Sprintf("Failed to update subrequests: %v", err))
+		}
 	}
 
 	return response.Success(nil)

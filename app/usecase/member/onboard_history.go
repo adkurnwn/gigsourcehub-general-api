@@ -150,7 +150,7 @@ func (u *appUsecase) FetchOnboardingHistory(ctx context.Context, employeeID stri
 	})
 }
 
-func (u *appUsecase) FetchOnboardingActive(ctx context.Context, page, limit int64, cursor string) response.Base {
+func (u *appUsecase) FetchOnboardingActive(ctx context.Context, page, limit int64, cursor string, filter gorm_model.OnboardingFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -160,7 +160,32 @@ func (u *appUsecase) FetchOnboardingActive(ctx context.Context, page, limit int6
 
 	query := u.gormDbRepo.GetDB().WithContext(ctx).
 		Model(&gorm_model.OnboardHistory{}).
-		Where("start_date <= ? AND (end_date IS NULL OR end_date >= ?)", currentDate, currentDate)
+		Where("onboard_histories.start_date <= ? AND (onboard_histories.end_date IS NULL OR onboard_histories.end_date >= ?)", currentDate, currentDate)
+
+	if len(filter.JobRoleName) > 0 {
+		query = query.Where("onboard_histories.snapshot->>'job_role_name' IN ?", filter.JobRoleName)
+	}
+
+	if len(filter.ProjectName) > 0 {
+		cond := u.gormDbRepo.GetDB().WithContext(ctx)
+		for _, name := range filter.ProjectName {
+			cond = cond.Or("onboard_histories.snapshot->>'project_name' ILIKE ?", "%"+name+"%")
+		}
+		query = query.Where(cond)
+	}
+
+	if len(filter.EmployeeUser) > 0 {
+		cond := u.gormDbRepo.GetDB().WithContext(ctx)
+		for _, name := range filter.EmployeeUser {
+			cond = cond.Or("onboard_histories.snapshot->>'employee_name' ILIKE ?", "%"+name+"%").Or("onboard_histories.snapshot->>'employee_user_id' = ?", name)
+		}
+		query = query.Where(cond)
+	}
+
+	if filter.Search != nil && *filter.Search != "" {
+		query = query.Joins("LEFT JOIN users candidate_user ON candidate_user.id = onboard_histories.candidate_user_id").
+			Where("(candidate_user.name ILIKE ? OR candidate_user.email ILIKE ?) AND candidate_user.deleted_at IS NULL", "%"+*filter.Search+"%", "%"+*filter.Search+"%")
+	}
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
@@ -199,7 +224,7 @@ func (u *appUsecase) FetchOnboardingActive(ctx context.Context, page, limit int6
 	})
 }
 
-func (u *appUsecase) FetchOnboardingArchive(ctx context.Context, page, limit int64, cursor string) response.Base {
+func (u *appUsecase) FetchOnboardingArchive(ctx context.Context, page, limit int64, cursor string, filter gorm_model.OnboardingFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -209,7 +234,32 @@ func (u *appUsecase) FetchOnboardingArchive(ctx context.Context, page, limit int
 
 	query := u.gormDbRepo.GetDB().WithContext(ctx).
 		Model(&gorm_model.OnboardHistory{}).
-		Where("end_date < ?", currentDate)
+		Where("onboard_histories.end_date < ?", currentDate)
+
+	if len(filter.JobRoleName) > 0 {
+		query = query.Where("onboard_histories.snapshot->>'job_role_name' IN ?", filter.JobRoleName)
+	}
+
+	if len(filter.ProjectName) > 0 {
+		cond := u.gormDbRepo.GetDB().WithContext(ctx)
+		for _, name := range filter.ProjectName {
+			cond = cond.Or("onboard_histories.snapshot->>'project_name' ILIKE ?", "%"+name+"%")
+		}
+		query = query.Where(cond)
+	}
+
+	if len(filter.EmployeeUser) > 0 {
+		cond := u.gormDbRepo.GetDB().WithContext(ctx)
+		for _, name := range filter.EmployeeUser {
+			cond = cond.Or("onboard_histories.snapshot->>'employee_name' ILIKE ?", "%"+name+"%").Or("onboard_histories.snapshot->>'employee_user_id' = ?", name)
+		}
+		query = query.Where(cond)
+	}
+
+	if filter.Search != nil && *filter.Search != "" {
+		query = query.Joins("LEFT JOIN users candidate_user ON candidate_user.id = onboard_histories.candidate_user_id").
+			Where("(candidate_user.name ILIKE ? OR candidate_user.email ILIKE ?) AND candidate_user.deleted_at IS NULL", "%"+*filter.Search+"%", "%"+*filter.Search+"%")
+	}
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {

@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
+	"unicode"
 
 	"github.com/adkurnwn/gigsourcehub-general-api/domain"
 	gorm_model "github.com/adkurnwn/gigsourcehub-general-api/domain/model/gorm"
@@ -17,9 +19,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
-func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor string, search *string, roleName *string, adminID *string) response.Base {
+func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor string, search *string, roleName *string, adminID *string, filter gorm_model.CandidateFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -29,11 +32,34 @@ func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor s
 	db := u.gormDbRepo.GetDB().WithContext(ctx).Model(&gorm_model.User{})
 
 	if roleName != nil {
-		db = db.Joins("JOIN system_roles rs ON users.system_role_id = rs.id").Where("rs.name = ?", *roleName)
+		if *roleName == "Unverified" {
+			db = db.Where("users.verified_at IS NULL")
+		} else {
+			db = db.Joins("JOIN system_roles rs ON users.system_role_id = rs.id").Where("rs.name = ?", *roleName)
+			if *roleName == "Candidate" {
+				db = db.Where("users.verified_at IS NOT NULL")
+			}
+		}
 	}
 
 	if search != nil && *search != "" {
 		db = db.Where("(users.name ILIKE ? OR users.email ILIKE ?)", "%"+*search+"%", "%"+*search+"%")
+	}
+
+	if len(filter.Bidang) > 0 {
+		db = db.Joins("LEFT JOIN job_titles ON job_titles.id = users.job_title_id").
+			Joins("LEFT JOIN sectors ON sectors.id = job_titles.sector_id").
+			Where("sectors.name IN ?", filter.Bidang)
+	}
+
+	if len(filter.JobRoles) > 0 {
+		db = db.Joins("LEFT JOIN user_has_job_roles ON user_has_job_roles.user_id = users.id").
+			Joins("LEFT JOIN job_roles ON job_roles.id = user_has_job_roles.job_role_id").
+			Where("job_roles.name IN ?", filter.JobRoles)
+	}
+
+	if len(filter.CandidateLevel) > 0 {
+		db = db.Where("users.candidate_level IN ?", filter.CandidateLevel)
 	}
 
 	var total int64
@@ -94,7 +120,7 @@ func (u *appUsecase) FetchUsers(ctx context.Context, page, limit int64, cursor s
 	})
 }
 
-func (u *appUsecase) FetchCandidateRecruitment(ctx context.Context, page, limit int64, cursor string) response.Base {
+func (u *appUsecase) FetchCandidateRecruitment(ctx context.Context, page, limit int64, cursor string, filter gorm_model.CandidateRecruitmentFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -104,6 +130,32 @@ func (u *appUsecase) FetchCandidateRecruitment(ctx context.Context, page, limit 
 		Model(&gorm_model.User{}).
 		Joins("JOIN system_roles sr ON sr.id = users.system_role_id").
 		Where("sr.name = ? AND users.recruitment_status_id IS NOT NULL", "Candidate")
+
+	if len(filter.JobRoleName) > 0 {
+		query = query.Joins("LEFT JOIN user_has_job_roles ON user_has_job_roles.user_id = users.id").
+			Joins("LEFT JOIN job_roles ON job_roles.id = user_has_job_roles.job_role_id").
+			Where("job_roles.name IN ?", filter.JobRoleName)
+	}
+	
+	if len(filter.CandidateLevel) > 0 {
+		query = query.Where("users.candidate_level IN ?", filter.CandidateLevel)
+	}
+
+	if len(filter.ProjectName) > 0 {
+		cond := u.gormDbRepo.GetDB().WithContext(ctx)
+		for _, name := range filter.ProjectName {
+			cond = cond.Or("requests.project_name ILIKE ?", "%"+name+"%")
+		}
+		query = query.Joins("LEFT JOIN subrequest_candidates ON subrequest_candidates.candidate_user_id = users.id").
+			Joins("LEFT JOIN subrequests ON subrequests.id = subrequest_candidates.subrequest_id").
+			Joins("LEFT JOIN requests ON requests.id = subrequests.request_id").
+			Where(cond).
+			Where("subrequest_candidates.deleted_at IS NULL")
+	}
+
+	if filter.Search != nil && *filter.Search != "" {
+		query = query.Where("(users.name ILIKE ? OR users.email ILIKE ?)", "%"+*filter.Search+"%", "%"+*filter.Search+"%")
+	}
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
@@ -150,7 +202,7 @@ func (u *appUsecase) FetchCandidateRecruitment(ctx context.Context, page, limit 
 	})
 }
 
-func (u *appUsecase) FetchCandidateBookmarked(ctx context.Context, adminID string, page, limit int64, cursor string) response.Base {
+func (u *appUsecase) FetchCandidateBookmarked(ctx context.Context, adminID string, page, limit int64, cursor string, filter gorm_model.CandidateFilter) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -162,7 +214,28 @@ func (u *appUsecase) FetchCandidateBookmarked(ctx context.Context, adminID strin
 
 	bookmarkQuery := u.gormDbRepo.GetDB().WithContext(ctx).
 		Model(&gorm_model.Bookmark{}).
-		Where("admin_id = ?", adminID)
+		Joins("JOIN users ON bookmarks.candidate_id = users.id").
+		Where("bookmarks.admin_id = ?", adminID)
+
+	if len(filter.Bidang) > 0 {
+		bookmarkQuery = bookmarkQuery.Joins("LEFT JOIN job_titles ON job_titles.id = users.job_title_id").
+			Joins("LEFT JOIN sectors ON sectors.id = job_titles.sector_id").
+			Where("sectors.name IN ?", filter.Bidang)
+	}
+
+	if len(filter.JobRoles) > 0 {
+		bookmarkQuery = bookmarkQuery.Joins("LEFT JOIN user_has_job_roles ON user_has_job_roles.user_id = users.id").
+			Joins("LEFT JOIN job_roles ON job_roles.id = user_has_job_roles.job_role_id").
+			Where("job_roles.name IN ?", filter.JobRoles)
+	}
+
+	if len(filter.CandidateLevel) > 0 {
+		bookmarkQuery = bookmarkQuery.Where("users.candidate_level IN ?", filter.CandidateLevel)
+	}
+
+	if filter.Search != nil && *filter.Search != "" {
+		bookmarkQuery = bookmarkQuery.Where("(users.name ILIKE ? OR users.email ILIKE ?)", "%"+*filter.Search+"%", "%"+*filter.Search+"%")
+	}
 
 	var total int64
 	if err := bookmarkQuery.Count(&total).Error; err != nil {
@@ -171,7 +244,8 @@ func (u *appUsecase) FetchCandidateBookmarked(ctx context.Context, adminID strin
 
 	var bookmarks []gorm_model.Bookmark
 	if err := bookmarkQuery.
-		Order("created_at DESC").
+		Select("bookmarks.*").
+		Order("bookmarks.created_at DESC").
 		Limit(int(limit)).Offset(int(offset)).
 		Find(&bookmarks).Error; err != nil {
 		return response.Error(http.StatusInternalServerError, "Failed to fetch bookmarked candidates")
@@ -187,7 +261,7 @@ func (u *appUsecase) FetchCandidateBookmarked(ctx context.Context, adminID strin
 		var users []gorm_model.User
 		if err := u.gormDbRepo.GetDB().WithContext(ctx).
 			Model(&gorm_model.User{}).
-			Where("id IN ?", bookmarkedIDs).
+			Where("users.id IN ?", bookmarkedIDs).
 			Preload("SystemRole").
 			Preload("RecruitmentStatus").
 			Preload("KabupatenKota.Provinsi").
@@ -643,12 +717,157 @@ func (u *appUsecase) UpdateProfile(ctx context.Context, userID string, req reque
 		user.Summary = req.Summary
 	}
 
+	if req.AvailabilityStatus != nil {
+		isAvailabilityChanged := false
+		currentDbStatus := "available"
+		if user.UnavailableUntil != nil {
+			currentDbStatus = "unavailable"
+		}
+
+		if *req.AvailabilityStatus != currentDbStatus {
+			isAvailabilityChanged = true
+		} else if *req.AvailabilityStatus == "unavailable" && req.UnavailableUntil != nil {
+			if *req.UnavailableUntil == "" {
+				if user.UnavailableUntil != nil {
+					isAvailabilityChanged = true
+				}
+			} else {
+				t, err := time.Parse("2006-01-02", *req.UnavailableUntil)
+				if err == nil {
+					if user.UnavailableUntil == nil || !user.UnavailableUntil.Equal(t) {
+						isAvailabilityChanged = true
+					}
+				} else {
+					return response.Error(http.StatusBadRequest, "Format tanggal tidak valid. Gunakan format YYYY-MM-DD")
+				}
+			}
+		}
+
+		if isAvailabilityChanged {
+			isAllowed := true
+			if user.RecruitmentStatusId != nil {
+				statusName := ""
+				if user.RecruitmentStatus != nil {
+					statusName = user.RecruitmentStatus.Name
+				} else {
+					var status gorm_model.RecruitmentStatus
+					if err := u.gormDbRepo.GetDB().WithContext(ctx).First(&status, "id = ?", *user.RecruitmentStatusId).Error; err == nil {
+						statusName = status.Name
+					}
+				}
+				if statusName != "Available" && statusName != "Unavailable" {
+					isAllowed = false
+				}
+			}
+			if !isAllowed {
+				return response.Error(http.StatusBadRequest, "Anda tidak dapat mengubah status ketersediaan saat sedang dalam proses rekrutmen atau onboarding")
+			}
+
+			if *req.AvailabilityStatus == "available" {
+				user.UnavailableUntil = nil
+				user.RecruitmentStatusId = nil
+			} else if *req.AvailabilityStatus == "unavailable" && req.UnavailableUntil != nil {
+				if *req.UnavailableUntil == "" {
+					user.UnavailableUntil = nil
+					user.RecruitmentStatusId = nil
+				} else {
+					t, err := time.Parse("2006-01-02", *req.UnavailableUntil)
+					if err == nil {
+						user.UnavailableUntil = &t
+						var unavailableStatus gorm_model.RecruitmentStatus
+						if err := u.gormDbRepo.GetDB().WithContext(ctx).
+							Where("name = ? AND deleted_at IS NULL", "Unavailable").
+							First(&unavailableStatus).Error; err == nil {
+							user.RecruitmentStatusId = &unavailableStatus.ID
+						} else {
+							return response.Error(http.StatusInternalServerError, "Gagal mendapatkan data status recruitment 'Unavailable'")
+						}
+					}
+				}
+			}
+		}
+	}
+
 	if req.JobRoleIds != nil {
 		var jobRoles []gorm_model.JobRole
 		if len(req.JobRoleIds) > 0 {
-			if err := u.gormDbRepo.GetDB().WithContext(ctx).Where("id IN ?", req.JobRoleIds).Find(&jobRoles).Error; err != nil {
-				logrus.Errorf("failed to fetch job roles: %v", err)
+			db := u.gormDbRepo.GetDB()
+
+			var allRoles []gorm_model.JobRole
+			db.Preload("Sector").Find(&allRoles)
+
+			var dbRoleUUIDs []string
+			var newRoleStrings []string
+
+			for _, idOrNew := range req.JobRoleIds {
+				if strings.HasPrefix(idOrNew, "NEW_ROLE:") {
+					newRoleStrings = append(newRoleStrings, idOrNew)
+				} else if _, err := uuid.Parse(idOrNew); err == nil {
+					dbRoleUUIDs = append(dbRoleUUIDs, idOrNew)
+				}
 			}
+
+			if len(dbRoleUUIDs) > 0 {
+				var existingRoles []gorm_model.JobRole
+				if err := db.WithContext(ctx).Where("id IN ?", dbRoleUUIDs).Find(&existingRoles).Error; err != nil {
+					logrus.Errorf("failed to fetch job roles: %v", err)
+				} else {
+					jobRoles = append(jobRoles, existingRoles...)
+				}
+			}
+
+			for _, newRoleStr := range newRoleStrings {
+				parts := strings.Split(newRoleStr, ":")
+				var sectorName string
+				var roleName string
+				if len(parts) >= 3 {
+					sectorName = parts[1]
+					roleName = parts[2]
+				} else if len(parts) >= 2 {
+					roleName = parts[1]
+				}
+
+				if roleName == "" {
+					continue
+				}
+
+				if match, found := fuzzyMatchJobRole(allRoles, roleName, 2); found {
+					alreadyAdded := false
+					for _, jr := range jobRoles {
+						if jr.ID == match.ID {
+							alreadyAdded = true
+							break
+						}
+					}
+					if !alreadyAdded {
+						jobRoles = append(jobRoles, *match)
+					}
+					continue
+				}
+
+				titled := toTitleCase(roleName)
+				var sector *gorm_model.Sector
+				var err error
+
+				if sectorName != "" {
+					sector, err = getOrCreateSectorByName(db, sectorName)
+				} else {
+					sector, err = getOrCreateUndefinedSector(db)
+				}
+
+				if err == nil {
+					newRole := gorm_model.JobRole{
+						ID:       uuid.New().String(),
+						Name:     titled,
+						SectorID: sector.ID,
+					}
+					if err := db.Create(&newRole).Error; err == nil {
+						jobRoles = append(jobRoles, newRole)
+						allRoles = append(allRoles, newRole)
+					}
+				}
+			}
+
 			existingRoleMap := make(map[string]bool)
 			for _, r := range user.JobRoles {
 				existingRoleMap[r.ID] = true
@@ -920,7 +1139,7 @@ func (u *appUsecase) getRecruitmentStatusByName(ctx context.Context, statusName 
 	return &recruitmentStatus, nil
 }
 
-func (u *appUsecase) DeclineRecruitment(ctx context.Context, id string) response.Base {
+func (u *appUsecase) DeclineRecruitment(ctx context.Context, id string, req request_model.DeclineRecruitmentRequest) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -945,13 +1164,26 @@ func (u *appUsecase) DeclineRecruitment(ctx context.Context, id string) response
 		return response.Error(http.StatusBadRequest, "Cannot reference an inactive recruitment status")
 	}
 
+	// Update active subrequest candidate declined reason
+	var subreqCandidate gorm_model.SubrequestCandidate
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).
+		Where("candidate_user_id = ? AND deleted_at IS NULL", user.ID).
+		Order("created_at DESC").
+		Limit(1).
+		First(&subreqCandidate).Error; err == nil {
+		subreqCandidate.DeclinedReason = &req.DeclinedReason
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).Save(&subreqCandidate).Error; err != nil {
+			logrus.Errorf("failed to save declined_reason in DeclineRecruitment: %v", err)
+		}
+	}
+
 	user.RecruitmentStatusId = &declineStatus.ID
 	if err := u.gormDbRepo.UpdateUser(ctx, user); err != nil {
-		helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, nil, false)
+		helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, req, false)
 		return response.Error(http.StatusInternalServerError, err.Error())
 	}
 
-	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, nil, true)
+	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, req, true)
 	
 	// Notify Admin
 	go func() {
@@ -1000,11 +1232,16 @@ func (u *appUsecase) ConfirmDeclineRecruitment(ctx context.Context, id string) r
 		return response.Error(http.StatusInternalServerError, "Failed to confirm decline")
 	}
 
+	// Delete conversations immediately
+	if err := u.gormDbRepo.DeleteConversationsByCandidateID(ctx, user.ID); err != nil {
+		logrus.Errorf("ConfirmDeclineRecruitment conversation deletion failed for user %s: %v", user.ID, err)
+	}
+
 	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, nil, true)
 	return response.SuccessAction("User", user.Email, "decline confirmed")
 }
 
-func (u *appUsecase) StopOnboarding(ctx context.Context, id string) response.Base {
+func (u *appUsecase) StopOnboarding(ctx context.Context, id string, req request_model.StopOnboardingRequest) response.Base {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -1029,9 +1266,27 @@ func (u *appUsecase) StopOnboarding(ctx context.Context, id string) response.Bas
 		return response.Error(http.StatusBadRequest, "User recruitment status must be Accepted")
 	}
 
+	// Update active OnboardHistory cancelled reason
+	var onboardHistory gorm_model.OnboardHistory
+	if err := u.gormDbRepo.GetDB().WithContext(ctx).
+		Where("candidate_user_id = ? AND deleted_at IS NULL AND is_stopped = false", user.ID).
+		Order("created_at DESC").
+		Limit(1).
+		First(&onboardHistory).Error; err == nil {
+		onboardHistory.CancelledReason = &req.CancelledReason
+		if err := u.gormDbRepo.GetDB().WithContext(ctx).Save(&onboardHistory).Error; err != nil {
+			logrus.Errorf("failed to save cancelled_reason in StopOnboarding: %v", err)
+		}
+	}
+
 	if err := u.gormDbRepo.StopOnboardingByCandidateID(ctx, user.ID); err != nil {
 		logrus.Errorf("StopOnboarding failed for user %s: %v", user.ID, err)
 		return response.Error(http.StatusInternalServerError, "Failed to stop onboarding")
+	}
+
+	// Delete conversations immediately
+	if err := u.gormDbRepo.DeleteConversationsByCandidateID(ctx, user.ID); err != nil {
+		logrus.Errorf("StopOnboarding conversation deletion failed for user %s: %v", user.ID, err)
 	}
 
 	go func(email, name string) {
@@ -1040,7 +1295,7 @@ func (u *appUsecase) StopOnboarding(ctx context.Context, id string) response.Bas
 		}
 	}(user.Email, user.Name)
 
-	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, nil, true)
+	helpers.LogActivity(ctx, u.gormDbRepo, "Patch", "User Recruitment Status", user.Email, req, true)
 	return response.SuccessAction("User", user.Email, "onboarding stopped")
 }
 
@@ -1072,16 +1327,12 @@ func (u *appUsecase) CancelRecruitment(ctx context.Context, id string) response.
 		}
 	}(user.Email, user.Name)
 
-	// Schedule chat deletion in 12 hours
-	candidateID := user.ID
-	time.AfterFunc(12*time.Hour, func() {
-		bgCtx := context.Background()
-		if err := u.gormDbRepo.DeleteConversationsByCandidateID(bgCtx, candidateID); err != nil {
-			logrus.Errorf("Failed to delete conversations for candidate %s after 12 hours: %v", candidateID, err)
-		} else {
-			logrus.Infof("Successfully deleted conversations for candidate %s after 12 hours", candidateID)
-		}
-	})
+	// Delete conversation immediately
+	if err := u.gormDbRepo.DeleteConversationsByCandidateID(ctx, user.ID); err != nil {
+		logrus.Errorf("Failed to delete conversations for candidate %s: %v", user.ID, err)
+	} else {
+		logrus.Infof("Successfully deleted conversations for candidate %s", user.ID)
+	}
 
 	// Notify Candidate
 	helpers.SendNotificationAsync(ctx, u.gormDbRepo, user.ID,
@@ -1191,7 +1442,6 @@ func (u *appUsecase) FinalizeRecruitment(ctx context.Context, adminID string, re
 		acceptedStatus.ID,
 		&startDate,
 		&endDate,
-		nil,
 		string(encodedSnapshot),
 	); err != nil {
 		helpers.LogActivity(ctx, u.gormDbRepo, "Finalize", "Recruitment", candidate.Email, req, false)
@@ -1283,4 +1533,113 @@ func (u *appUsecase) DeleteAccount(ctx context.Context, userID string, req reque
 
 	helpers.LogActivity(ctx, u.gormDbRepo, "Delete", "Account", user.Email, nil, true)
 	return response.SuccessAction("Account", user.Email, "deleted")
+}
+
+// levenshtein computes the edit distance between two strings (case-insensitive).
+func levenshtein(a, b string) int {
+	a = strings.ToLower(a)
+	b = strings.ToLower(b)
+	la, lb := len(a), len(b)
+	if la == 0 {
+		return lb
+	}
+	if lb == 0 {
+		return la
+	}
+	prev := make([]int, lb+1)
+	curr := make([]int, lb+1)
+	for j := 0; j <= lb; j++ {
+		prev[j] = j
+	}
+	for i := 1; i <= la; i++ {
+		curr[0] = i
+		for j := 1; j <= lb; j++ {
+			cost := 1
+			if a[i-1] == b[j-1] {
+				cost = 0
+			}
+			ins := curr[j-1] + 1
+			del := prev[j] + 1
+			sub := prev[j-1] + cost
+			m := ins
+			if del < m {
+				m = del
+			}
+			if sub < m {
+				m = sub
+			}
+			curr[j] = m
+		}
+		prev, curr = curr, prev
+	}
+	return prev[lb]
+}
+
+// toTitleCase converts a string to "Title Case" (first letter of each word uppercase).
+func toTitleCase(s string) string {
+	words := strings.Fields(s)
+	for i, w := range words {
+		if len(w) == 0 {
+			continue
+		}
+		runes := []rune(w)
+		runes[0] = unicode.ToUpper(runes[0])
+		for j := 1; j < len(runes); j++ {
+			runes[j] = unicode.ToLower(runes[j])
+		}
+		words[i] = string(runes)
+	}
+	return strings.Join(words, " ")
+}
+
+// fuzzyMatchJobRole finds the best matching job role using Levenshtein distance.
+func fuzzyMatchJobRole(allRoles []gorm_model.JobRole, input string, maxDistance int) (*gorm_model.JobRole, bool) {
+	inputLower := strings.ToLower(strings.TrimSpace(input))
+	bestDist := maxDistance + 1
+	var bestMatch *gorm_model.JobRole
+	for i := range allRoles {
+		dist := levenshtein(inputLower, strings.ToLower(allRoles[i].Name))
+		if dist < bestDist {
+			bestDist = dist
+			bestMatch = &allRoles[i]
+		}
+	}
+	if bestMatch != nil && bestDist <= maxDistance {
+		return bestMatch, true
+	}
+	return nil, false
+}
+
+// getOrCreateUndefinedSector fetches or creates the "undefined" sector.
+func getOrCreateUndefinedSector(db *gorm.DB) (*gorm_model.Sector, error) {
+	var sector gorm_model.Sector
+	if err := db.Where("LOWER(name) = ?", "undefined").First(&sector).Error; err == nil {
+		return &sector, nil
+	}
+	sector = gorm_model.Sector{
+		ID:       uuid.New().String(),
+		Name:     "Undefined",
+		IsActive: true,
+	}
+	if err := db.Create(&sector).Error; err != nil {
+		return nil, err
+	}
+	return &sector, nil
+}
+
+// getOrCreateSectorByName fetches or creates a sector by its name (case-insensitive).
+func getOrCreateSectorByName(db *gorm.DB, name string) (*gorm_model.Sector, error) {
+	var sector gorm_model.Sector
+	if err := db.Where("LOWER(name) = ?", strings.ToLower(name)).First(&sector).Error; err == nil {
+		return &sector, nil
+	}
+	sector = gorm_model.Sector{
+		ID:       uuid.New().String(),
+		Name:     toTitleCase(name),
+		IsActive: true,
+	}
+	if err := db.Create(&sector).Error; err != nil {
+		return nil, err
+	}
+	return &sector, nil
 }

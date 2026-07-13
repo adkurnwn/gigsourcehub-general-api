@@ -108,8 +108,7 @@ type GormRepo interface {
 	CancelRecruitmentByCandidateID(ctx context.Context, candidateID string) error
 	GetActiveSubrequestByCandidateID(ctx context.Context, candidateID string) (*gorm_model.ActiveSubrequestInfo, error)
 	GetFinalizeSnapshotData(ctx context.Context, subrequestID string) (*gorm_model.FinalizeRecruitmentSnapshot, error)
-	FinalizeRecruitment(ctx context.Context, candidateID, subrequestID, requestID, acceptedStatusID string, startDate, endDate *time.Time, offeringID *string, snapshotJSON string) error
-	CreateOffering(ctx context.Context, model *gorm_model.Offering) error
+	FinalizeRecruitment(ctx context.Context, candidateID, subrequestID, requestID, acceptedStatusID string, startDate, endDate *time.Time, snapshotJSON string) error
 	FetchOnboardHistoriesByCandidate(ctx context.Context, candidateID string, limit, offset int64) ([]gorm_model.OnboardHistory, error)
 	CountOnboardHistoriesByCandidate(ctx context.Context, candidateID string) (int64, error)
 	FetchOnboardHistoriesByEmployee(ctx context.Context, employeeID string, limit, offset int64) ([]gorm_model.OnboardHistory, error)
@@ -182,6 +181,8 @@ type GormRepo interface {
 	MarkMessagesAsRead(ctx context.Context, conversationID, readerUserID string) error
 	CountUnreadMessagesByUser(ctx context.Context, userID string) (int64, error)
 	CountUnreadMessagesByConversation(ctx context.Context, conversationID, userID string) (int64, error)
+	// Update interview-related chat message content when interview metadata changes
+	UpdateInterviewChatMessages(ctx context.Context, interview *gorm_model.Interview) error
 
 	// Chat Authorization helpers
 	IsAdminOfSubrequest(ctx context.Context, adminID, subrequestID string) (bool, error)
@@ -240,6 +241,7 @@ type GormRepo interface {
 	MarkInterview24hReminderSent(ctx context.Context, interviewID string) error
 	MarkInterview1hReminderSent(ctx context.Context, interviewID string) error
 	GetExpiringContractsForNotification(ctx context.Context, targetDate time.Time) ([]gorm_model.OnboardHistory, error)
+	EndExpiredContract(ctx context.Context, onboardHistoryID string, candidateID string) error
 }
 
 type CacheRepo interface {

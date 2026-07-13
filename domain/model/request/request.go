@@ -1,6 +1,7 @@
 package request_model
 
 type CreateSubrequestRequest struct {
+	ID        *string  `json:"id,omitempty"`
 	JobRoleID *string  `json:"job_role_id"`
 	Level     string   `json:"level" validate:"required,oneof=Junior Middle Senior"`
 	TechStack []string `json:"tech_stack"`
@@ -29,10 +30,11 @@ type AssignCandidateToSubrequestRequest struct {
 }
 
 type UpdateRequestRequest struct {
-	ProjectName     string  `json:"project_name" validate:"required"`
-	ProjectDuration *string `json:"project_duration"`
-	DueDate         *string `json:"due_date"`
-	Urgency         string  `json:"urgency" validate:"required,oneof=Low Medium High"`
+	ProjectName     string                    `json:"project_name" validate:"required"`
+	ProjectDuration *string                   `json:"project_duration"`
+	DueDate         *string                   `json:"due_date"`
+	Urgency         string                    `json:"urgency" validate:"required,oneof=Low Medium High"`
+	Subrequests     []CreateSubrequestRequest `json:"subrequests,omitempty"`
 }
 
 type RejectRequestRequest struct {
